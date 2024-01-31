@@ -10,7 +10,8 @@
 #' @param path Path to the file.
 #' 
 #' @examples
-#' # example code
+#' path <- get_example_data("small_biocrates_example.xlsx")
+#' read_data(path)
 #' 
 #' @export
 #'
