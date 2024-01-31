@@ -13,6 +13,7 @@ read_data(path)
 Imports Biocrates data from the Excel file.
 }
 \examples{
-# example code
+path <- get_example_data("small_biocrates_example.xlsx")
+read_data(path)
 
 }
