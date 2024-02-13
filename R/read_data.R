@@ -10,7 +10,7 @@
 #' @param path Path to the file.
 #' 
 #' @examples
-#' path <- get_example_data("small_biocrates_example.xlsx")
+#' path <- get_example_data("small_biocrates_example.xls")
 #' read_data(path)
 #' 
 #' @export
@@ -30,7 +30,7 @@ read_data <- function(path) {
   data <- as.data.frame(read_excel(path, skip = 1))
   colnames(data) <- tolower(colnames(data))
 
-  metabolites <- file.col.names[(which(colnames(data) == "measurement time") + 1):ncol(data)]
+  metabolites <- colnames(data)[(which(colnames(data) == "measurement time") + 1):ncol(data)]
 
   LOD_table <- data %>%
     select(`measurement time`:last_col()) %>%
