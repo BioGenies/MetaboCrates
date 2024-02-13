@@ -28,7 +28,6 @@ read_data <- function(path) {
   }
   
   data <- as.data.frame(read_excel(path, skip = 1))
-  file.col.names <- colnames(data)
   colnames(data) <- tolower(colnames(data))
 
   metabolites <- file.col.names[(which(colnames(data) == "measurement time") + 1):ncol(data)]
@@ -38,6 +37,5 @@ read_data <- function(path) {
     filter(str_extract(`measurement time`, "LOD") == "LOD")
   
   raw_data <- filter(data, !is.na(`plate bar code`))
-  colnames(raw_data) <- file.col.names
-  raw_data
+  raw_data(raw_data, LOD_table, metabolites)
 }
