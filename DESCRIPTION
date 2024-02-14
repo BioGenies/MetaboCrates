@@ -30,7 +30,7 @@ Suggests:
     testthat (>= 3.0.0)
 Imports: dplyr,
          readxl,
-         stringr,
+         stringi,
          tools
 Depends: 
     R (>= 2.10)

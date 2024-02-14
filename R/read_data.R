@@ -4,9 +4,8 @@
 #'
 #' @import dplyr
 #' @importFrom readxl read_excel
-#' @importFrom stringr str_extract
 #' @importFrom tools file_ext
-#'
+#' @importFrom stringi stri_detect_fixed
 #' @param path Path to the file.
 #' 
 #' @examples
@@ -35,7 +34,8 @@ read_data <- function(path) {
     select(`measurement time`:last_col()) %>%
     filter(stri_detect_fixed(`measurement time`, "LOD") | 
            stri_detect_fixed(`measurement time`, "LLOQ") | 
-           stri_detect_fixed(`measurement time`, "ULOQ"))
+           stri_detect_fixed(`measurement time`, "ULOQ")) %>% 
+    mutate_at(vars(-("measurement time")), as.numeric)
   
   dat %>% 
     filter(!is.na(`plate bar code`)) %>% 
