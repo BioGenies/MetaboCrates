@@ -16,34 +16,34 @@ new_raw_data <- function(matrix,
 ### VALIDATOR
 
 validate_raw_data <- function(raw_data) {
-
-  matrix <- raw_data
   
-  if(any(duplicated(matrix$`Sample identification`))){
+  sample_ids <- raw_data %>% 
+    filter(`sample type` == "Sample") %>% 
+    pull(`sample identification`)
+  
+  if(any(duplicated(sample_ids)))
     stop("Sample identification column has to be unique.")
-  }
   
-  metabolites_values <- matrix %>%
-    select((which(colnames(matrix) == "Measurement time") + 1):last_col())
-  metabolites_values <- unlist(metabolites_values)
+  metabolites_values <- raw_data %>%
+    select(`measurement time`:last_col(), -`measurement time`) %>% 
+    unlist()
+  
   metabolites_values <- metabolites_values[which(!(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", NA)))]
   
   withCallingHandlers(
     expr = as.numeric(metabolites_values),
-    warning = function(w) {
-      stop("Found incorrect metabolites values.")
-    }
+    warning = function(w) stop("Found incorrect metabolites values.")
   )
   
-  required_columns <- c("Plate bar code", "Sample identification", "Sample type", "Measurement time")
-  if(!(all(required_columns %in% colnames(matrix))))
-    stop(paste("Data should contain row/s:",which(!(required_columns %in% colnames(matrix)))))
+  required_columns <- c("plate bar code", "sample identification", "sample type", "measurement time")
+  if(!(all(required_columns %in% colnames(raw_data))))
+    stop(paste("Data should contain row/s:",which(!(required_columns %in% colnames(raw_data)))))
   
-  if(!any(grepl("QC", matrix$`Sample type`)))
-    stop("Data should contain samples of QC type.")
-
+  if(!any(grepl("QC", raw_data[["sample type"]])))
+    stop("Data should contain quality control samples.")
+  
   raw_data
-
+  
 }
 
 ### HELPER
@@ -51,13 +51,15 @@ validate_raw_data <- function(raw_data) {
 raw_data <- function(raw_data,
                      LOD_table,
                      metabolites) {
-
-  matrix <- as.data.frame(raw_data, check.names = FALSE)
-  colnames(matrix) <- str_to_sentence(colnames(matrix))
-  LOD_table <- as.data.frame(LOD_table)
-
+  
+  metabolomics_matrix <- raw_data %>% 
+    as.data.frame(check.names = FALSE) %>% 
+    rename_with(tolower)
+  
+  LOD_table <- LOD_table %>% as.data.frame()
+  
   validate_raw_data(
-    new_raw_data(matrix = matrix,
+    new_raw_data(matrix = metabolomics_matrix,
                  LOD_table = LOD_table,
                  metabolites = metabolites)
   )
