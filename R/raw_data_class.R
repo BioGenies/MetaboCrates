@@ -95,8 +95,7 @@ validate_raw_data <- function(raw_data) {
 raw_data <- function(metabolomics_matrix, LOD_table, metabolites) {
   
   metabolomics_matrix <- metabolomics_matrix %>% 
-    as.data.frame(check.names = FALSE) %>% 
-    rename_with(tolower)
+    as.data.frame(check.names = FALSE)
   
   LOD_table <- LOD_table %>% 
     as.data.frame() %>% 

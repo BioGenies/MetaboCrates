@@ -18,23 +18,27 @@
 read_data <- function(path) {
   
   if(!file.exists(path))
-    stop(paste0("The file ", path, " does not exist. 
-                You probably provided wrong path."))
+    stop(paste0("The file ", path, " does not exist. Check if the path is correct."))
   
   if(!(file_ext(path) %in% c("xls", "xlsx"))) 
     stop(paste0("File extension should be xls or xlsx, not ", file_ext(path), "."))
   
   dat <- read_excel(path, skip = 1) %>% 
-    as.data.frame() %>% 
-    rename_with(tolower)
+    as.data.frame() 
   
-  metabolites <- colnames(dat)[(which(colnames(dat) == "measurement time") + 1):ncol(dat)]
+  last_col <- which(colnames(dat) %in% c("Measurement Time", 
+                                         "Measurement time", 
+                                         "measurement time"))
   
+  metabolites <- colnames(dat)[(last_col + 1):ncol(dat)]
+  
+  dat <- dat %>% rename_with(tolower, !all_of(metabolites))
+
   LOD_table <- dat %>%
     select(`measurement time`:last_col()) %>%
     filter(stri_detect_fixed(`measurement time`, "LOD") | 
-           stri_detect_fixed(`measurement time`, "LLOQ") | 
-           stri_detect_fixed(`measurement time`, "ULOQ")) %>% 
+             stri_detect_fixed(`measurement time`, "LLOQ") | 
+             stri_detect_fixed(`measurement time`, "ULOQ")) %>% 
     mutate_at(vars(-("measurement time")), as.numeric)
   
   dat %>% 
