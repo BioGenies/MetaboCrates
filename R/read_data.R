@@ -10,7 +10,7 @@
 #' @param path Path to the file.
 #' 
 #' @examples
-#' path <- get_example_data("small_biocrates_example.xlsx")
+#' path <- get_example_data("small_biocrates_example.xls")
 #' read_data(path)
 #' 
 #' @export
@@ -18,26 +18,26 @@
 
 read_data <- function(path) {
   
-  if(!file.exists(path)) {
-    stop(paste0("The file ", path, " does not exist.
+  if(!file.exists(path))
+    stop(paste0("The file ", path, " does not exist. 
                 You probably provided wrong path."))
-  }
   
-  if(!(file_ext(path) %in% c("xls", "xlsx"))) {
+  if(!(file_ext(path) %in% c("xls", "xlsx"))) 
     stop(paste0("File extension should be xls or xlsx, not ", file_ext(path), "."))
-  }
   
-  data <- as.data.frame(read_excel(path, skip = 1))
-  file.col.names <- colnames(data)
-  colnames(data) <- tolower(colnames(data))
-
-  metabolites <- file.col.names[(which(colnames(data) == "measurement time") + 1):ncol(data)]
-
-  LOD_table <- data %>%
+  dat <- read_excel(path, skip = 1) %>% 
+    as.data.frame() %>% 
+    rename_with(tolower)
+  
+  metabolites <- colnames(dat)[(which(colnames(dat) == "measurement time") + 1):ncol(dat)]
+  
+  LOD_table <- dat %>%
     select(`measurement time`:last_col()) %>%
-    filter(str_extract(`measurement time`, "LOD") == "LOD")
+    filter(stri_detect_fixed(`measurement time`, "LOD") | 
+           stri_detect_fixed(`measurement time`, "LLOQ") | 
+           stri_detect_fixed(`measurement time`, "ULOQ"))
   
-  raw_data <- filter(data, !is.na(`plate bar code`))
-  colnames(raw_data) <- file.col.names
-  raw_data
+  dat %>% 
+    filter(!is.na(`plate bar code`)) %>% 
+    raw_data(LOD_table, metabolites)
 }

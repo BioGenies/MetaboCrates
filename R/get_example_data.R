@@ -12,5 +12,5 @@
 #' @export
 
 get_example_data <- function(name){
-  paste0(.libPaths()[1], "/MetaBocrates/", name)
+  system.file("extdata", name, package = "MetaboCrates")
 }
