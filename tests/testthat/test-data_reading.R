@@ -1,7 +1,5 @@
 library(testthat)
 
-path <- get_example_data("small_biocrates_example.xls")
-
 # test if conditions work
 
 test_that("read_data throws error for wrong path", {
@@ -15,6 +13,8 @@ test_that("read_data throws error for wrong file extension", {
 })
 
 # test if the data is correct
+
+path <- get_example_data("small_biocrates_example.xls")
 
 test_dat <- read_data(path)
 metabolites <- attr(test_dat, "metabolites")

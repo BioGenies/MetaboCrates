@@ -41,7 +41,7 @@ validate_raw_data <- function(raw_data) {
     unlist()
   
   metabolites_values <- metabolites_values[
-    which(!(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", NA)))
+    which(!(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)))
   ]
   
   withCallingHandlers(
