@@ -61,11 +61,14 @@ validate_raw_data <- function(raw_data) {
   # Validate metabolites names
   metabolites <- attr(raw_data, "metabolites")
   
-  if(!all(metabolites %in% colnames(raw_data)))
+  if(!all(metabolites %in% colnames(raw_data))) {
     warning(paste0("Metabolites ", 
                    paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
                           collapse = ", "), 
-                   " cannot be found in the data!"))
+                   " cannot be found in the data! We will ignore them."))
+    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
+  }
+
   
   # Validate LOD table
   
