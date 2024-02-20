@@ -4,20 +4,45 @@
 \alias{raw_data}
 \title{raw_data class}
 \usage{
-raw_data(metabolomics_matrix, LOD_table, metabolites)
+raw_data(metabolomics_matrix, LOD_table, metabolites, group = NULL)
 }
 \arguments{
-\item{metabolomics_matrix}{\code{\link{data.frame}}, matrix containing
+\item{metabolomics_matrix}{a \code{\link{data.frame}}, matrix containing
 biocrates data}
 
-\item{LOD_table}{\code{\link{data.frame}}, the LOD table containing limits of
-detection / quantification}
+\item{LOD_table}{a \code{\link{list}} containing two elements:
+\itemize{
+\item \code{table}: LOD table of limits of detection / quantification,
+\item \code{types}: character vector of types of values, for example calc.
+meaning caluclated from samples and op, received from operator.
+}}
 
-\item{metabolites}{\code{\link{character}}, vector of metabolites names
+\item{metabolites}{a \code{\link{character}}, vector of metabolites names
 contained in the data.}
+
+\item{group}{a \code{NULL} indicating no grouping column in the data or
+a \code{\link{character}} name of column with groups. Default to NA. The code
+will throw an error in the case when:
+\itemize{
+\item column of such a name won't be contained in the dataset,
+\item there will be NA's in the grouping column,
+\item one of the groups will have less than 2 observations.
+}}
 }
 \value{
-\code{\link{raw_data}} object.
+\code{\link{raw_data}} object metabolomics matrix with the following
+attributes:
+\itemize{
+\item \code{LOD_table}
+\item \code{NA_info}: a \code{\link{list}} related to missing values in the data.
+It contains \code{NA_ratios}: fractions of missing values per every metabolite.
+When \code{group} parameter (see below) is provided and \code{counts}: table of
+types of missing values with their counts.
+\item \code{metabolites}
+\item \code{samples}: a \code{\link{data.frame}} containing names of samples types
+and their counts
+\item \code{group}
+}
 }
 \description{
 raw_data class

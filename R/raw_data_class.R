@@ -9,11 +9,19 @@
 #' 
 #' @keywords internal
 
-new_raw_data <- function(metabolomics_matrix, LOD_table, metabolites){
+new_raw_data <- function(metabolomics_matrix, 
+                         LOD_table, 
+                         NA_info,
+                         metabolites,
+                         samples,
+                         group){
   
   structure(.Data = metabolomics_matrix,
-            "metabolites" = metabolites,
             "LOD_table" = LOD_table,
+            "NA_info" = NA_info,
+            "metabolites" = metabolites,
+            "samples" = samples,
+            "group" = group,
             class = c("raw_data", "data.frame"))
 }
 
@@ -36,18 +44,19 @@ validate_raw_data <- function(raw_data) {
   if(any(duplicated(sample_ids)))
     stop("Sample identification column has to be unique.")
   
+  metabolites <- attr(raw_data, "metabolites")
+  
   metabolites_values <- raw_data %>%
-    select(`measurement time`:last_col(), -`measurement time`) %>% 
+    select(all_of(metabolites)) %>% 
     unlist()
   
   metabolites_values <- metabolites_values[
     which(!(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)))
   ]
+  storage.mode(metabolites_values) <- "numeric"
   
-  withCallingHandlers(
-    expr = as.numeric(metabolites_values),
-    warning = function(w) stop("Found incorrect metabolites values.")
-  )
+  if(any(is.na(metabolites_values)))
+    stop("Found incorrect metabolites values.")
   
   required_columns <- c("plate bar code", "sample identification", 
                         "sample type", "measurement time")
@@ -59,7 +68,6 @@ validate_raw_data <- function(raw_data) {
     stop("Data should contain quality control samples.")
   
   # Validate metabolites names
-  metabolites <- attr(raw_data, "metabolites")
   
   if(!all(metabolites %in% colnames(raw_data))) {
     warning(paste0("Metabolites ", 
@@ -68,14 +76,31 @@ validate_raw_data <- function(raw_data) {
                    " cannot be found in the data! We will ignore them."))
     attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
   }
-
   
   # Validate LOD table
-  
   LOD_table <- attr(raw_data, "LOD_table")
   
   if(!all(sort(colnames(LOD_table)[-1]) == sort(metabolites)))
     stop("Provided metabolites do not match LOD table!")
+  
+  # Validate groups
+  group <- attr(raw_data, "group")
+  
+  if(!is.null(group)) {
+    if(!(group %in% colnames(raw_data)))
+      stop(paste0("Provided group:", group, " is not contained in the data."))
+    
+    if(!(group %in% colnames(raw_data)))
+      stop(paste0("Provided group:", group, " is not contained in the data."))
+    
+    counts <- raw_data %>% 
+      filter(`sample type` == "Sample") %>% 
+      group_by(group) %>% 
+      summarise(count = n()) %>% 
+      pull(count)
+    if(any(counts < 2))
+      stop("Some of groups have less than 2 observations.")
+  }
   
   raw_data
   
@@ -84,21 +109,71 @@ validate_raw_data <- function(raw_data) {
 
 #' raw_data class
 #' 
-#' @param metabolomics_matrix \code{\link{data.frame}}, matrix containing 
+#' @importFrom tidyr gather
+#' 
+#' @param metabolomics_matrix a \code{\link{data.frame}}, matrix containing 
 #' biocrates data 
-#' @param LOD_table \code{\link{data.frame}}, the LOD table containing limits of
-#' detection / quantification
-#' @param metabolites \code{\link{character}}, vector of metabolites names 
+#' 
+#' @param LOD_table a \code{\link{list}} containing two elements:
+#' - \code{table}: LOD table of limits of detection / quantification,
+#' - \code{types}: character vector of types of values, for example calc. 
+#' meaning caluclated from samples and op, received from operator.
+#' 
+#' @param metabolites a \code{\link{character}}, vector of metabolites names 
 #' contained in the data.
 #' 
-#' @return \code{\link{raw_data}} object.
+#' @param group a \code{NULL} indicating no grouping column in the data or
+#' a \code{\link{character}} name of column with groups. Default to NA. The code 
+#' will throw an error in the case when:
+#' - column of such a name won't be contained in the dataset,
+#' - there will be NA's in the grouping column,
+#' - one of the groups will have less than 2 observations.
+#' 
+#' @return \code{\link{raw_data}} object metabolomics matrix with the following 
+#' attributes:
+#' 
+#' - \code{LOD_table}
+#' - \code{NA_info}: a \code{\link{list}} related to missing values in the data. 
+#' It contains \code{NA_ratios}: fractions of missing values per every metabolite. 
+#' When \code{group} parameter (see below) is provided and \code{counts}: table of 
+#' types of missing values with their counts.
+#' - \code{metabolites} 
+#' - \code{samples}: a \code{\link{data.frame}} containing names of samples types 
+#' and their counts
+#' - \code{group}
 #' 
 #' @keywords internal
 
-raw_data <- function(metabolomics_matrix, LOD_table, metabolites) {
+raw_data <- function(metabolomics_matrix, 
+                     LOD_table, 
+                     metabolites,
+                     group = NULL) {
   
   metabolomics_matrix <- metabolomics_matrix %>% 
     as.data.frame(check.names = FALSE)
+  
+  NA_ratios <- metabolomics_matrix %>% 
+    filter(`sample type` == "Sample") %>% 
+    select(all_of(metabolites), group) %>% 
+    tidyr::gather("metabolite", "value", -group) %>% 
+    group_by(metabolite, group) %>% 
+    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")))
+  
+  miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
+  
+  tmp <- metabolomics_matrix %>% 
+    filter(`sample type` == "Sample")
+  
+  counts <- lapply(miss_vals, function(i) {
+    data.frame(type = i, 
+               n = sum(tmp == i, na.rm = TRUE))
+  }) %>%  bind_rows()
+  
+  NA_info = list(NA_ratios = NA_ratios, counts = counts)
+  
+  samples <- metabolomics_matrix %>% 
+    group_by(`sample type`) %>% 
+    summarise(count = n())
   
   LOD_table <- LOD_table %>% 
     as.data.frame() %>% 
@@ -107,6 +182,9 @@ raw_data <- function(metabolomics_matrix, LOD_table, metabolites) {
   validate_raw_data(
     new_raw_data(metabolomics_matrix = metabolomics_matrix,
                  LOD_table = LOD_table,
-                 metabolites = metabolites)
+                 NA_info = NA_info,
+                 metabolites = metabolites,
+                 samples = samples,
+                 group = group)
   )
 }

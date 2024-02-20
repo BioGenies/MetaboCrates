@@ -1,4 +1,5 @@
 library(testthat)
+library(MetaboCrates)
 
 # test if conditions work
 

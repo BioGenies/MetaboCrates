@@ -4,7 +4,14 @@
 \alias{new_raw_data}
 \title{Creation of validated raw_data class}
 \usage{
-new_raw_data(metabolomics_matrix, LOD_table, metabolites)
+new_raw_data(
+  metabolomics_matrix,
+  LOD_table,
+  NA_info,
+  metabolites,
+  samples,
+  group
+)
 }
 \value{
 \code{\link{raw_data}} object.

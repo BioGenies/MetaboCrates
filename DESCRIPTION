@@ -30,6 +30,7 @@ Suggests:
 Imports: dplyr,
          readxl,
          stringi,
+         tidyr,
          tools
 Depends: 
     R (>= 2.10)
