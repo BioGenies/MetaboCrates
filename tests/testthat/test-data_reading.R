@@ -48,13 +48,22 @@ test_that("Values in metabolomics matrix are correct", {
   )
 })
 
+# attributes:
+
 test_that("Metabolites are correct", {
   expect_true(all(metabolites %in% colnames(test_dat)))
+  expect_true(is.character(metabolites))
 })
 
-test_that("Names of columns in LOD_table. are proper.", {
+test_that("Names of columns in LOD_table are proper.", {
   expect_true(all(colnames(LOD_table) %in% colnames(test_dat)))
 })
+
+test_that("Types of missing values are correct.", {
+  expect_true(all(colnames(LOD_table) %in% colnames(test_dat)))
+})
+
+##
 
 test_that("Measurement time is in LOD_table.", {
   expect_true(colnames(LOD_table)[1] == "measurement time")

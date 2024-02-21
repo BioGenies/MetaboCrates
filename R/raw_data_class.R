@@ -83,16 +83,13 @@ validate_raw_data <- function(raw_data) {
   # Validate LOD table
   LOD_table <- attr(raw_data, "LOD_table")
   
-  if(!all(sort(colnames(LOD_table)[-1]) == sort(metabolites)))
+  if(!all(sort(setdiff(colnames(LOD_table), c("plate bar code", "type"))) == sort(metabolites)))
     stop("Provided metabolites do not match LOD table!")
   
   # Validate groups
   group <- attr(raw_data, "group")
   
   if(!is.null(group)) {
-    if(!(group %in% colnames(raw_data)))
-      stop(paste0("Provided group:", group, " is not contained in the data."))
-    
     if(!(group %in% colnames(raw_data)))
       stop(paste0("Provided group:", group, " is not contained in the data."))
     
@@ -180,7 +177,13 @@ raw_data <- function(metabolomics_matrix,
   
   LOD_table <- LOD_table %>% 
     as.data.frame() %>% 
-    mutate_at(vars(-("measurement time")), as.numeric)
+    rename(`plate bar code` = "measurement time") %>% 
+    mutate_at(vars(-("plate bar code")), as.numeric) %>% 
+    mutate(type = ifelse(grepl("LOD", `plate bar code`),
+                         ifelse(grepl("(calc.)", `plate bar code`),
+                                "LOD (calc.)", "LOD (from OP)"),
+                         ifelse(grepl("ULOQ", `plate bar code`),
+                                "ULOQ", "LLOQ")))
   
   validate_raw_data(
     new_raw_data(metabolomics_matrix = metabolomics_matrix,
