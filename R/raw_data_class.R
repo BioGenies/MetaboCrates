@@ -67,6 +67,9 @@ validate_raw_data <- function(raw_data) {
   if(!any(grepl("QC", raw_data[["sample type"]])))
     stop("Data should contain quality control samples.")
   
+  if(any(is.na(select(filter(raw_data, grepl("QC", `sample type`)), all_of(metabolites)))))
+    stop("Quality contriol samples should not contain missing values!")
+  
   # Validate metabolites names
   
   if(!all(metabolites %in% colnames(raw_data))) {
