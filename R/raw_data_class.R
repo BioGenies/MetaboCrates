@@ -35,7 +35,7 @@ new_raw_data <- function(metabolomics_matrix,
 #' @keywords internal
 
 validate_raw_data <- function(raw_data) {
-  
+
   # Validate main data matrix
   sample_ids <- raw_data %>% 
     filter(`sample type` == "Sample") %>% 
@@ -50,13 +50,15 @@ validate_raw_data <- function(raw_data) {
     select(all_of(metabolites)) %>% 
     unlist()
   
-  metabolites_values <- metabolites_values[
-    which(!(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)))
-  ]
-  storage.mode(metabolites_values) <- "numeric"
+  values_mode <- metabolites_values
   
-  if(any(is.na(metabolites_values)))
-    stop("Found incorrect metabolites values.")
+  suppressWarnings({ storage.mode(values_mode) <- "numeric" })
+  
+  wrong_values <- is.na(values_mode) & 
+    !(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
+  
+  if(any(wrong_values)) 
+    stop("Found incorrect metabolites values!")
   
   required_columns <- c("plate bar code", "sample identification", 
                         "sample type", "measurement time")
