@@ -14,7 +14,7 @@ biocrates data}
 \itemize{
 \item \code{table}: LOD table of limits of detection / quantification,
 \item \code{types}: character vector of types of values, for example calc.
-meaning caluclated from samples and op, received from operator.
+meaning calculated from samples and op, received from operator.
 }}
 
 \item{metabolites}{a \code{\link{character}}, vector of metabolites names

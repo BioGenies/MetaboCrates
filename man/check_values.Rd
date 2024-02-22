@@ -11,10 +11,12 @@ check_values(
 }
 \arguments{
 \item{metabolite_vals}{a \code{\link{character}} vector containing measured
-metabolomite values.}
+metabolite values.}
 
 \item{special_signs}{a character vector of permitted special signs that should
-not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ", "NA" and "∞".}
+not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ", "NA" and "∞".
+Where ULOQ means upper limit of quantification, LLOQ means lower limit of
+quantification and LOD means limit o detection.}
 }
 \description{
 Convert weird values into NA's

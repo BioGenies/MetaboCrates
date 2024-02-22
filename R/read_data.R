@@ -7,7 +7,7 @@
 #' @importFrom tools file_ext
 #' @importFrom stringi stri_detect_fixed
 #' 
-#' @param path Path to the file containing Biocrates data imported from MedIDQ 
+#' @param path Path to the file containing Biocrates data imported from MetIDQ 
 #' or WebIDQ TODO: description.
 #' 
 #' @return \code{\link{raw_data}} object.
@@ -56,9 +56,11 @@ read_data <- function(path) {
 #' Convert weird values into NA's
 #'
 #' @param metabolite_vals a \code{\link{character}} vector containing measured 
-#' metabolomite values.
+#' metabolite values.
 #' @param special_signs a character vector of permitted special signs that should 
 #' not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ", "NA" and "∞".
+#' Where ULOQ means upper limit of quantification, LLOQ means lower limit of 
+#' quantification and LOD means limit o detection. 
 #' 
 #' @export
 #'

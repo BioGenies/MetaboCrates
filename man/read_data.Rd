@@ -7,7 +7,7 @@
 read_data(path)
 }
 \arguments{
-\item{path}{Path to the file containing Biocrates data imported from MedIDQ
+\item{path}{Path to the file containing Biocrates data imported from MetIDQ
 or WebIDQ TODO: description.}
 }
 \value{

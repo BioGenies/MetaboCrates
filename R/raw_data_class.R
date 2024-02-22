@@ -124,7 +124,7 @@ validate_raw_data <- function(raw_data) {
 #' @param LOD_table a \code{\link{list}} containing two elements:
 #' - \code{table}: LOD table of limits of detection / quantification,
 #' - \code{types}: character vector of types of values, for example calc. 
-#' meaning caluclated from samples and op, received from operator.
+#' meaning calculated from samples and op, received from operator.
 #' 
 #' @param metabolites a \code{\link{character}}, vector of metabolites names 
 #' contained in the data.
