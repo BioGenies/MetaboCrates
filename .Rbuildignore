@@ -1,2 +1,4 @@
+^renv$
+^renv\.lock$
 ^MetaboCrates\.Rproj$
 ^\.Rproj\.user$
