@@ -35,7 +35,7 @@ new_raw_data <- function(metabolomics_matrix,
 #' @keywords internal
 
 validate_raw_data <- function(raw_data) {
-
+  
   # Validate main data matrix
   sample_ids <- raw_data %>% 
     filter(`sample type` == "Sample") %>% 
@@ -89,15 +89,20 @@ validate_raw_data <- function(raw_data) {
     stop("Provided metabolites do not match LOD table!")
   
   # Validate groups
-  group <- attr(raw_data, "group")
+  group_name <- attr(raw_data, "group")
   
-  if(!is.null(group)) {
-    if(!(group %in% colnames(raw_data)))
-      stop(paste0("Provided group:", group, " is not contained in the data."))
+  if(!is.null(group_name)) {
+    if(!(group_name %in% colnames(raw_data)))
+      stop(paste0("Provided group:", group_name, " is not contained in the data."))
     
-    counts <- raw_data %>% 
-      filter(`sample type` == "Sample") %>% 
-      group_by(group) %>% 
+    samples_data <- raw_data %>% 
+      filter(`sample type` == "Sample")
+    
+    if(any(is.na(samples_data[[group_name]])))
+      stop("Grouping column should not contain any NA's!")
+    
+    counts <- samples_data %>% 
+      group_by(get(group_name)) %>% 
       summarise(count = n()) %>% 
       pull(count)
     if(any(counts < 2))
@@ -167,8 +172,7 @@ raw_data <- function(metabolomics_matrix,
     filter(`sample type` == "Sample")
   
   counts <- lapply(miss_vals, function(i) {
-    data.frame(type = i, 
-               n = sum(tmp == i, na.rm = TRUE))
+    data.frame(type = i, n = sum(tmp == i, na.rm = TRUE))
   }) %>%  bind_rows()
   
   NA_info = list(NA_ratios = NA_ratios, counts = counts)
@@ -177,10 +181,13 @@ raw_data <- function(metabolomics_matrix,
     group_by(`sample type`) %>% 
     summarise(count = n())
   
+  exclude_cols <- match.arg(c("plate bar code", "type"), 
+                            colnames(LOD_table),
+                            several.ok = TRUE)
+  
   LOD_table <- LOD_table %>% 
     as.data.frame() %>% 
-    rename(`plate bar code` = "measurement time") %>% 
-    mutate_at(vars(-("plate bar code")), as.numeric) %>% 
+    mutate_at(vars(-all_of(exclude_cols)), as.numeric) %>% 
     mutate(type = ifelse(grepl("LOD", `plate bar code`),
                          ifelse(grepl("(calc.)", `plate bar code`),
                                 "LOD (calc.)", "LOD (from OP)"),

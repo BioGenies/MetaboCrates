@@ -7,7 +7,11 @@
 read_data(path)
 }
 \arguments{
-\item{path}{Path to the file.}
+\item{path}{Path to the file containing Biocrates data imported from MedIDQ
+or WebIDQ TODO: description.}
+}
+\value{
+\code{\link{raw_data}} object.
 }
 \description{
 Imports Biocrates data from the Excel file.

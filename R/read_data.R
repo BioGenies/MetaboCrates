@@ -40,10 +40,11 @@ read_data <- function(path) {
   
   LOD_table <- dat %>%
     select(`measurement time`:last_col()) %>%
-    filter(stri_detect_fixed(`measurement time`, "LOD") | 
-             stri_detect_fixed(`measurement time`, "LLOQ") | 
-             stri_detect_fixed(`measurement time`, "ULOQ")) %>% 
-    mutate_at(vars(-("measurement time")), as.numeric)
+    rename(`plate bar code` = "measurement time") %>% 
+    filter(stri_detect_fixed(`plate bar code`, "LOD") | 
+             stri_detect_fixed(`plate bar code`, "LLOQ") | 
+             stri_detect_fixed(`plate bar code`, "ULOQ")) %>% 
+    mutate_at(vars(-("plate bar code")), as.numeric)
   
   dat %>% 
     mutate(across(all_of(metabolites), check_values)) %>% 
@@ -73,10 +74,8 @@ check_values <- function(metabolite_vals,
   
   to_convert <- is.na(values_storage) & !(metabolite_vals %in% special_signs)
   
-  if(any(to_convert)) {
-    message("There are some unexpected special signs in the data. Converting them into NA's")
+  if(any(to_convert)) 
     metabolite_vals[to_convert] <- NA
-  }
   
   metabolite_vals
 }
