@@ -135,5 +135,39 @@ test_that("samples object is valid.", {
 })
 
 
+test_that("sample identification column should be unique", {
+  raw_data <- tibble(
+    `sample identification` = c("A", "B", "A"),
+    `sample type` = c("Sample", "Sample", "Sample")
+  )
+  expect_error(validate_raw_data(raw_data), "Sample identification column has to be unique.")
+})
 
+# test_that("incorrect metabolites values should be detected", {
+#   raw_data <- tibble(
+#     `sample identification` = c("A", "B", "C"),
+#     `sample type` = c("Sample", "Sample", "Sample"),
+#     metabolite_1 = c(1, NA, "invalid"),
+#     metabolite_2 = c(2, "< LOD", 3)
+#   )
+#   expect_error(validate_raw_data(raw_data), "Found incorrect metabolites values!")
+# })
+
+test_that("required columns should be present", {
+  raw_data <- tibble(
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("Sample", "Sample", "Sample")
+  )
+  expect_error(validate_raw_data(raw_data), "Data should contain row/s:")
+})
+
+test_that("quality control samples should be present", {
+  raw_data <- tibble(
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("Sample", "Sample", "Sample"),
+    `plate bar code` = c(1, 2, 3),
+    `measurement time` = c(1, 2, 3)
+  )
+  expect_error(validate_raw_data(raw_data), "Data should contain quality control samples.")
+})
 
