@@ -57,27 +57,16 @@ get_info <- function(dat){
   if(any(class(dat) != c("raw_data", "data.frame")))
     stop("dat must be a raw_data object.")
   
-  info_str <- function(lst){
-    len <- length(lst)
-    if(len < 15)
-      paste0(paste0(lst, collapse = ", "), "\n(Showing ", len, " out of ", len, ")")
-    else
-      paste0(paste0(lst[1:15,], collapse = ", "), "\n(Showing 15 out of ", len, ")")
-  }
-  
-  types_str <- paste0("Sample types:\n", info_str(attr(dat, "samples")$`sample type`))
-  
-  NA_types_str <- paste0("\nNA types:\n", info_str(attr(dat, "NA_info")$counts$type))
+  info_str <- paste0("Data contains ", nrow(attr(dat, "samples")), " sample types and ", nrow(attr(dat, "NA_info")$counts), " NA types.")
   
   if(!is.null(attr(dat, "group"))){
     group_lvls <- dat %>%
       select(!!sym(attr(dat, "group"))) %>%
       unique()
-    group_str <- paste0("\nGroup: ", attr(dat, "group"), "\nLevels:\n", info_str(group_lvls[,1]))
-  }else
-    group_str <- NULL
+    info_str <- paste0(info_str, "\nAdded group \"", attr(dat, "group"), "\" contains ", nrow(group_lvls), " levels.")
+  }
   
-  paste0(c(types_str, NA_types_str, group_str), collapse = "\n")
+  info_str
   
 }
 
