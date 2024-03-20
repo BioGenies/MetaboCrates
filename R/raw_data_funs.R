@@ -95,37 +95,37 @@ get_info <- function(dat){
 #' 
 #' @export
 #' 
-
-print <- function(dat){
-  
-  if(any(class(dat) != c("raw_data", "data.frame")))
-    stop("dat must be a raw_data object.")
-  
-  rows <- min(nrow(dat), 10)
-  metabo_num <- min(length(attr(dat, "metabolites")), 10)
-  metabo_start <- which(colnames(dat) == attr(dat, "metabolites")[1])
-  
-  ratio_rows <- min(nrow(attr(dat, "NA_info")$NA_ratios), 10)
-  
-  dat_to_print <- dat %>%
-    select(`sample type`, all_of(metabo_start:(metabo_start + metabo_num - 1)))
-  
-  if(!is.null(attr(dat, "group"))){
-    group_str <- paste0("Specified group: ", attr(dat, "group"), "\n")
-    dat_to_print <- dat_to_print %>%
-      bind_cols(select(dat, !!sym(attr(dat, "group")))) %>%
-      select(1, !!sym(attr(dat, "group")), everything())
-  }else
-    group_str <- NULL
-    
-  
-  cat(paste0(group_str,
-             "Metabolites: ", paste0(attr(dat, "metabolites"), collapse = ", "), "\n",
-             paste0(capture.output(dat_to_print[1:rows,]), collapse = "\n"),
-             "\nShowing ", metabo_num, " out of ", length(attr(dat, "metabolites")), " metabolites\n",
-             "Showing ", rows, " out of ", nrow(dat), " rows\n",
-             "NA ratios:\n",
-             paste0(capture.output(attr(dat, "NA_info")$NA_ratios[1:ratio_rows,]), collapse = "\n"),
-             "\nShowing ", ratio_rows, " out of ", nrow(attr(dat, "NA_info")$NA_ratios), " rows"))
-  
-}
+# 
+# print.raw_data <- function(dat){
+#   
+#   if(any(class(dat) != c("raw_data", "data.frame")))
+#     stop("dat must be a raw_data object.")
+#   
+#   rows <- min(nrow(dat), 10)
+#   metabo_num <- min(length(attr(dat, "metabolites")), 10)
+#   metabo_start <- which(colnames(dat) == attr(dat, "metabolites")[1])
+#   
+#   ratio_rows <- min(nrow(attr(dat, "NA_info")$NA_ratios), 10)
+#   
+#   dat_to_print <- dat %>%
+#     select(`sample type`, all_of(metabo_start:(metabo_start + metabo_num - 1)))
+#   
+#   if(!is.null(attr(dat, "group"))){
+#     group_str <- paste0("Specified group: ", attr(dat, "group"), "\n")
+#     dat_to_print <- dat_to_print %>%
+#       bind_cols(select(dat, !!sym(attr(dat, "group")))) %>%
+#       select(1, !!sym(attr(dat, "group")), everything())
+#   }else
+#     group_str <- NULL
+#     
+#   
+#   cat(paste0(group_str,
+#              "Metabolites: ", paste0(attr(dat, "metabolites"), collapse = ", "), "\n",
+#              paste0(capture.output(dat_to_print[1:rows,]), collapse = "\n"),
+#              "\nShowing ", metabo_num, " out of ", length(attr(dat, "metabolites")), " metabolites\n",
+#              "Showing ", rows, " out of ", nrow(dat), " rows\n",
+#              "NA ratios:\n",
+#              paste0(capture.output(attr(dat, "NA_info")$NA_ratios[1:ratio_rows,]), collapse = "\n"),
+#              "\nShowing ", ratio_rows, " out of ", nrow(attr(dat, "NA_info")$NA_ratios), " rows"))
+#   
+# }
