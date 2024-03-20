@@ -16,9 +16,11 @@ Get informations from Biocrates data
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 get_info(dat)
+cat(get_info(dat))
 
 dat <- add_group(dat, "group")
 get_info(dat)
+cat(get_info(dat))
 
 }
 \seealso{

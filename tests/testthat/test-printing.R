@@ -1,12 +1,12 @@
 library(testthat)
 
 # Check if get_info throws an error for invalid input class
-test_that("Throws an error for invalid input class", {
+test_that("Throws an error for invalid input class in get_info", {
   expect_error(get_info(NULL), "dat must be a raw_data object.")
 })
 
-# Check if get_info prints info without group
-test_that("Prints info without group", {
+# Check if get_info returns info without group
+test_that("Returns info without group", {
   dat <- structure(
     .Data  = data.frame(
     `sample type` = c("A", "B", "A"),
@@ -26,12 +26,8 @@ test_that("Prints info without group", {
     class = c("raw_data", "data.frame")
   )
   expect_identical(
-    capture_output(get_info(dat)),
-    paste0("Sample types:\n",
-           paste0(capture.output(attr(dat, "samples")), collapse = "\n"),
-           "\nShowing 2 out of 2 rows\nNA types:\n",
-           paste0(capture.output(attr(dat, "NA_info")$count), collapse = "\n"),
-           "\nShowing 2 out of 2 rows")
+    get_info(dat),
+    "Sample types:\nA, B\n(Showing 2 out of 2)\n\nNA types:\n>, <\n(Showing 2 out of 2)"
     )
 })
 
@@ -59,18 +55,8 @@ test_that("Prints info with group", {
     class = c("raw_data", "data.frame")
   )
   expect_identical(
-    capture_output(get_info(dat)),
-    paste0("Sample types:\n",
-           paste0(capture.output(attr(dat, "samples")), collapse = "\n"),
-           "\nShowing 2 out of 2 rows\nNA types:\n",
-           paste0(capture.output(attr(dat, "NA_info")$count), collapse = "\n"),
-           "\nShowing 2 out of 2 rows\nGroup \"group\" levels:\n",
-           paste0(capture.output(data.frame(
-             group = 1:3,
-             n = rep(1, 3)
-           )), collapse = "\n"),
-           "\nShowing 3 out of 3 rows"
-    )
+    get_info(dat),
+    "Sample types:\nA, B\n(Showing 2 out of 2)\n\nNA types:\n>, <\n(Showing 2 out of 2)\n\nGroup: group\nLevels:\n1, 2, 3\n(Showing 3 out of 3)"
   )
 })
 

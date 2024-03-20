@@ -43,9 +43,11 @@ add_group <- function(dat, group_name) {
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' get_info(dat)
+#' cat(get_info(dat))
 #' 
 #' dat <- add_group(dat, "group")
 #' get_info(dat)
+#' cat(get_info(dat))
 #' 
 #' @export
 #' 
@@ -55,27 +57,27 @@ get_info <- function(dat){
   if(any(class(dat) != c("raw_data", "data.frame")))
     stop("dat must be a raw_data object.")
   
-  info_str <- function(df){
-    
-    len <- min(nrow(df), 10)
-    paste0(paste0(capture.output(df[1:len,]), collapse = "\n"),
-           "\nShowing ", len, " out of ", nrow(df), " rows")
-    
+  info_str <- function(lst){
+    len <- length(lst)
+    if(len < 15)
+      paste0(paste0(lst, collapse = ", "), "\n(Showing ", len, " out of ", len, ")")
+    else
+      paste0(paste0(lst[1:15,], collapse = ", "), "\n(Showing 15 out of ", len, ")")
   }
   
-  types_str <- paste0("Sample types:\n", info_str(attr(dat, "samples")))
+  types_str <- paste0("Sample types:\n", info_str(attr(dat, "samples")$`sample type`))
   
-  NA_types <- attr(dat, "NA_info")$counts
-  NA_types_str <- paste0("NA types:\n", info_str(NA_types))
+  NA_types_str <- paste0("\nNA types:\n", info_str(attr(dat, "NA_info")$counts$type))
   
   if(!is.null(attr(dat, "group"))){
-    group <- dat %>%
-      count(!!sym(attr(dat, "group")))
-    group_str <- paste0("Group \"", attr(dat, "group"), "\" levels:\n", info_str(group))
+    group_lvls <- dat %>%
+      select(!!sym(attr(dat, "group"))) %>%
+      unique()
+    group_str <- paste0("\nGroup: ", attr(dat, "group"), "\nLevels:\n", info_str(group_lvls[,1]))
   }else
     group_str <- NULL
   
-  cat(paste0(c(types_str, NA_types_str, group_str), collapse = "\n"))
+  paste0(c(types_str, NA_types_str, group_str), collapse = "\n")
   
 }
 
@@ -87,15 +89,14 @@ get_info <- function(dat){
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' print(dat)
+#'dat <- read_data(path)
+#'print(dat)
 #' 
 #' dat <- add_group(dat, "group")
 #' print(dat)
 #' 
 #' @export
 #' 
-# 
 # print.raw_data <- function(dat){
 #   
 #   if(any(class(dat) != c("raw_data", "data.frame")))
