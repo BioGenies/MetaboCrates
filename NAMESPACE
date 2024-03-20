@@ -3,6 +3,7 @@
 export(add_group)
 export(check_values)
 export(get_example_data)
+export(raw_data)
 export(read_data)
 import(dplyr)
 importFrom(readxl,read_excel)

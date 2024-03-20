@@ -46,6 +46,17 @@ validate_raw_data <- function(raw_data) {
   
   metabolites <- attr(raw_data, "metabolites")
   
+  # Validate metabolites names
+  
+  if(!all(metabolites %in% colnames(raw_data))) {
+    warning(paste0("Metabolites ", 
+                   paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
+                          collapse = ", "), 
+                   " cannot be found in the data! We will ignore them."))
+    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
+    metabolites <- attr(raw_data, "metabolites")
+  }
+  
   metabolites_values <- raw_data %>%
     select(all_of(metabolites)) %>% 
     unlist()
@@ -71,16 +82,6 @@ validate_raw_data <- function(raw_data) {
   
   if(any(is.na(select(filter(raw_data, grepl("QC", `sample type`)), all_of(metabolites)))))
     stop("Quality contriol samples should not contain missing values!")
-  
-  # Validate metabolites names
-  
-  if(!all(metabolites %in% colnames(raw_data))) {
-    warning(paste0("Metabolites ", 
-                   paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
-                          collapse = ", "), 
-                   " cannot be found in the data! We will ignore them."))
-    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
-  }
   
   # Validate LOD table
   LOD_table <- attr(raw_data, "LOD_table")
@@ -149,7 +150,7 @@ validate_raw_data <- function(raw_data) {
 #' and their counts
 #' - \code{group}
 #' 
-#' @keywords internal
+#' @export
 
 raw_data <- function(metabolomics_matrix, 
                      LOD_table, 
@@ -163,7 +164,7 @@ raw_data <- function(metabolomics_matrix,
     filter(`sample type` == "Sample") %>% 
     select(all_of(metabolites), group) %>% 
     tidyr::gather("metabolite", "value", -group) %>% 
-    group_by(metabolite, group) %>% 
+    group_by(metabolite, get('group')) %>% 
     summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")))
   
   miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
