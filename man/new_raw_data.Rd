@@ -10,7 +10,8 @@ new_raw_data(
   NA_info,
   metabolites,
   samples,
-  group
+  group,
+  removed
 )
 }
 \value{

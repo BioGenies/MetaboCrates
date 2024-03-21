@@ -78,8 +78,8 @@ get_info <- function(dat){
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
-#'dat <- read_data(path)
-#'print(dat)
+#' dat <- read_data(path)
+#' print(dat)
 #' 
 #' dat <- add_group(dat, "group")
 #' print(dat)

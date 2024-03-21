@@ -41,9 +41,11 @@ types of missing values with their counts.
 \item \code{metabolites}
 \item \code{samples}: a \code{\link{data.frame}} containing names of samples types
 and their counts
-\item \code{group}
+\item \code{group} : a character name of group from the table
+\item \code{removed}: a list of removed metabolites
 }
 }
 \description{
 raw_data class
 }
+\keyword{internal}

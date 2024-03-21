@@ -14,7 +14,8 @@ new_raw_data <- function(metabolomics_matrix,
                          NA_info,
                          metabolites,
                          samples,
-                         group){
+                         group,
+                         removed){
   
   structure(.Data = metabolomics_matrix,
             "LOD_table" = LOD_table,
@@ -22,6 +23,7 @@ new_raw_data <- function(metabolomics_matrix,
             "metabolites" = metabolites,
             "samples" = samples,
             "group" = group,
+            "removed" = removed,
             class = c("raw_data", "data.frame"))
 }
 
@@ -45,17 +47,6 @@ validate_raw_data <- function(raw_data) {
     stop("Sample identification column has to be unique.")
   
   metabolites <- attr(raw_data, "metabolites")
-  
-  # Validate metabolites names
-  
-  if(!all(metabolites %in% colnames(raw_data))) {
-    warning(paste0("Metabolites ", 
-                   paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
-                          collapse = ", "), 
-                   " cannot be found in the data! We will ignore them."))
-    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
-    metabolites <- attr(raw_data, "metabolites")
-  }
   
   metabolites_values <- raw_data %>%
     select(all_of(metabolites)) %>% 
@@ -82,6 +73,16 @@ validate_raw_data <- function(raw_data) {
   
   if(any(is.na(select(filter(raw_data, grepl("QC", `sample type`)), all_of(metabolites)))))
     stop("Quality contriol samples should not contain missing values!")
+  
+  # Validate metabolites names
+  
+  if(!all(metabolites %in% colnames(raw_data))) {
+    warning(paste0("Metabolites ", 
+                   paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
+                          collapse = ", "), 
+                   " cannot be found in the data! We will ignore them."))
+    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
+  }
   
   # Validate LOD table
   LOD_table <- attr(raw_data, "LOD_table")
@@ -148,9 +149,10 @@ validate_raw_data <- function(raw_data) {
 #' - \code{metabolites} 
 #' - \code{samples}: a \code{\link{data.frame}} containing names of samples types 
 #' and their counts
-#' - \code{group}
+#' - \code{group} : a character name of group from the table
+#' - \code{removed}: a list of removed metabolites
 #' 
-#' @export
+#' @keywords internal
 
 raw_data <- function(metabolomics_matrix, 
                      LOD_table, 
@@ -164,7 +166,7 @@ raw_data <- function(metabolomics_matrix,
     filter(`sample type` == "Sample") %>% 
     select(all_of(metabolites), group) %>% 
     tidyr::gather("metabolite", "value", -group) %>% 
-    group_by(metabolite, get('group')) %>% 
+    group_by(metabolite, group) %>% 
     summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")))
   
   miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
@@ -196,11 +198,14 @@ raw_data <- function(metabolomics_matrix,
                                 "ULOQ", "LLOQ")))
   
   validate_raw_data(
-    new_raw_data(metabolomics_matrix = metabolomics_matrix,
-                 LOD_table = LOD_table,
-                 NA_info = NA_info,
-                 metabolites = metabolites,
-                 samples = samples,
-                 group = group)
+    new_raw_data(
+      metabolomics_matrix = metabolomics_matrix,
+      LOD_table = LOD_table,
+      NA_info = NA_info,
+      metabolites = metabolites,
+      samples = samples,
+      group = group,
+      removed = list(LOD = NULL, LOD_man = NULL, QC = NULL, QC_man = NULL)
+    )
   )
 }
