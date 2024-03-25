@@ -5,7 +5,7 @@
 #' @param NA_info Attribute of the raw_data object.
 #' @param treshold Percentage value.
 #' 
-#' @examples
+#' @example
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
