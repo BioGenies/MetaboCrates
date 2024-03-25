@@ -2,6 +2,7 @@
 
 export(add_group)
 export(check_values)
+export(get_LOD_to_remove)
 export(get_example_data)
 export(get_info)
 export(read_data)
