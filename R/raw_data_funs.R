@@ -119,3 +119,39 @@ get_info <- function(dat){
 #              "\nShowing ", ratio_rows, " out of ", nrow(attr(dat, "NA_info")$NA_ratios), " rows"))
 #   
 # }
+
+
+#' Adding metabolites to the attribute removed
+#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' @param metabolites_to_remove metabolites to remove
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' test_dat <- read_data(path)
+#' attr(remove_LOD(test_dat, "C0"), "removed")
+#' 
+#' @export
+#' 
+remove_LOD <- function(raw_data, metabolites_to_remove) {
+  
+  attr(raw_data, "removed")[1] <- metabolites_to_remove
+  
+  raw_data
+}
+
+
+#' Setting attribute removed to NULL
+#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' test_dat <- read_data(path)
+#' attr(remove_LOD(test_dat), "removed")
+#' 
+#' @export
+#' 
+unremove_LOD <- function(raw_data) {
+  attr(raw_data, "removed")[1] <- NULL
+  
+  raw_data
+}
