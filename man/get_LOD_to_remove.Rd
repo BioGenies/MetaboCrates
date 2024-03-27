@@ -14,3 +14,9 @@ get_LOD_to_remove(NA_info, treshold)
 \description{
 Returns metabolite names having more NA values in each group than the given treshold.
 }
+\examples{
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
+
+}

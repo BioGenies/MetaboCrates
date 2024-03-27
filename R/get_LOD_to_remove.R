@@ -5,7 +5,7 @@
 #' @param NA_info Attribute of the raw_data object.
 #' @param treshold Percentage value.
 #' 
-#' @example
+#' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
@@ -14,8 +14,11 @@
 #'
 
 get_LOD_to_remove <- function(NA_info, treshold){
-  names <- NA_info$NA_ratios %>%
+  
+  NA_info$NA_ratios %>%
+    group_by(metabolite) %>% 
     filter(all(NA_frac > treshold)) %>%
-    distinct(metabolite)
-  names$metabolite
+    distinct(metabolite) %>% 
+    pull(metabolite)
+  
 }
