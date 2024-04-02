@@ -181,3 +181,45 @@ unremove_LOD <- function(raw_data) {
   
   raw_data
 }
+
+
+#' Show metabolites without removed
+#' 
+#' @description Returns metabolites without those in removed attribute.
+#' 
+#' @param raw_data A raw_data object.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- remove_LOD(dat, "C0")
+#' show_data(dat)
+#' 
+#' @export
+#' 
+
+show_data <- function(data){
+  data %>%
+    select(!attr(data, "removed")$LOD)
+}
+
+
+#' Show LOD ratios without removed metabolites
+#' 
+#' @description Returns LOD ratios without metabolites in removed attribute.
+#' 
+#' @param raw_data A raw_data object.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- remove_LOD(dat, "C0")
+#' show_ratios(dat)
+#' 
+#' @export
+#' 
+
+show_ratios <- function(data){
+  attr(data, "NA_info")$NA_ratios %>%
+    filter(metabolite != attr(data, "removed")$LOD)
+}
