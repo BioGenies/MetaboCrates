@@ -167,7 +167,8 @@ raw_data <- function(metabolomics_matrix,
     select(all_of(metabolites), group) %>% 
     tidyr::gather("metabolite", "value", -group) %>% 
     group_by(metabolite, group) %>% 
-    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")))
+    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞"))) %>% 
+    ungroup()
   
   miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
   

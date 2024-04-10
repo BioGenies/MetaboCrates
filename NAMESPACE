@@ -2,10 +2,13 @@
 
 export(add_group)
 export(check_values)
+export(get_LOD_to_remove)
 export(get_example_data)
 export(get_info)
 export(read_data)
 export(remove_LOD)
+export(show_data)
+export(show_ratios)
 export(unremove_LOD)
 import(dplyr)
 importFrom(readxl,read_excel)

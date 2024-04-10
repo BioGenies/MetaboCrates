@@ -86,6 +86,7 @@ get_info <- function(dat){
 #' 
 #' @export
 NULL
+
 # print.raw_data <- function(dat){
 #   
 #   if(any(class(dat) != c("raw_data", "data.frame")))
@@ -119,6 +120,32 @@ NULL
 #              "\nShowing ", ratio_rows, " out of ", nrow(attr(dat, "NA_info")$NA_ratios), " rows"))
 #   
 # }
+
+
+#' Get metabolites to remove
+#'
+#' @description Returns metabolite names having more NA values in each group than the given treshold.
+#' 
+#' @param NA_info Attribute of the raw_data object.
+#' @param treshold Percentage value.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
+#' 
+#' @export
+#'
+
+get_LOD_to_remove <- function(NA_info, treshold){
+  
+  NA_info$NA_ratios %>%
+    group_by(metabolite) %>% 
+    filter(all(NA_frac > treshold)) %>%
+    distinct(metabolite) %>% 
+    pull(metabolite)
+  
+}
 
 
 #' Adding metabolites to the attribute removed
@@ -155,4 +182,46 @@ unremove_metabolites <- function(raw_data, type) {
   attr(raw_data, "removed")[type] <- list(NULL)
   
   raw_data
+}
+
+
+#' Show metabolites without removed
+#' 
+#' @description Returns metabolites without those in removed attribute.
+#' 
+#' @param raw_data A raw_data object.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- remove_LOD(dat, "C0")
+#' show_data(dat)
+#' 
+#' @export
+#' 
+
+show_data <- function(data){
+  data %>%
+    select(!unlist(attr(data, "removed")))
+}
+
+
+#' Show LOD ratios without removed metabolites
+#' 
+#' @description Returns LOD ratios without metabolites in removed attribute.
+#' 
+#' @param raw_data A raw_data object.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- remove_LOD(dat, "C0")
+#' show_ratios(dat)
+#' 
+#' @export
+#' 
+
+show_ratios <- function(data){
+  attr(data, "NA_info")$NA_ratios %>%
+    filter(!metabolite %in% unlist(attr(data, "removed")))
 }
