@@ -200,7 +200,7 @@ unremove_LOD <- function(raw_data) {
 
 show_data <- function(data){
   data %>%
-    select(!attr(data, "removed")$LOD)
+    select(!unlist(attr(data, "removed")))
 }
 
 
@@ -221,5 +221,5 @@ show_data <- function(data){
 
 show_ratios <- function(data){
   attr(data, "NA_info")$NA_ratios %>%
-    filter(metabolite != attr(data, "removed")$LOD)
+    filter(!metabolite %in% unlist(attr(data, "removed")))
 }
