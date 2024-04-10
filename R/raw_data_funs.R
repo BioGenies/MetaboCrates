@@ -85,7 +85,7 @@ get_info <- function(dat){
 #' print(dat)
 #' 
 #' @export
-#' 
+NULL
 # print.raw_data <- function(dat){
 #   
 #   if(any(class(dat) != c("raw_data", "data.frame")))
@@ -132,9 +132,9 @@ get_info <- function(dat){
 #' 
 #' @export
 #' 
-remove_LOD <- function(raw_data, metabolites_to_remove) {
-  
-  attr(raw_data, "removed")[1] <- metabolites_to_remove
+remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
+  type <- match.arg(arg = type, choices = c("LOD", "LOD_man", "QC", "QC_man"))
+  attr(raw_data, "removed")[[type]] <- metabolites_to_remove
   
   raw_data
 }
@@ -150,8 +150,9 @@ remove_LOD <- function(raw_data, metabolites_to_remove) {
 #' 
 #' @export
 #' 
-unremove_LOD <- function(raw_data) {
-  attr(raw_data, "removed")[1] <- NULL
+unremove_metabolites <- function(raw_data, type) {
+  type <- match.arg(arg = type, choices = c("LOD", "LOD_man", "QC", "QC_man"))
+  attr(raw_data, "removed")[type] <- list(NULL)
   
   raw_data
 }
