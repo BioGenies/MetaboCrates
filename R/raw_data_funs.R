@@ -151,11 +151,12 @@ get_LOD_to_remove <- function(NA_info, treshold){
 #' Adding metabolites to the attribute removed
 #' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] function.
 #' @param metabolites_to_remove metabolites to remove
+#' @param type type of metabolites to remove
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' test_dat <- read_data(path)
-#' attr(remove_LOD(test_dat, "C0"), "removed")
+#' attr(remove_metabolites(test_dat, "C0", "LOD"), "removed")
 #' 
 #' @export
 #' 
@@ -169,11 +170,13 @@ remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
 
 #' Setting attribute removed to NULL
 #' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' @param type type of metabolites to remove
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' test_dat <- read_data(path)
-#' attr(remove_LOD(test_dat), "removed")
+#' attr(remove_metabolites(test_dat, "C0", "LOD"), "removed")
+#' attr(unremove_metabolites(test_dat, "LOD"), "removed")
 #' 
 #' @export
 #' 
