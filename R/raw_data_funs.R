@@ -234,7 +234,7 @@ show_ratios <- function(data){
 #' @importFrom stringr str_detect
 #' @importFrom tidyr pivot_longer
 #' 
-#' @param data A raw_data object.
+#' @param dat A raw_data object.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -243,23 +243,18 @@ show_ratios <- function(data){
 #' dat[which(dat == "< LOD" | dat == "> ULOQ" | is.na(dat) | dat == "< LLOQ" | dat == "NA")] <- 0
 #' dat
 #' })
-#' calc_CV_for_QC(dat)
+#' calcuate_CV(dat)
 #' 
 #' @export
 
-calc_CV_for_QC <- function(data){
-  calc_CV <- function(samp){
-    if(length(samp) == 1) 0
-    else{
-      mean(samp) / sqrt(1/(length(samp)-1) * sum((samp-mean(samp))^2))
-    }
-  }
-  
-  data %>%
-    select(`sample type`, matches(attr(data, "metabolites"))) %>%
+calcuate_CV <- function(dat){
+  dat %>%
+    select(`sample type`, all_of(attr(dat, "metabolites"))) %>%
     filter(str_detect(`sample type`, "^QC")) %>%
     pivot_longer(!`sample type`, names_to = "metabolite", values_to = "value") %>%
     group_by(`sample type`, metabolite) %>%
-    summarise(CV = calc_CV(as.numeric(value))) %>%
-    ungroup()
+    mutate(value = as.numeric(value)) %>% 
+    summarise(CV = ifelse(n() == 1, NA, sd(value) / mean(value))) %>%
+    group_by(`sample type`, metabolite) %>% 
+    filter(all(!is.na(CV)))
 }
