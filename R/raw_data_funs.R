@@ -192,7 +192,7 @@ unremove_metabolites <- function(raw_data, type) {
 #' 
 #' @description Returns metabolites without those in removed attribute.
 #' 
-#' @param raw_data A raw_data object.
+#' @param data A raw_data object.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -213,7 +213,7 @@ show_data <- function(data){
 #' 
 #' @description Returns LOD ratios without metabolites in removed attribute.
 #' 
-#' @param raw_data A raw_data object.
+#' @param data A raw_data object.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -227,4 +227,39 @@ show_data <- function(data){
 show_ratios <- function(data){
   attr(data, "NA_info")$NA_ratios %>%
     filter(!metabolite %in% unlist(attr(data, "removed")))
+}
+
+#' Calculate CV for different QC samples depending on metabolite
+#' 
+#' @importFrom stringr str_detect
+#' @importFrom tidyr pivot_longer
+#' 
+#' @param data A raw_data object.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat[,18:26] <- apply(data[,18:26], 2, function(dat){
+#' dat[which(dat == "< LOD" | dat == "> ULOQ" | is.na(dat) | dat == "< LLOQ" | dat == "NA")] <- 0
+#' dat
+#' })
+#' calc_CV_for_QC(dat)
+#' 
+#' @export
+
+calc_CV_for_QC <- function(data){
+  calc_CV <- function(samp){
+    if(length(samp) == 1) 0
+    else{
+      mean(samp) / sqrt(1/(length(samp)-1) * sum((samp-mean(samp))^2))
+    }
+  }
+  
+  data %>%
+    select(`sample type`, matches(attr(data, "metabolites"))) %>%
+    filter(str_detect(`sample type`, "^QC")) %>%
+    pivot_longer(!`sample type`, names_to = "metabolite", values_to = "value") %>%
+    group_by(`sample type`, metabolite) %>%
+    summarise(CV = calc_CV(as.numeric(value))) %>%
+    ungroup()
 }

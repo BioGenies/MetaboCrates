@@ -7,7 +7,7 @@
 show_data(data)
 }
 \arguments{
-\item{raw_data}{A raw_data object.}
+\item{data}{A raw_data object.}
 }
 \description{
 Returns metabolites without those in removed attribute.

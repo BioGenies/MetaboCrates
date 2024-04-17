@@ -7,7 +7,7 @@
 show_ratios(data)
 }
 \arguments{
-\item{raw_data}{A raw_data object.}
+\item{data}{A raw_data object.}
 }
 \description{
 Returns LOD ratios without metabolites in removed attribute.
