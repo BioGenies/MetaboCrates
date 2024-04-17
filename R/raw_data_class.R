@@ -164,9 +164,9 @@ raw_data <- function(metabolomics_matrix,
   
   NA_ratios <- metabolomics_matrix %>% 
     filter(`sample type` == "Sample") %>% 
-    select(all_of(metabolites), group) %>% 
-    tidyr::gather("metabolite", "value", -group) %>% 
-    group_by(metabolite, group) %>% 
+    select(all_of(metabolites), get("group")) %>% 
+    tidyr::gather("metabolite", "value", -get("group")) %>% 
+    group_by(metabolite, get("group")) %>% 
     summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞"))) %>% 
     ungroup()
   

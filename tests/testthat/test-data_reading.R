@@ -214,5 +214,5 @@ test_that("sample identification column should be unique", {
     
   metabolites <- c("metabolite1", "metabolite2")
   
-    expect_error(raw_data(metabolomics_matrix, LOD_table, metabolites), "Sample identification column has to be unique.")
+    expect_error(MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites), "Sample identification column has to be unique.")
   })
