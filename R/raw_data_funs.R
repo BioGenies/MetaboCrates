@@ -192,6 +192,7 @@ show_ratios <- function(data){
 #' 
 #' @importFrom stringr str_detect
 #' @importFrom tidyr pivot_longer
+#' @importFrom stats sd
 #' 
 #' @param dat A raw_data object.
 #' 
