@@ -2,8 +2,9 @@
 
 #' Creation of validated raw_data class
 #' 
-#' @description The wrapper function for the constructor of the \code{\link{raw_data}} and 
-#' its validator. Used in \code{\link{raw_data}} function.
+#' @description The wrapper function for the constructor of the 
+#' \code{\link{raw_data}} and its validator. Used in \code{\link{raw_data}} 
+#' function.
 #' 
 #' @return \code{\link{raw_data}} object.
 #' 
@@ -71,7 +72,8 @@ validate_raw_data <- function(raw_data) {
   if(!any(grepl("QC", raw_data[["sample type"]])))
     stop("Data should contain quality control samples.")
   
-  if(any(is.na(select(filter(raw_data, grepl("QC", `sample type`)), all_of(metabolites)))))
+  if(any(is.na(select(filter(raw_data, grepl("QC", `sample type`)), 
+                      all_of(metabolites)))))
     stop("Quality contriol samples should not contain missing values!")
   
   # Validate metabolites names
@@ -81,7 +83,9 @@ validate_raw_data <- function(raw_data) {
                    paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
                           collapse = ", "), 
                    " cannot be found in the data! We will ignore them."))
-    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
+    
+    attr(raw_data, "metabolites") <- 
+      metabolites[metabolites %in% colnames(raw_data)]
   }
   
   # Validate LOD table
@@ -95,7 +99,9 @@ validate_raw_data <- function(raw_data) {
   
   if(!is.null(group_name)) {
     if(!(group_name %in% colnames(raw_data)))
-      stop(paste0("Provided group:", group_name, " is not contained in the data."))
+      stop(
+        paste0("Provided group:", group_name, " is not contained in the data.")
+      )
     
     samples_data <- raw_data %>% 
       filter(`sample type` == "Sample")
@@ -143,12 +149,12 @@ validate_raw_data <- function(raw_data) {
 #' 
 #' - \code{LOD_table}
 #' - \code{NA_info}: a \code{\link{list}} related to missing values in the data. 
-#' It contains \code{NA_ratios}: fractions of missing values per every metabolite. 
-#' When \code{group} parameter (see below) is provided and \code{counts}: table of 
-#' types of missing values with their counts.
+#' It contains \code{NA_ratios}: fractions of missing values per every 
+#' metabolite. When \code{group} parameter (see below) is provided and 
+#' \code{counts}: table of types of missing values with their counts.
 #' - \code{metabolites} 
-#' - \code{samples}: a \code{\link{data.frame}} containing names of samples types 
-#' and their counts
+#' - \code{samples}: a \code{\link{data.frame}} containing names of samples 
+#' types and their counts
 #' - \code{group} : a character name of group from the table
 #' - \code{removed}: a list of removed metabolites
 #' 
@@ -167,7 +173,8 @@ raw_data <- function(metabolomics_matrix,
     select(all_of(metabolites), get("group")) %>% 
     tidyr::gather("metabolite", "value", -get("group")) %>% 
     group_by(metabolite, get("group")) %>% 
-    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞"))) %>% 
+    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", 
+                                          "> ULOQ", "NA", "∞"))) %>% 
     ungroup()
   
   miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")

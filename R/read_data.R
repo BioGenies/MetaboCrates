@@ -22,10 +22,14 @@
 read_data <- function(path) {
   
   if(!file.exists(path))
-    stop(paste0("The file ", path, " does not exist. Check if the path is correct."))
+    stop(
+      paste0("The file ", path," does not exist. Check if the path is correct.")
+    )
   
   if(!(file_ext(path) %in% c("xls", "xlsx"))) 
-    stop(paste0("File extension should be xls or xlsx, not ", file_ext(path), "."))
+    stop(
+      paste0("File extension should be xls or xlsx, not ", file_ext(path), ".")
+    )
   
   dat <- read_excel(path, skip = 1) %>% 
     as.data.frame() 
@@ -57,16 +61,20 @@ read_data <- function(path) {
 #'
 #' @param metabolite_vals a \code{\link{character}} vector containing measured 
 #' metabolite values.
-#' @param special_signs a character vector of permitted special signs that should 
-#' not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ", "NA" and "∞".
-#' Where ULOQ means upper limit of quantification, LLOQ means lower limit of 
-#' quantification and LOD means limit o detection. 
+#' @param special_signs a character vector of permitted special signs that 
+#' should not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ", 
+#' "NA" and "∞". Where ULOQ means upper limit of quantification, LLOQ means 
+#' lower limit of quantification and LOD means limit o detection. 
 #' 
 #' @export
 #'
 
 check_values <- function(metabolite_vals, 
-                         special_signs = c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")) {
+                         special_signs = c("< LOD",
+                                           "< LLOQ", 
+                                           "> ULOQ", 
+                                           "NA", 
+                                           "∞")) {
   
   values_storage <- metabolite_vals
   

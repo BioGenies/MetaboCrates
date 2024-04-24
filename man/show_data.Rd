@@ -15,7 +15,7 @@ Returns metabolites without those in removed attribute.
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-dat <- remove_LOD(dat, "C0")
+dat <- remove_metabolites(dat, "C0", type = "LOD")
 show_data(dat)
 
 }

@@ -18,7 +18,8 @@ new_raw_data(
 \code{\link{raw_data}} object.
 }
 \description{
-The wrapper function for the constructor of the \code{\link{raw_data}} and
-its validator. Used in \code{\link{raw_data}} function.
+The wrapper function for the constructor of the
+\code{\link{raw_data}} and its validator. Used in \code{\link{raw_data}}
+function.
 }
 \keyword{internal}
