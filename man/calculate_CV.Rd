@@ -19,6 +19,6 @@ dat[,18:26] <- apply(dat[,18:26], 2, function(dat){
 dat[which(dat == "< LOD" | dat == "> ULOQ" | is.na(dat) | dat == "< LLOQ" | dat == "NA")] <- 0
 dat
 })
-calcuate_CV(dat)
+calculate_CV(dat)
 
 }
