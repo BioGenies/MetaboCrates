@@ -1,0 +1,165 @@
+
+#' Complete not quantified values
+#'
+#' @description This function completes missing values related to limits of 
+#' quantification or detection.
+#'
+#' @param dat 
+#' @param LOD_method description
+#' @param LLOQ_method description
+#' @param ULOQ_method description
+#' @param LOD_type
+#'
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' complete_data(dat)
+#'
+#' @export
+#' 
+
+complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
+                          ULOQ_method = NULL, LOD_type = NULL) {
+  
+  LOD_type <- match.arg(LOD_type, c("OP", "calc", NULL))
+  LOD_method <- match.arg(LOD_method, c("halfmin", "random", "limit", NULL))
+  
+  NA_info <- attr(dat, "NA_info")[["counts"]] %>% 
+    filter(type %in% c("< LOD", "< LLOQ", "> ULOQ")) %>% 
+    spread(type, n)
+  
+  sets <- dat %>% 
+    filter(`sample type` == "Sample" | grepl("QC", `sample type`)) %>% 
+    pull(`plate bar code`) %>% 
+    unique()
+  
+  LOD_vals <- match_plate_codes(attr(dat, "LOD_table"), sets)
+  
+  gathered_data <- dat %>% 
+    select(`plate bar code`, `sample identification`, `sample type`, 
+           all_of(attr(dat, "metabolites"))) %>% 
+    mutate(tmp_id = 1:n()) %>% 
+    gather(key = "compound", value = "value", -`sample identification`, 
+           -`sample type`, -`plate bar code`, -tmp_id)
+  
+  if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
+    message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
+    gathered_data <- complete_LOD(gathered_data = gathered_data,  
+                                  method = LOD_method, 
+                                  LOD_type = LOD_type, 
+                                  LOD_vals = LOD_vals)
+  } else {
+    message("Skipping < LOD imputation.")
+  }
+  
+  if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
+    message(paste0("Completing ", NA_info[["< LOD"]], " < LLOQ values..."))
+    gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
+                                   method = LLOQ_method, 
+                                   LOD_vals = LOD_vals)
+  } else {
+    message("Skipping < LLOQ imputation.")
+  }
+  
+  if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
+    message(paste0("Completing ", NA_info[["< LOD"]], " < LLOQ values..."))
+    gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
+                                   method = ULOQ_method, 
+                                   LOD_vals = LOD_vals)
+  }else {
+    message("Skipping < ULOQ imputation.")
+  }
+  
+  gathered_data %>% 
+    spread(key = compound, value = value) %>% 
+    arrange(tmp_id)
+}
+
+
+
+#' Complete values below limit of detection
+#' 
+#' @importFrom stringr str_extract
+#'
+#' @param gathered_data description
+#' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
+#' It can be NULL depending on the \code{method} parameter.
+#' @param method a character. Imputation method, one of "halfmin", "random", 
+#' "limit"
+#' @param LOD_vals description
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' 
+#' @export
+#' 
+
+
+complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
+  
+  merged_dat <- gathered_data %>% 
+    merge(filter(LOD_vals, grepl(LOD_type, type)), 
+          by = c("plate bar code", "compound"), all = TRUE)
+  
+  merged_dat <- switch (
+    method,
+    halfmin = {
+      merged_dat %>% 
+        mutate(value = ifelse(value == "< LOD", 0.5 * thresh_est, value))
+    },
+    random = {
+      merged_dat %>% 
+        mutate(value = ifelse(value == "< LOD", runif(1, 0, thresh_est), value))
+    },
+    limit = {
+      merged_dat %>% 
+        mutate(value = ifelse(value == "< LOD", thresh_est, value))
+    }
+  )
+  
+  merged_dat %>% 
+    select(- type, -thresh_est)
+}
+
+#' Find matching plate bar codes in the LOD table
+#' 
+#' @param LOD_table an LOD_table attribute from \code{\link{raw_data}} object.
+#' @param sets an unique character vector of plate bar codes (for example 
+#' '1036372116-1 | 1036372121-1') 
+#'
+#' @returns A long-format table containing limits of detection/quantification 
+#' and corresponding plate bar codes
+#'
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' sets <- unique(dat[["plate bar code"]])
+#' match_plate_codes(attr(dat, "LOD_table"), sets)
+#'
+#' @keywords internal
+#' 
+
+
+match_plate_codes <- function(LOD_table, sets) {
+  LOD_table %>% 
+    gather("compound", "thresh_est", -`plate bar code`, -type) %>% 
+    mutate(`plate bar code` = str_extract(`plate bar code`, "(\\d)+")) %>% 
+    mutate(`plate bar code` = sapply(`plate bar code`, function(ith_code)
+      sets[str_detect(sets, ith_code)][1])) %>% 
+    group_by(compound, `plate bar code`, type) %>% 
+    summarise(thresh_est = sum(thresh_est))
+}
+
+
+
+
+complete_ULOQ <- function(dat) {
+  NULL
+}
+
+
+
+complete_LLOQ <- function(dat) {
+  NULL
+}
