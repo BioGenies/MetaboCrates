@@ -4,10 +4,10 @@
 \alias{show_ratios}
 \title{Show LOD ratios without removed metabolites}
 \usage{
-show_ratios(data)
+show_ratios(dat)
 }
 \arguments{
-\item{data}{A raw_data object.}
+\item{dat}{A raw_data object.}
 }
 \description{
 Returns LOD ratios without metabolites in removed attribute.

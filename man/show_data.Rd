@@ -4,10 +4,10 @@
 \alias{show_data}
 \title{Show metabolites without removed}
 \usage{
-show_data(data)
+show_data(dat)
 }
 \arguments{
-\item{data}{A raw_data object.}
+\item{dat}{A raw_data object.}
 }
 \description{
 Returns metabolites without those in removed attribute.

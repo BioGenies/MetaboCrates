@@ -151,7 +151,7 @@ unremove_metabolites <- function(raw_data, type) {
 #' 
 #' @description Returns metabolites without those in removed attribute.
 #' 
-#' @param data A raw_data object.
+#' @param dat A raw_data object.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -162,9 +162,9 @@ unremove_metabolites <- function(raw_data, type) {
 #' @export
 #' 
 
-show_data <- function(data){
-  data %>%
-    select(!unlist(attr(data, "removed")))
+show_data <- function(dat){
+  dat %>%
+    select(!unlist(attr(dat, "removed")))
 }
 
 
@@ -172,7 +172,7 @@ show_data <- function(data){
 #' 
 #' @description Returns LOD ratios without metabolites in removed attribute.
 #' 
-#' @param data A raw_data object.
+#' @param dat A raw_data object.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -183,9 +183,9 @@ show_data <- function(data){
 #' @export
 #' 
 
-show_ratios <- function(data){
-  attr(data, "NA_info")$NA_ratios %>%
-    filter(!metabolite %in% unlist(attr(data, "removed")))
+show_ratios <- function(dat){
+  attr(dat, "NA_info")$NA_ratios %>%
+    filter(!metabolite %in% unlist(attr(dat, "removed")))
 }
 
 #' Calculate CV for different QC samples depending on metabolite
