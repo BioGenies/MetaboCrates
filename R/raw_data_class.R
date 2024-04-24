@@ -91,7 +91,8 @@ validate_raw_data <- function(raw_data) {
   # Validate LOD table
   LOD_table <- attr(raw_data, "LOD_table")
   
-  if(!all(sort(setdiff(colnames(LOD_table), c("plate bar code", "type"))) == sort(metabolites)))
+  if(!all(sort(setdiff(colnames(LOD_table), 
+                       c("plate bar code", "type"))) == sort(metabolites)))
     stop("Provided metabolites do not match LOD table!")
   
   # Validate groups
