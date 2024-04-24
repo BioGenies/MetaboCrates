@@ -135,66 +135,66 @@ test_that("samples object is valid.", {
 })
 
 
-# test_that("sample identification column should be unique", {
-#   data <- tibble(
-#     `sample identification` = c("A", "B", "A"),
-#     `sample type` = c("Sample", "Sample", "Sample")
-#   )
-#   expect_error(raw_data(data), "Sample identification column has to be unique.")
-# })
-# 
-# test_that("incorrect metabolites values should be detected", {
-#   raw_data <- data.frame(
-#     `sample identification` = c("A", "B", "C"),
-#     `sample type` = c("Sample", "Sample", "Sample"),
-#     metabolite_1 = c(1, NA, "invalid"),
-#     metabolite_2 = c(2, "< LOD", 3)
-#   )
-#   attr(raw_data, "metabolites") <- c("metabolite_1", "metabolite_2")
-#   expect_error(raw_data(raw_data), "Found incorrect metabolites values!")
-# })
-# 
-# test_that("required columns should be present", {
-#   raw_data <- tibble(
-#     `sample identification` = c("A", "B", "C"),
-#     `sample type` = c("Sample", "Sample", "Sample")
-#   )
-#   expect_error(raw_data(raw_data), "Data should contain row/s:")
-# })
-# 
-# test_that("quality control samples should be present", {
-#   raw_data <- tibble(
-#     `sample identification` = c("A", "B", "C"),
-#     `sample type` = c("Sample", "Sample", "Sample"),
-#     `plate bar code` = c(1, 2, 3),
-#     `measurement time` = c(1, 2, 3)
-#   )
-#   expect_error(validate_raw_data(raw_data), "Data should contain quality control samples.")
-# })
-# 
-# test_that("quality control samples should not contain missing values", {
-#   raw_data <- tibble(
-#     `plate bar code` = c(1, 2, 3),
-#     `sample identification` = c("A", "B", "C"),
-#     `sample type` = c("Sample", "QC", "QC"),
-#     `measurement time` = c(1, 2, 3),
-#     metabolite_1 = c(1, NA, 3)
-#   )
-#   attr(raw_data, "metabolites") <- "metabolite_1"
-#   expect_error(validate_raw_data(raw_data), "Quality contriol samples should not contain missing values!")
-# })
-# 
-# test_that("metabolites names should match", {
-#   raw_data <- tible(
-#     `plate bar code` = c(1, 2, 3),
-#     `sample identification` = c("A", "B", "C"),
-#     `sample type` = c("QC", "Sample", "Sample"),
-#     `measurement time` = c(1, 2, 3),
-#     metabolite_1 = c(1, 2, 3)
-#   )
-#   attr(raw_data, "metabolites") <- c("metabolite_1", "metabolite_2")
-#   expect_warning(validate_raw_data(raw_data), "Metabolites")
-# })
+test_that("sample identification column should be unique", {
+  data <- tibble(
+    `sample identification` = c("A", "B", "A"),
+    `sample type` = c("Sample", "Sample", "Sample")
+  )
+  expect_error(MetaboCrates:::validate_raw_data(data), "Sample identification column has to be unique.")
+})
+
+test_that("incorrect metabolites values should be detected", {
+  raw_data <- tibble(
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("Sample", "Sample", "Sample"),
+    metabolite_1 = c(1, NA, "invalid"),
+    metabolite_2 = c(2, "< LOD", 3)
+  )
+  attr(raw_data, "metabolites") <- c("metabolite_1", "metabolite_2")
+  expect_error(MetaboCrates:::validate_raw_data(raw_data), "Found incorrect metabolites values!")
+})
+
+test_that("required columns should be present", {
+  raw_data <- tibble(
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("Sample", "Sample", "Sample")
+  )
+  expect_error(MetaboCrates:::validate_raw_data(raw_data), "Data should contain row/s:")
+})
+
+test_that("quality control samples should be present", {
+  raw_data <- tibble(
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("Sample", "Sample", "Sample"),
+    `plate bar code` = c(1, 2, 3),
+    `measurement time` = c(1, 2, 3)
+  )
+  expect_error(MetaboCrates:::validate_raw_data(raw_data), "Data should contain quality control samples.")
+})
+
+test_that("quality control samples should not contain missing values", {
+  raw_data <- tibble(
+    `plate bar code` = c(1, 2, 3),
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("Sample", "QC", "QC"),
+    `measurement time` = c(1, 2, 3),
+    metabolite_1 = c(1, NA, 3)
+  )
+  attr(raw_data, "metabolites") <- "metabolite_1"
+  expect_error(MetaboCrates:::validate_raw_data(raw_data), "Quality contriol samples should not contain missing values!")
+})
+
+test_that("metabolites names should match", {
+  raw_data <- dplyr::tibble(
+    `plate bar code` = c(1, 2, 3),
+    `sample identification` = c("A", "B", "C"),
+    `sample type` = c("QC", "Sample", "Sample"),
+    `measurement time` = c(1, 2, 3),
+    metabolite_1 = c(1, 2, 3)
+  )
+  attr(raw_data, "metabolites") <- c("metabolite_1", "metabolite_2")
+  expect_warning(MetaboCrates:::validate_raw_data(raw_data), "Metabolites")
+})
 
 
 
