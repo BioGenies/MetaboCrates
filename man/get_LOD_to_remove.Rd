@@ -12,7 +12,8 @@ get_LOD_to_remove(NA_info, treshold)
 \item{treshold}{Percentage value.}
 }
 \description{
-Returns metabolite names having more NA values in each group than the given treshold.
+Returns metabolite names having more NA values in each group
+than the given treshold.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

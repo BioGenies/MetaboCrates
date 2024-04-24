@@ -7,7 +7,8 @@
 unremove_metabolites(raw_data, type)
 }
 \arguments{
-\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function.}
+\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
 \item{type}{type of metabolites to remove}
 }

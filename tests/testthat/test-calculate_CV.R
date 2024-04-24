@@ -1,6 +1,6 @@
 library(testthat)
 
-test_that("calc_CV_for_QC calculates CV for different QC sample types and metabolites", {
+test_that("function calculates CV for different QC sample types and metabolites", {
   dat <- structure(
     .Dat = tibble(`sample type` = c("Sample", "QC Level 1", "QC Level 2", "Sample", "QC Level 1"),
                   group = c(1, 2, 2, 1, 3),
@@ -9,6 +9,8 @@ test_that("calc_CV_for_QC calculates CV for different QC sample types and metabo
                   C2 = c(0.3, 0.2, 0.2, 0, 0.1)),
     metabolites = c("C0", "C1", "C2")
     )
-  expect_equal(calc_CV_for_QC(dat),
-               tibble())
+  expect_equal(calculate_CV(dat),
+               tibble(`sample type` = "QC Level 1",
+                      metabolite = c("C0", "C2"),
+                      CV = c(sd(c(0.3, 0))/0.15, sd(c(0.2, 0.1))/0.15)))
 })
