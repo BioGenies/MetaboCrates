@@ -48,6 +48,17 @@ validate_raw_data <- function(raw_data) {
   
   metabolites <- attr(raw_data, "metabolites")
   
+  # Validate metabolites names
+  
+  if(!all(metabolites %in% colnames(raw_data))) {
+    warning(paste0("Metabolites ", 
+                   paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
+                          collapse = ", "), 
+                   " cannot be found in the data! We will ignore them."))
+    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
+    metabolites <- attr(raw_data, "metabolites")
+  }
+  
   metabolites_values <- raw_data %>%
     select(all_of(metabolites)) %>% 
     unlist()
@@ -73,16 +84,6 @@ validate_raw_data <- function(raw_data) {
   
   if(any(is.na(select(filter(raw_data, grepl("QC", `sample type`)), all_of(metabolites)))))
     stop("Quality contriol samples should not contain missing values!")
-  
-  # Validate metabolites names
-  
-  if(!all(metabolites %in% colnames(raw_data))) {
-    warning(paste0("Metabolites ", 
-                   paste0(metabolites[!(metabolites %in% colnames(raw_data))], 
-                          collapse = ", "), 
-                   " cannot be found in the data! We will ignore them."))
-    attr(raw_data, "metabolites") <- metabolites[metabolites %in% colnames(raw_data)]
-  }
   
   # Validate LOD table
   LOD_table <- attr(raw_data, "LOD_table")
