@@ -36,7 +36,7 @@ add_group <- function(dat, group_name) {
 
 #' Get informations from Biocrates data
 #' 
-#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' @inheritParams add_group
 #' 
 #' @seealso [read_data()]
 #' 
@@ -61,7 +61,7 @@ get_info <- function(dat){
   info_str <- paste0("Data contains ", 
                      nrow(attr(dat, "samples")), 
                      " sample types and ", 
-                     nrow(attr(dat, "NA_info")$counts), 
+                     nrow(attr(dat, "NA_info")[["counts"]]), 
                      " NA types.")
   
   if(!is.null(attr(dat, "group"))){
@@ -96,7 +96,7 @@ get_info <- function(dat){
 
 get_LOD_to_remove <- function(NA_info, treshold){
   
-  NA_info$NA_ratios %>%
+  NA_info[["NA_ratios"]] %>%
     group_by(metabolite) %>% 
     filter(all(NA_frac > treshold)) %>%
     distinct(metabolite) %>% 
@@ -184,7 +184,7 @@ show_data <- function(dat){
 #' 
 
 show_ratios <- function(dat){
-  attr(dat, "NA_info")$NA_ratios %>%
+  attr(dat, "NA_info")[["NA_ratios"]] %>%
     filter(!metabolite %in% unlist(attr(dat, "removed")))
 }
 
