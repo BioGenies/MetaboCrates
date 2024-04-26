@@ -11,7 +11,8 @@ new_raw_data(
   metabolites,
   samples,
   group,
-  removed
+  removed,
+  completed
 )
 }
 \value{

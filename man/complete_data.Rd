@@ -6,10 +6,10 @@
 \usage{
 complete_data(
   dat,
-  LOD_method = NULL,
-  LLOQ_method = NULL,
-  ULOQ_method = NULL,
-  LOD_type = NULL
+  LOD_method = "limit",
+  LLOQ_method = "limit",
+  ULOQ_method = "limit",
+  LOD_type = "calc"
 )
 }
 \arguments{
@@ -30,6 +30,6 @@ quantification or detection.
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-complete_data(dat)
+dat <- complete_data(dat)
 
 }

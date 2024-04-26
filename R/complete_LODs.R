@@ -13,15 +13,16 @@
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' complete_data(dat)
+#' dat <- complete_data(dat)
 #'
 #' @export
 #' 
 
-complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
-                          ULOQ_method = NULL, LOD_type = NULL) {
+complete_data <- function(dat, LOD_method = "limit", LLOQ_method = "limit", 
+                          ULOQ_method = "limit", LOD_type = "calc") {
   
-  LOD_type <- match.arg(LOD_type, c("OP", "calc", NULL))
+  LOD_type <- match.arg(LOD_type, c("OP", "calc"))
+
   LOD_method <- match.arg(LOD_method, c("halfmin", "random", "limit", NULL))
   
   NA_info <- attr(dat, "NA_info")[["counts"]] %>% 
@@ -35,6 +36,9 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
   
   LOD_vals <- match_plate_codes(attr(dat, "LOD_table"), sets)
   
+  if(!any(grepl(LOD_type, LOD_vals[["type"]])))
+    stop(paste0("There is no ", LOD_type, " values in LOD table."))
+  
   gathered_data <- dat %>% 
     select(`plate bar code`, `sample identification`, `sample type`, 
            all_of(attr(dat, "metabolites"))) %>% 
@@ -42,6 +46,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     gather(key = "compound", value = "value", -`sample identification`, 
            -`sample type`, -`plate bar code`, -tmp_id)
   
+  ### LOD imputation
   if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
     message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
     gathered_data <- complete_LOD(gathered_data = gathered_data,  
@@ -52,8 +57,9 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     message("Skipping < LOD imputation.")
   }
   
+  ### LLOQ imputation
   if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
-    message(paste0("Completing ", NA_info[["< LOD"]], " < LLOQ values..."))
+    message(paste0("Completing ", NA_info[["< LLOQ"]], " < LLOQ values..."))
     gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
                                    method = LLOQ_method, 
                                    LOD_vals = LOD_vals)
@@ -61,20 +67,26 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     message("Skipping < LLOQ imputation.")
   }
   
+  ### ULOQ imputation
   if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
-    message(paste0("Completing ", NA_info[["< LOD"]], " < LLOQ values..."))
+    message(paste0("Completing ", NA_info[["> ULOQ"]], " < ULOQ values..."))
     gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
                                    method = ULOQ_method, 
                                    LOD_vals = LOD_vals)
   }else {
     message("Skipping < ULOQ imputation.")
   }
-  
-  gathered_data %>% 
-    spread(key = compound, value = value) %>% 
-    arrange(tmp_id)
-}
 
+  completed_dat <- gathered_data %>% 
+    spread(key = compound, value = value) %>% 
+    arrange(tmp_id) 
+  
+  tmp_dat <- dat
+  tmp_dat[, colnames(completed_dat)] <- completed_dat
+  attr(dat, "completed") <- tmp_dat
+  
+  dat
+}
 
 
 #' Complete values below limit of detection
@@ -92,7 +104,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' 
-#' @export
+#' @keywords internal
 #' 
 
 
@@ -140,7 +152,6 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
 #' @keywords internal
 #' 
 
-
 match_plate_codes <- function(LOD_table, sets) {
   LOD_table %>% 
     gather("compound", "thresh_est", -`plate bar code`, -type) %>% 
@@ -148,18 +159,77 @@ match_plate_codes <- function(LOD_table, sets) {
     mutate(`plate bar code` = sapply(`plate bar code`, function(ith_code)
       sets[str_detect(sets, ith_code)][1])) %>% 
     group_by(compound, `plate bar code`, type) %>% 
-    summarise(thresh_est = sum(thresh_est))
+    summarise(thresh_est = sum(thresh_est, na.rm = TRUE))
 }
 
 
 
+#' Complete values above limit of quantification
+#' 
+#' @description This function imputes values below limit of quantification 
+#' ("> ULOQ")
+#' 
+#' @importFrom stringr str_extract
+#' @inheritParams complete_LOD
+#'
+#' @param method a character. Imputation method, one of "limit"
+#' @param LOD_vals description
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' 
+#' @keywords internal
+#' 
 
-complete_ULOQ <- function(dat) {
-  NULL
+complete_ULOQ <- function(gathered_data, method, LOD_vals) {
+  merged_dat <- gathered_data %>% 
+    merge(filter(LOD_vals, type == "ULOQ"), 
+          by = c("plate bar code", "compound"), all = TRUE)
+  
+  merged_dat <- switch (
+    method,
+    limit = {
+      merged_dat %>% 
+        mutate(value = ifelse(value == "> ULOQ", thresh_est, value))
+    }
+  )
+  merged_dat %>% 
+    select(- type, -thresh_est)
 }
 
 
+#' Complete values below limit of quantification
+#' 
+#' @description This function imputes values below limit of quantification 
+#' ("< LLOQ")
+#' 
+#' @importFrom stringr str_extract
+#' @inheritParams complete_LOD
+#'
+#' @param method a character. Imputation method, one of "limit"
+#' @param LOD_vals description
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' 
+#' @keywords internal
+#' 
 
-complete_LLOQ <- function(dat) {
-  NULL
+complete_LLOQ <- function(gathered_data, method, LOD_vals) {
+  
+  merged_dat <- gathered_data %>% 
+    merge(filter(LOD_vals, type == "LLOQ"), 
+          by = c("plate bar code", "compound"), all = TRUE)
+  
+  merged_dat <- switch (
+    method,
+    limit = {
+      merged_dat %>% 
+        mutate(value = ifelse(value == "< LLOQ", thresh_est, value))
+    }
+  )
+  merged_dat %>% 
+    select(- type, -thresh_est)
 }

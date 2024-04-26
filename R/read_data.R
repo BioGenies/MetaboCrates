@@ -70,22 +70,14 @@ read_data <- function(path) {
 #'
 
 check_values <- function(metabolite_vals, 
-                         special_signs = c("< LOD",
-                                           "< LLOQ", 
-                                           "> ULOQ", 
-                                           "NA", 
-                                           "∞")) {
+                         special_signs = c("< LOD", "< LLOQ", 
+                                           "> ULOQ", "NA", "∞")) {
   
   values_storage <- metabolite_vals
-  
-  suppressWarnings({
-    storage.mode(values_storage) <- "numeric"
-  })
-  
+  suppressWarnings({ storage.mode(values_storage) <- "numeric"})
   to_convert <- is.na(values_storage) & !(metabolite_vals %in% special_signs)
   
-  if(any(to_convert)) 
-    metabolite_vals[to_convert] <- NA
+  if(any(to_convert)) metabolite_vals[to_convert] <- NA
   
   metabolite_vals
 }

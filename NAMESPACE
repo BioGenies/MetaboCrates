@@ -3,7 +3,6 @@
 export(add_group)
 export(calculate_CV)
 export(check_values)
-export(complete_LOD)
 export(complete_data)
 export(get_LOD_to_remove)
 export(get_example_data)

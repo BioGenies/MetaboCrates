@@ -16,7 +16,8 @@ new_raw_data <- function(metabolomics_matrix,
                          metabolites,
                          samples,
                          group,
-                         removed){
+                         removed,
+                         completed){
   
   structure(.Data = metabolomics_matrix,
             "LOD_table" = LOD_table,
@@ -25,6 +26,7 @@ new_raw_data <- function(metabolomics_matrix,
             "samples" = samples,
             "group" = group,
             "removed" = removed,
+            "completed" = completed,
             class = c("raw_data", "data.frame"))
 }
 
@@ -214,7 +216,8 @@ raw_data <- function(metabolomics_matrix,
       metabolites = metabolites,
       samples = samples,
       group = group,
-      removed = list(LOD = NULL, LOD_man = NULL, QC = NULL, QC_man = NULL)
+      removed = list(LOD = NULL, LOD_man = NULL, QC = NULL, QC_man = NULL),
+      completed = NULL
     )
   )
 }
