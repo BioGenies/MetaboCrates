@@ -6,9 +6,9 @@
 \usage{
 complete_data(
   dat,
-  LOD_method = "limit",
-  LLOQ_method = "limit",
-  ULOQ_method = "limit",
+  LOD_method = NULL,
+  LLOQ_method = NULL,
+  ULOQ_method = NULL,
   LOD_type = "calc"
 )
 }

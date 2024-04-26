@@ -3,6 +3,8 @@
 #'
 #' @description This function completes missing values related to limits of 
 #' quantification or detection.
+#' 
+#' @importFrom tidyr spread
 #'
 #' @param dat 
 #' @param LOD_method description
@@ -18,12 +20,9 @@
 #' @export
 #' 
 
-complete_data <- function(dat, LOD_method = "limit", LLOQ_method = "limit", 
-                          ULOQ_method = "limit", LOD_type = "calc") {
+complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
+                          ULOQ_method = NULL, LOD_type = "calc") {
   
-  LOD_type <- match.arg(LOD_type, c("OP", "calc"))
-
-  LOD_method <- match.arg(LOD_method, c("halfmin", "random", "limit", NULL))
   
   NA_info <- attr(dat, "NA_info")[["counts"]] %>% 
     filter(type %in% c("< LOD", "< LLOQ", "> ULOQ")) %>% 
@@ -35,9 +34,6 @@ complete_data <- function(dat, LOD_method = "limit", LLOQ_method = "limit",
     unique()
   
   LOD_vals <- match_plate_codes(attr(dat, "LOD_table"), sets)
-  
-  if(!any(grepl(LOD_type, LOD_vals[["type"]])))
-    stop(paste0("There is no ", LOD_type, " values in LOD table."))
   
   gathered_data <- dat %>% 
     select(`plate bar code`, `sample identification`, `sample type`, 
@@ -79,7 +75,8 @@ complete_data <- function(dat, LOD_method = "limit", LLOQ_method = "limit",
 
   completed_dat <- gathered_data %>% 
     spread(key = compound, value = value) %>% 
-    arrange(tmp_id) 
+    arrange(tmp_id) %>% 
+    mutate_at(all_of(attr(dat, "metabolites")), as.numeric)
   
   tmp_dat <- dat
   tmp_dat[, colnames(completed_dat)] <- completed_dat
@@ -109,6 +106,12 @@ complete_data <- function(dat, LOD_method = "limit", LLOQ_method = "limit",
 
 
 complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
+  
+  method <- match.arg(method, c("halfmin", "random", "limit"))
+  LOD_type <- match.arg(LOD_type, c("OP", "calc"))
+  
+  if(!any(grepl(LOD_type, LOD_vals[["type"]])))
+    stop(paste0("There is no ", LOD_type, " values in LOD table."))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, grepl(LOD_type, type)), 
@@ -183,6 +186,9 @@ match_plate_codes <- function(LOD_table, sets) {
 #' 
 
 complete_ULOQ <- function(gathered_data, method, LOD_vals) {
+  
+  method <- match.arg(method, c("limit"))
+  
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "ULOQ"), 
           by = c("plate bar code", "compound"), all = TRUE)
@@ -218,6 +224,8 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
 #' 
 
 complete_LLOQ <- function(gathered_data, method, LOD_vals) {
+  
+  method <- match.arg(method, c("limit"))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "LLOQ"), 
