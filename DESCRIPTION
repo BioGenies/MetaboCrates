@@ -32,7 +32,8 @@ Imports: dplyr,
          stringi,
          stringr,
          tidyr,
-         tools
+         tools,
+         ggplot2
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
