@@ -32,9 +32,11 @@ plot_groups <- function(dat){
   if(is.null(attr(dat, "group"))){
     stop("No groups column specified in data. You can add grouping using add_group() function.")
   }
-  
-  ggplot(dat, aes(x = as.character(!!sym(attr(dat, "group"))))) +
-    geom_bar(fill = "#2A528A") +
+
+dat %>%
+  filter(`sample type` == "Sample") %>%
+  ggplot(aes(x = as.character(get(attr(dat, "group"))))) +
+    geom_bar() +
     labs(x = "Groups",
          y = "Count",
          title = paste0("Number of elements in groups of column \"",

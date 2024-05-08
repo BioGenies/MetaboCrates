@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_groups}
 \alias{plot_groups}
-\title{Plot counts of groups}
+\title{Barplot of groups sizes}
 \usage{
 plot_groups(dat)
 }
@@ -10,7 +10,7 @@ plot_groups(dat)
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
 }
 \description{
-Plot counts of groups
+Barplot of groups sizes
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
