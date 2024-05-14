@@ -43,3 +43,29 @@ plot_groups <- function(dat){
     metabocrates_theme()
 }
 
+
+#' Barplot of metabolomics numbers
+#' 
+#' @import ggplot2
+#' 
+#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' test_dat <- read_data(path)
+#' plot_mv_types(test_dat)
+#' 
+#' @export
+
+plot_mv_types <- function(dat) {
+  NA_info <- attr(dat, "NA_info")
+  counts <- NA_info[["counts"]]
+  
+  counts %>%
+    rename(count = "n") %>%
+    filter(count > 0) %>%
+    ggplot(aes(x = type, y = count)) +
+    geom_col(fill = "#2A528A") +
+    geom_label(aes(x = type, y = count, label = count)) +
+    metabocrates_theme()
+}
