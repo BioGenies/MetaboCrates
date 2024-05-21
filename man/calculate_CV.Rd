@@ -15,10 +15,7 @@ Calculate CV for different QC samples depending on metabolite
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-dat[,18:26] <- apply(dat[,18:26], 2, function(dat){
-dat[which(dat == "< LOD" | dat == "> ULOQ" | is.na(dat) | dat == "< LLOQ" | dat == "NA")] <- 0
-dat
-})
+dat <- complete_data(dat)
 calculate_CV(dat)
 
 }

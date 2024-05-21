@@ -199,16 +199,13 @@ show_ratios <- function(dat){
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' dat[,18:26] <- apply(dat[,18:26], 2, function(dat){
-#' dat[which(dat == "< LOD" | dat == "> ULOQ" | is.na(dat) | dat == "< LLOQ" | dat == "NA")] <- 0
-#' dat
-#' })
+#' dat <- complete_data(dat)
 #' calculate_CV(dat)
 #' 
 #' @export
 
 calculate_CV <- function(dat){
-  dat %>%
+  attr(dat, "cv") <- attr(dat, "completed") %>%
     select(`sample type`, all_of(attr(dat, "metabolites"))) %>%
     filter(str_detect(`sample type`, "^QC")) %>%
     pivot_longer(!`sample type`, 
@@ -216,8 +213,12 @@ calculate_CV <- function(dat){
                  values_to = "value") %>%
     group_by(`sample type`, metabolite) %>%
     mutate(value = as.numeric(value)) %>% 
-    summarise(CV = ifelse(n() == 1, NA, sd(value) / mean(value))) %>%
+    summarise(
+      CV = ifelse(n() == 1, NA, sd(value, na.rm = T) / mean(value, na.rm = T))
+    ) %>%
     group_by(`sample type`, metabolite) %>% 
     filter(all(!is.na(CV))) %>%
     ungroup()
+  
+  dat
 }

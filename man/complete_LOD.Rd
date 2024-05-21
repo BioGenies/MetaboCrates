@@ -13,7 +13,7 @@ complete_LOD(gathered_data, LOD_type, method, LOD_vals)
 It can be NULL depending on the \code{method} parameter.}
 
 \item{method}{a character. Imputation method, one of "halfmin", "random",
-"limit"}
+"limit" or NULL meaning changing missing values into NAs.}
 
 \item{LOD_vals}{description}
 }
