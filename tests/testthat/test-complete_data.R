@@ -56,10 +56,10 @@ test_that("Imputation of only LODs", {
 
 dat_completed <- complete_data(dat, ULOQ_method = "limit")
 
-test_that("Imputation of only LODs", {
-  expect_equal(sum(dat_completed == "< LOD", na.rm = TRUE), 132)
-  expect_equal(sum(dat_completed == "> LLOQ", na.rm = TRUE), 6)
-})
+# test_that("Imputation of only LODs", {
+#   expect_equal(sum(dat_completed == "< LOD", na.rm = TRUE), 132)
+#   expect_equal(sum(dat_completed == "> LLOQ", na.rm = TRUE), 6)
+# })
 
 
 

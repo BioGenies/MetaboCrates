@@ -216,3 +216,50 @@ test_that("sample identification column should be unique", {
   
     expect_error(MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites), "Sample identification column has to be unique.")
   })
+
+test_that("Test for mismatch between provided metabolites and LOD table", {
+  metabolomics_matrix <- tibble(
+    `sample type` = c("Sample", "QC"),
+    `plate bar code` = c("Plate1", "Plate2"),
+    `sample identification` = c("Sample1", "Sample2"),
+    metabolite1 = c(1, 2),
+    metabolite2 = c(3, 4)
+  )
+  
+  LOD_table <- tibble(
+      `plate bar code` = c("Plate1", "Plate2"),
+      metabolite1 = c(0.5, 0.6),
+      metabolite2 = c(0.7, 0.8),
+    type = c("LOD (calc.)", "LOD (calc.)"))
+  
+  metabolites <- c("metabolite1", "metabolite3")
+  
+  expect_error(
+    MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites),
+    "Provided metabolites do not match LOD table!"
+  )
+})
+
+test_that("Test for group column not contained in the data", {
+  metabolomics_matrix <- tibble(
+    `sample type` = c("Sample", "QC", "Sample"),
+    `plate bar code` = c("Plate1", "Plate2", "Plate3"),
+    `sample identification` = c("Sample1", "Sample2", "Sample3"),
+    `measurement time` = c(1, 2, 3),
+    metabolite1 = c(1, 2, 3),
+    metabolite2 = c(3, 4, 5)
+  )
+  
+  LOD_table <-tibble(
+    `plate bar code` = c("Plate1", "Plate2"),
+    metabolite1 = c(0.5, 0.6),
+    metabolite2 = c(0.7, 0.8),
+    type = c("LOD (calc.)", "LOD (calc.)"))
+  
+  metabolites <- c("metabolite1", "metabolite2")
+  
+  expect_error(
+    MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites, group = "group_column"),
+    "Provided group:group_column is not contained in the data."
+  )
+})
