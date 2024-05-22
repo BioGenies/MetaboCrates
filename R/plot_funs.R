@@ -1,3 +1,6 @@
+#' Metabocrates ggplot theme
+#' 
+#' @keywords internal
 
 metabocrates_theme <- function(){
   theme(
@@ -26,7 +29,6 @@ metabocrates_theme <- function(){
 #' plot_groups(dat)
 #' 
 #' @export
-#' 
 
 plot_groups <- function(dat){
   if(is.null(attr(dat, "group"))){
@@ -69,5 +71,53 @@ plot_mv_types <- function(dat) {
     ggplot(aes(x = type, y = count)) +
     geom_col(fill = "#2A528A") +
     geom_label(aes(x = type, y = count, label = count)) +
+    metabocrates_theme()
+}
+
+#' Barplot of missing metabolites values
+#' 
+#' @importFrom scales percent
+#' 
+#' @param type NULL, "Type" or "group"
+#' 
+#' @export
+
+plot_NA_percent <- function(dat, type = NULL){
+  NA_percent <- dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(c(attr(dat, "metabolites"), attr(dat, "group")))) %>%
+    pivot_longer(attr(dat, "metabolites"),
+                 names_to = "Metabolite",
+                 values_to = "Type") %>%
+    group_by(Metabolite, attr(dat, "group")) %>%
+    mutate(`Number of values` = n()) %>%
+    filter(Type %in% c("< LOD","< LLOQ",
+                        "> ULOQ", "NA", "∞")) %>%
+    ungroup() %>%
+    group_by(Metabolite, attr(dat, "group"), Type) %>%
+    summarise(`% Missing` = n()/first(`Number of values`))
+  
+  if(is.null(type)){
+    plt <- ggplot(NA_percent, aes(x = Metabolite, y = `% Missing`,
+                                  alpha = type))
+  }else{
+    if(type == "group"){
+      if(is.null(attr(dat, "group"))) stop("No group defined")
+      type <- attr(dat, "group")
+    }
+      
+    plt <- ggplot(NA_percent, aes(x = Metabolite, y = `% Missing`,
+                                  fill = get(type)))
+  }
+  
+  plt +
+    geom_col() +
+    scale_y_continuous(labels = scales::percent) +
+    geom_label(data =
+                 attr(dat, "NA_info")[["NA_ratios"]]["metabolite", "NA_frac"],
+               aes(x = metabolite, y = NA_frac,
+                   label = paste0(round(NA_frac*100), "%"),
+                   fill = NULL)) +
+    coord_flip() +
     metabocrates_theme()
 }
