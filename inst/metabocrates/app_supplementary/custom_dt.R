@@ -1,0 +1,15 @@
+
+custom_datatable <- function(dat,
+                             paging = TRUE,
+                             scrollY = 380,
+                             selection = list(selectable = FALSE)) {
+  DT::datatable(dat,
+                editable = FALSE,
+                selection = selection,
+                options = list(paging = paging,
+                               scrollX = TRUE,
+                               scrollY = scrollY,
+                               pageLength = 15,
+                               searching = FALSE),
+                class = "display nowrap",)
+}
