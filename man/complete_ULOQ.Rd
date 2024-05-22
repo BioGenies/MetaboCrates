@@ -9,7 +9,8 @@ complete_ULOQ(gathered_data, method, LOD_vals)
 \arguments{
 \item{gathered_data}{description}
 
-\item{method}{a character. Imputation method, one of "limit"}
+\item{method}{a character. Imputation method, one of "limit" or NULL meaning
+changing missing values into NAs.}
 
 \item{LOD_vals}{description}
 }

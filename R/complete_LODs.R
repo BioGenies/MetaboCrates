@@ -73,11 +73,13 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     message("Skipping < ULOQ imputation.")
   }
 
-  completed_dat <- gathered_data %>% 
-    spread(key = compound, value = value) %>% 
-    arrange(tmp_id) %>% 
-    mutate_at(all_of(attr(dat, "metabolites")), as.numeric)
-  
+  suppressWarnings({
+    completed_dat <- gathered_data %>% 
+      spread(key = compound, value = value) %>% 
+      arrange(tmp_id) %>% 
+      mutate_at(all_of(attr(dat, "metabolites")), as.numeric)
+  })
+
   tmp_dat <- dat
   tmp_dat[, colnames(completed_dat)] <- completed_dat
   attr(dat, "completed") <- tmp_dat
@@ -94,7 +96,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
 #' It can be NULL depending on the \code{method} parameter.
 #' @param method a character. Imputation method, one of "halfmin", "random", 
-#' "limit"
+#' "limit" or NULL meaning changing missing values into NAs.
 #' @param LOD_vals description
 #' 
 #' @examples
@@ -107,7 +109,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 
 complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   
-  method <- match.arg(method, c("halfmin", "random", "limit"))
+  method <- match.arg(method, c("halfmin", "random", "limit", "intona"))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
   
   if(!any(grepl(LOD_type, LOD_vals[["type"]])))
@@ -175,7 +177,8 @@ match_plate_codes <- function(LOD_table, sets) {
 #' @importFrom stringr str_extract
 #' @inheritParams complete_LOD
 #'
-#' @param method a character. Imputation method, one of "limit"
+#' @param method a character. Imputation method, one of "limit" or NULL meaning 
+#' changing missing values into NAs.
 #' @param LOD_vals description
 #' 
 #' @examples
@@ -213,7 +216,8 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
 #' @importFrom stringr str_extract
 #' @inheritParams complete_LOD
 #'
-#' @param method a character. Imputation method, one of "limit"
+#' @param method a character. Imputation method, one of "limit" or NULL meaning 
+#' changing missing values into NAs.
 #' @param LOD_vals description
 #' 
 #' @examples

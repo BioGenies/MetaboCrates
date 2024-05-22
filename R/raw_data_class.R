@@ -17,7 +17,8 @@ new_raw_data <- function(metabolomics_matrix,
                          samples,
                          group,
                          removed,
-                         completed){
+                         completed,
+                         cv){
   
   structure(.Data = metabolomics_matrix,
             "LOD_table" = LOD_table,
@@ -27,6 +28,7 @@ new_raw_data <- function(metabolomics_matrix,
             "group" = group,
             "removed" = removed,
             "completed" = completed,
+            "cv" = cv,
             class = c("raw_data", "data.frame"))
 }
 
@@ -154,7 +156,8 @@ validate_raw_data <- function(raw_data) {
 #' - \code{NA_info}: a \code{\link{list}} related to missing values in the data. 
 #' It contains \code{NA_ratios}: fractions of missing values per every 
 #' metabolite. When \code{group} parameter (see below) is provided and 
-#' \code{counts}: table of types of missing values with their counts.
+#' \code{counts}: table of types of missing values with their counts (related 
+#' to "sample" type samples).
 #' - \code{metabolites} 
 #' - \code{samples}: a \code{\link{data.frame}} containing names of samples 
 #' types and their counts
@@ -217,7 +220,8 @@ raw_data <- function(metabolomics_matrix,
       samples = samples,
       group = group,
       removed = list(LOD = NULL, LOD_man = NULL, QC = NULL, QC_man = NULL),
-      completed = NULL
+      completed = NULL,
+      cv = NULL
     )
   )
 }

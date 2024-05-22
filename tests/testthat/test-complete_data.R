@@ -4,7 +4,8 @@ library(testthat)
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 
-dat_completed <- complete_data(dat, LOD_method = "limit", LLOQ_method = "limit", 
+dat_completed <- complete_data(dat, LOD_method = "limit", 
+                               LLOQ_method = "limit", 
                                ULOQ_method = "limit")
 
 completed <- attributes(dat_completed)[["completed"]]
@@ -41,25 +42,32 @@ test_that("Proper ULOQ values were imputed", {
 
 
 dat_completed <- complete_data(dat, LOD_method = "random")
+dat_completed <- attributes(dat_completed)[["completed"]]
 
 test_that("Imputation of only LODs", {
-  expect_equal(sum(dat_completed == "< LLOQ", na.rm = TRUE), 6)
-  expect_equal(sum(dat_completed == "> ULOQ", na.rm = TRUE), 11)
+  expect_equal(sum(is.na(dat_completed)), 198)
 })
 
 dat_completed <- complete_data(dat, LLOQ_method = "limit")
+dat_completed <- attributes(dat_completed)[["completed"]]
 
 test_that("Imputation of only LODs", {
-  expect_equal(sum(dat_completed == "< LOD", na.rm = TRUE), 132)
-  expect_equal(sum(dat_completed == "> ULOQ", na.rm = TRUE), 11)
+  expect_equal(sum(is.na(dat_completed)), 324)
 })
 
 dat_completed <- complete_data(dat, ULOQ_method = "limit")
+dat_completed <- attributes(dat_completed)[["completed"]]
 
+<<<<<<< HEAD
 # test_that("Imputation of only LODs", {
 #   expect_equal(sum(dat_completed == "< LOD", na.rm = TRUE), 132)
 #   expect_equal(sum(dat_completed == "> LLOQ", na.rm = TRUE), 6)
 # })
+=======
+test_that("Imputation of only ULOQs", {
+  expect_equal(sum(is.na(dat_completed)), 319)
+})
+>>>>>>> 3c3afcb07055ad0ae99db548d74f88c528e5cf5a
 
 
 

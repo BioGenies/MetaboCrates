@@ -37,7 +37,8 @@ attributes:
 \item \code{NA_info}: a \code{\link{list}} related to missing values in the data.
 It contains \code{NA_ratios}: fractions of missing values per every
 metabolite. When \code{group} parameter (see below) is provided and
-\code{counts}: table of types of missing values with their counts.
+\code{counts}: table of types of missing values with their counts (related
+to "sample" type samples).
 \item \code{metabolites}
 \item \code{samples}: a \code{\link{data.frame}} containing names of samples
 types and their counts

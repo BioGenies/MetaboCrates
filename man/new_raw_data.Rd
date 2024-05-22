@@ -12,7 +12,8 @@ new_raw_data(
   samples,
   group,
   removed,
-  completed
+  completed,
+  cv
 )
 }
 \value{
