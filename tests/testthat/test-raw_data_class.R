@@ -109,16 +109,6 @@ test_that("NA_ratios is valid.", {
   
 })
 
-<<<<<<< HEAD
-# test_that("counts object is valid.", {
-#   expect_identical(counts, 
-#                    structure(
-#                      list(
-#                        type = c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞"), 
-#                        n = c(132L, 6L, 11L, 0L, 0L)), 
-#                      class = "data.frame", row.names = c(NA, -5L)))
-# })
-=======
 test_that("counts object is valid.", {
   expect_identical(counts, 
                    structure(
@@ -127,7 +117,6 @@ test_that("counts object is valid.", {
                        n = c(109L, 6L, 9L, 0L, 0L)), 
                      class = "data.frame", row.names = c(NA, -5L)))
 })
->>>>>>> 3c3afcb07055ad0ae99db548d74f88c528e5cf5a
 
 
 ## samples
