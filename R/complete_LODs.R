@@ -95,8 +95,8 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' @param gathered_data description
 #' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
 #' It can be NULL depending on the \code{method} parameter.
-#' @param method a character. Imputation method, one of "halfmin", "random", 
-#' "limit" or NULL meaning changing missing values into NAs.
+#' @param method a character. Imputation method, one of "halfmin",  "random", 
+#' "halflimit", "limit" or NULL meaning changing missing values into NAs.
 #' @param LOD_vals description
 #' 
 #' @examples
@@ -109,7 +109,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 
 complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   
-  method <- match.arg(method, c("halfmin", "random", "limit", "intona"))
+  method <- match.arg(method, c("halfmin", "random", "halflimit", "limit"))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
   
   if(!any(grepl(LOD_type, LOD_vals[["type"]])))
@@ -122,6 +122,10 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   merged_dat <- switch (
     method,
     halfmin = {
+      merged_dat %>% 
+        mutate(value = ifelse(value == "< LOD", 0.5 * min(value), value))
+    },
+    halflimit = {
       merged_dat %>% 
         mutate(value = ifelse(value == "< LOD", 0.5 * thresh_est, value))
     },

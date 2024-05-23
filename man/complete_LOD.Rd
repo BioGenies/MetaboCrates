@@ -12,8 +12,8 @@ complete_LOD(gathered_data, LOD_type, method, LOD_vals)
 \item{LOD_type}{a character. Type of LOD values form table ('OP' or 'calc').
 It can be NULL depending on the \code{method} parameter.}
 
-\item{method}{a character. Imputation method, one of "halfmin", "random",
-"limit" or NULL meaning changing missing values into NAs.}
+\item{method}{a character. Imputation method, one of "halfmin",  "random",
+"halflimit", "limit" or NULL meaning changing missing values into NAs.}
 
 \item{LOD_vals}{description}
 }
