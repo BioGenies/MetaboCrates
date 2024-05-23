@@ -109,7 +109,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 
 complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   
-  method <- match.arg(method, c("halfmin", "random", "halflimit", "limit"))
+  method <- match.arg(method, c("halfmin", "random", "halflimit", "limit", NULL))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
   
   if(!any(grepl(LOD_type, LOD_vals[["type"]])))

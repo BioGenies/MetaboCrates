@@ -11,5 +11,14 @@ custom_datatable <- function(dat,
                                scrollY = scrollY,
                                pageLength = 15,
                                searching = FALSE),
-                class = "display nowrap",)
+                class = "display nowrap")
 }
+
+
+
+display_short <- function(column) {
+  ifelse(nchar(column) > 7,
+         round(as.numeric(column), 2),
+         column)
+}
+

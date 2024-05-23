@@ -18,7 +18,7 @@ nav_btns_UI <- function(id) {
       ),
     )
   }else {
-    if(id == "Download") {
+    if(id == "Summary") {
       tagList(
         tags$footer(
           align = "right",
