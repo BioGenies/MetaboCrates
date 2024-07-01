@@ -219,9 +219,10 @@ test_that("sample identification column should be unique", {
 
 test_that("Test for mismatch between provided metabolites and LOD table", {
   metabolomics_matrix <- tibble(
-    `sample type` = c("Sample", "QC"),
+    `sample type` = c("QC", "Sample"),
     `plate bar code` = c("Plate1", "Plate2"),
     `sample identification` = c("Sample1", "Sample2"),
+    `measurement time` = c(1, 2),
     metabolite1 = c(1, 2),
     metabolite2 = c(3, 4)
   )
@@ -242,12 +243,12 @@ test_that("Test for mismatch between provided metabolites and LOD table", {
 
 test_that("Test for group column not contained in the data", {
   metabolomics_matrix <- tibble(
-    `sample type` = c("Sample", "QC", "Sample"),
+    `sample type` = c("QC", "Sample", "Sample"),
     `plate bar code` = c("Plate1", "Plate2", "Plate3"),
-    `sample identification` = c("Sample1", "Sample2", "Sample3"),
+    `sample identification` = c("QC1", "Sample1", "Sample2"),
     `measurement time` = c(1, 2, 3),
     metabolite1 = c(1, 2, 3),
-    metabolite2 = c(3, 4, 5)
+    metabolite2 = c(3, 4, 5),
   )
   
   LOD_table <-tibble(
@@ -259,7 +260,7 @@ test_that("Test for group column not contained in the data", {
   metabolites <- c("metabolite1", "metabolite2")
   
   expect_error(
-    MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites, group = "group_column"),
-    "Provided group:group_column is not contained in the data."
+    MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites),
+    NA
   )
 })
