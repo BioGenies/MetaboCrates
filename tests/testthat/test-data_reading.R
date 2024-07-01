@@ -236,7 +236,9 @@ test_that("Test for mismatch between provided metabolites and LOD table", {
   metabolites <- c("metabolite1", "metabolite3")
   
   expect_error(
-    MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites),
+    suppressWarnings(
+      MetaboCrates:::raw_data(metabolomics_matrix, LOD_table, metabolites)
+      ),
     "Provided metabolites do not match LOD table!"
   )
 })

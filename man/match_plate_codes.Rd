@@ -23,7 +23,7 @@ Find matching plate bar codes in the LOD table
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 sets <- unique(dat[["plate bar code"]])
-match_plate_codes(attr(dat, "LOD_table"), sets)
+MetaboCrates:::match_plate_codes(attr(dat, "LOD_table"), sets)
 
 }
 \keyword{internal}

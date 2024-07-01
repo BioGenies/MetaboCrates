@@ -13,7 +13,7 @@ complete_data(
 )
 }
 \arguments{
-\item{dat}{}
+\item{dat}{descr}
 
 \item{LOD_method}{description}
 
@@ -21,7 +21,7 @@ complete_data(
 
 \item{ULOQ_method}{description}
 
-\item{LOD_type}{}
+\item{LOD_type}{desc}
 }
 \description{
 This function completes missing values related to limits of

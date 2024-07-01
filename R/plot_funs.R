@@ -78,6 +78,8 @@ plot_mv_types <- function(dat) {
 #' 
 #' @importFrom scales percent
 #' 
+#' @inheritParams plot_mv_types
+#' 
 #' @param type NULL, "Type" or "group"
 #' 
 #' @export
