@@ -7,7 +7,13 @@
 plot_NA_percent(dat, type = NULL)
 }
 \arguments{
+<<<<<<< HEAD
 \item{type}{NULL, "NA_type" or "group"}
+=======
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
+
+\item{type}{NULL, "Type" or "group"}
+>>>>>>> 42afe3b917767ca18068e3338e6229a77225a9bd
 }
 \description{
 Barplot of missing metabolites values

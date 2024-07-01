@@ -6,11 +6,11 @@
 #' 
 #' @importFrom tidyr spread
 #'
-#' @param dat 
+#' @param dat descr
 #' @param LOD_method description
 #' @param LLOQ_method description
 #' @param ULOQ_method description
-#' @param LOD_type
+#' @param LOD_type desc
 #'
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -156,7 +156,7 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' sets <- unique(dat[["plate bar code"]])
-#' match_plate_codes(attr(dat, "LOD_table"), sets)
+#' MetaboCrates:::match_plate_codes(attr(dat, "LOD_table"), sets)
 #'
 #' @keywords internal
 #' 
