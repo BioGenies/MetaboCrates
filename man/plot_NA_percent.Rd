@@ -7,8 +7,17 @@
 plot_NA_percent(dat, type = NULL)
 }
 \arguments{
-\item{type}{NULL, "Type" or "group"}
+\item{type}{NULL, "NA_type" or "group"}
 }
 \description{
 Barplot of missing metabolites values
+}
+\examples{
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+plot_NA_percent(dat)
+plot_NA_percent(dat, "NA_type")
+dat <- add_group(dat, "group")
+plot_NA_percent(dat, "group")
+
 }
