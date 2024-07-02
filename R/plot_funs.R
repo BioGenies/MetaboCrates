@@ -79,7 +79,6 @@ plot_mv_types <- function(dat) {
 #' 
 #' @importFrom scales percent
 #' 
-<<<<<<< HEAD
 #' @param type NULL, "NA_type" or "group"
 #' 
 #' @examples 
@@ -89,11 +88,9 @@ plot_mv_types <- function(dat) {
 #' plot_NA_percent(dat, "NA_type")
 #' dat <- add_group(dat, "group")
 #' plot_NA_percent(dat, "group")
-=======
 #' @inheritParams plot_mv_types
 #' 
 #' @param type NULL, "Type" or "group"
->>>>>>> 42afe3b917767ca18068e3338e6229a77225a9bd
 #' 
 #' @export
 
