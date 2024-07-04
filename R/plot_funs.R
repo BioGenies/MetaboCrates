@@ -114,6 +114,8 @@ plot_NA_percent <- function(dat, type = NULL){
       coord_flip() +
       metabocrates_theme()
   }else if(type == "NA_type"){
+    
+    
     NA_percent <- dat %>%
       filter(`sample type` == "Sample") %>%
       select(all_of(c(attr(dat, "metabolites")))) %>%
@@ -122,37 +124,41 @@ plot_NA_percent <- function(dat, type = NULL){
                    values_to = "Type") %>%
       group_by(Metabolite) %>%
       mutate(`Number of values` = n()) %>%
-      filter(Type %in% c("< LOD","< LLOQ",
-                         "> ULOQ", "NA", "∞")) %>%
+      filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
       ungroup() %>%
       group_by(Metabolite, Type) %>%
       summarise(`% Missing` = n()/first(`Number of values`)) %>%
       ungroup()
     
-    NA_percent <- NA_percent %>%
-      add_row(Metabolite  = c(attr(dat, "metabolite")
-              [which(!(attr(dat, "metabolites") %in%
-                         NA_percent[["Metabolite"]]))]),
-              `% Missing` = 0)
+    all_NA_percent <- expand.grid(
+      Metabolite = attr(dat, "metabolite"),
+      Type = attr(dat, "NA_info")[["counts"]][["type"]]) %>%
+      left_join(NA_percent, by = c("Metabolite", "Type")) %>%
+      
     
     labels <- unlist(as.character(
-      paste0(round(NA_percent[["% Missing"]]*100), "%")
+      paste0(round(all_NA_percent[["% Missing"]]*100), "%")
     ))
     
     ggplot(NA_percent, aes(x = Metabolite, y = `% Missing`,
                            fill = Type)) +
-      geom_col(width = 0.5, position = "dodge") +
+      geom_col(width = 0.5, position = "dodge", color = "white") +
       scale_y_continuous(labels = scales::percent) +
       geom_label(aes(label = labels), size = 2.6,
                  position = position_dodge(width = 0.5)) +
       coord_flip() +
       metabocrates_theme()
   }else if(type == "group"){
+    labels <- unlist(as.character(
+      paste0(round(attr(dat, "NA_info")[["NA_ratios"]][["NA_frac"]]*100), "%")
+    ))
+    
     ggplot(attr(dat, "NA_info")[["NA_ratios"]],
            aes(x = metabolite, y = NA_frac, fill = as.factor(`get("group")`))) +
-      geom_col(position = "dodge") +
+      geom_col(width = 0.6, position = "dodge", color = "white") +
       scale_y_continuous(labels = scales::percent) +
-#      geom_label(aes(label = labels)) +
+      geom_label(aes(label = labels), size = 2.6,
+                 position = position_dodge(width= 0.6)) +
       coord_flip() +
       metabocrates_theme()
   }
