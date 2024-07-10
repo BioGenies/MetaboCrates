@@ -79,7 +79,10 @@ plot_mv_types <- function(dat) {
 #' 
 #' @importFrom scales percent
 #' 
-#' @param type NULL, "NA_type" or "group"
+#' @inheritParams plot_mv_types
+#' 
+#' @param type a character denoting which type of plot should be made. This 
+#' function accepts either "joint", "NA_type" or "group". TODO: what does it mean?
 #' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -88,9 +91,6 @@ plot_mv_types <- function(dat) {
 #' plot_NA_percent(dat, "NA_type")
 #' dat <- add_group(dat, "group")
 #' plot_NA_percent(dat, "group")
-#' @inheritParams plot_mv_types
-#' 
-#' @param type NULL, "Type" or "group"
 #' 
 #' @export
 
@@ -152,7 +152,7 @@ plot_NA_percent <- function(dat, type = NULL){
     
     ggplot(attr(dat, "NA_info")[["NA_ratios"]],
            aes(x = metabolite, y = NA_frac, fill = as.factor(`get("group")`))) +
-      geom_col(width = 0.6, position = "dodge", color = "white") +
+      geom_col(width = 0.6, position = "identity", color = "white") +
       scale_y_continuous(labels = scales::percent) +
       geom_label(aes(label = labels), size = 2.6,
                  position = position_dodge(width= 0.6)) +

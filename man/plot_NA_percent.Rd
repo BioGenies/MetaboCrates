@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_NA_percent}
 \alias{plot_NA_percent}
-\title{Barplot of missing metabolites values}
+\title{Barplot of missing metabolites percents}
 \usage{
 plot_NA_percent(dat, type = NULL)
 }
@@ -12,7 +12,7 @@ plot_NA_percent(dat, type = NULL)
 \item{type}{NULL, "Type" or "group"}
 }
 \description{
-Barplot of missing metabolites values
+Barplot of missing metabolites percents
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
@@ -21,4 +21,5 @@ plot_NA_percent(dat)
 plot_NA_percent(dat, "NA_type")
 dat <- add_group(dat, "group")
 plot_NA_percent(dat, "group")
+
 }
