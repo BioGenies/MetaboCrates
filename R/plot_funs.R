@@ -114,8 +114,6 @@ plot_NA_percent <- function(dat, type = NULL){
       coord_flip() +
       metabocrates_theme()
   }else if(type == "NA_type"){
-    
-    
     NA_percent <- dat %>%
       filter(`sample type` == "Sample") %>%
       select(all_of(c(attr(dat, "metabolites")))) %>%
@@ -142,11 +140,9 @@ plot_NA_percent <- function(dat, type = NULL){
     
     ggplot(all_NA_percent, aes(x = Type, y = `% Missing`,
                            fill = Type)) +
-      geom_col(width = 1.2, position = "dodge", color = "white") +
+      geom_col(width = 0.1) +
       scale_y_continuous(labels = scales::percent) +
-      geom_label(aes(label = labels), size = 2.6,
-                 position = position_dodge(width = 1.2)) +
-      coord_flip() +
+      geom_label(aes(label = labels), size = 2.6) +
       facet_wrap(~ Metabolite, ncol = 1) +
       metabocrates_theme()
   }else if(type == "group"){
