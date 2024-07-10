@@ -75,7 +75,7 @@ plot_mv_types <- function(dat) {
     metabocrates_theme()
 }
 
-#' Barplot of missing metabolites values
+#' Barplot of missing metabolites percents
 #' 
 #' @importFrom scales percent
 #' 
@@ -134,19 +134,20 @@ plot_NA_percent <- function(dat, type = NULL){
       Metabolite = attr(dat, "metabolite"),
       Type = attr(dat, "NA_info")[["counts"]][["type"]]) %>%
       left_join(NA_percent, by = c("Metabolite", "Type")) %>%
-      
+      mutate(`% Missing` = ifelse(is.na(`% Missing`), 0, `% Missing`))
     
     labels <- unlist(as.character(
       paste0(round(all_NA_percent[["% Missing"]]*100), "%")
     ))
     
-    ggplot(NA_percent, aes(x = Metabolite, y = `% Missing`,
+    ggplot(all_NA_percent, aes(x = Type, y = `% Missing`,
                            fill = Type)) +
-      geom_col(width = 0.5, position = "dodge", color = "white") +
+      geom_col(width = 1.2, position = "dodge", color = "white") +
       scale_y_continuous(labels = scales::percent) +
       geom_label(aes(label = labels), size = 2.6,
-                 position = position_dodge(width = 0.5)) +
+                 position = position_dodge(width = 1.2)) +
       coord_flip() +
+      facet_wrap(~ Metabolite, ncol = 1) +
       metabocrates_theme()
   }else if(type == "group"){
     labels <- unlist(as.character(
