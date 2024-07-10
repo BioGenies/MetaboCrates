@@ -91,6 +91,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' Complete values below limit of detection
 #' 
 #' @importFrom stringr str_extract
+#' @importFrom stats runif
 #'
 #' @param gathered_data description
 #' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
