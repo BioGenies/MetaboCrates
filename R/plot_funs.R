@@ -174,9 +174,10 @@ plot_NA_percent <- function(dat, type = NULL){
 plot_heatmap <- function(dat){
   dat %>%
     select(all_of(attr(dat, "metabolites"))) %>%
-    mutate("Sample" = 1:n()) %>%
+    mutate(Sample = 1:n()) %>%
     pivot_longer(!Sample, names_to = "Metabolite", values_to = "Value") %>%
-    mutate(`Is missing` =
+    mutate(Metabolite = factor(Metabolite, ordered = TRUE),
+           `Is missing` =
              Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)) %>%
     ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
     geom_tile(color = "white") +
