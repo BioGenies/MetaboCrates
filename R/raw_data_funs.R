@@ -119,7 +119,7 @@ get_LOD_to_remove <- function(NA_info, treshold){
 #' @export
 #' 
 remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
-  type <- match.arg(arg = type, choices = c("LOD", "LOD_man", "QC", "QC_man"))
+  type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
   attr(raw_data, "removed")[[type]] <- metabolites_to_remove
   
   raw_data
@@ -140,7 +140,7 @@ remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
 #' @export
 #' 
 unremove_all <- function(raw_data, type) {
-  type <- match.arg(arg = type, choices = c("LOD", "LOD_man", "QC", "QC_man"))
+  type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
   attr(raw_data, "removed")[type] <- list(NULL)
   
   raw_data
