@@ -38,14 +38,15 @@ plot_groups <- function(dat){
 
 dat %>%
   filter(`sample type` == "Sample") %>%
-  ggplot(aes(x = as.character(get(attr(dat, "group"))))) +
-    geom_bar() +
-    labs(x = "Groups",
-         y = "Count",
-         title = paste0("Number of elements in groups of column \"",
+  group_by(Groups = get(attr(dat, "group"))) %>%
+  summarise(Count = n()) %>%
+  ggplot(aes(x = Groups, y = Count)) +
+  geom_bar(stat = "identity") +
+  labs(title = paste0("Number of elements in groups of column \"",
                         attr(dat, "group"),
                         "\"")) +
-    metabocrates_theme()
+  geom_label(aes(label = Count)) +
+  metabocrates_theme()
 }
 
 
