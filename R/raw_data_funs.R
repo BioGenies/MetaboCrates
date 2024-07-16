@@ -135,11 +135,11 @@ remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
 #' path <- get_example_data("small_biocrates_example.xls")
 #' test_dat <- read_data(path)
 #' attr(remove_metabolites(test_dat, "C0", "LOD"), "removed")
-#' attr(unremove_metabolites(test_dat, "LOD"), "removed")
+#' attr(unremove_all(test_dat, "LOD"), "removed")
 #' 
 #' @export
 #' 
-unremove_metabolites <- function(raw_data, type) {
+unremove_all <- function(raw_data, type) {
   type <- match.arg(arg = type, choices = c("LOD", "LOD_man", "QC", "QC_man"))
   attr(raw_data, "removed")[type] <- list(NULL)
   
