@@ -4,12 +4,13 @@
 \alias{plot_NA_percent}
 \title{Barplot of missing metabolites percents}
 \usage{
-plot_NA_percent(dat, type = NULL)
+plot_NA_percent(dat, type = "joint")
 }
 \arguments{
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
 
-\item{type}{NULL, "Type" or "group"}
+\item{type}{a character denoting which type of plot should be made. This
+function accepts either "joint", "NA_type" or "group". TODO: what does it mean?}
 }
 \description{
 Barplot of missing metabolites percents

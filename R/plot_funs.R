@@ -76,6 +76,81 @@ plot_mv_types <- function(dat) {
     metabocrates_theme()
 }
 
+#' ggplot object for plot_NA_percent with type "joint"
+#'
+#' @keywords internal
+
+create_joint_NA_plot <- function(dat){
+    if(!is.null(attr(dat, "group"))){
+      NA_percent <- attr(dat, "NA_info")[["NA_ratios"]] %>%
+        group_by(metabolite) %>%
+        summarise(NA_frac = mean(NA_frac))
+    }else NA_percent <- attr(dat, "NA_info")[["NA_ratios"]]
+    
+  labels <- unlist(as.character(
+    paste0(round(NA_percent[["NA_frac"]]*100), "%")
+  ))
+    
+  ggplot(NA_percent, aes(x = metabolite, y = NA_frac, label = labels))
+}
+  
+#' ggplot object for plot_NA_percent with type "NA_type"
+#'
+#' @keywords internal
+ 
+create_NA_type_NA_plot <- function(dat){
+  NA_percent <- dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(attr(dat, "metabolites"))) %>%
+    pivot_longer(attr(dat, "metabolites"),
+                 names_to = "Metabolite",
+                 values_to = "Type") %>%
+    group_by(Metabolite) %>%
+    mutate(`Number of values` = n()) %>%
+    filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
+    ungroup() %>%
+    group_by(Metabolite, Type) %>%
+    summarise(`% Missing` = n()/first(`Number of values`)) %>%
+    ungroup()
+  
+  labels <- unlist(as.character(
+    paste0(round(NA_percent[["% Missing"]]*100), "%")
+  ))
+  
+  ggplot(NA_percent,
+         aes(x = Metabolite, y = `% Missing`, fill = Type, label = labels)) +
+    labs(fill = "Missing values types")
+}
+
+#' ggplot object for plot_NA_percent with type "group"
+#'
+#' @keywords internal
+
+create_group_NA_plot <- function(dat){
+  NA_percent <- dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(c(attr(dat, "metabolites"), attr(dat, "group")))) %>%
+    pivot_longer(attr(dat, "metabolites"),
+                 names_to = "Metabolite",
+                 values_to = "Type") %>%
+    group_by(Metabolite) %>%
+    mutate(`Number of values` = n(), Group = get(attr(dat, "group"))) %>%
+    filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
+    ungroup() %>%
+    group_by(Metabolite, Group) %>%
+    summarise(`% Missing` = n()/first(`Number of values`)) %>%
+    ungroup()
+  
+  labels <- unlist(as.character(
+    paste0(round(NA_percent[["% Missing"]]*100), "%")
+  ))
+  
+  ggplot(NA_percent,
+         aes(x = Metabolite, y = `% Missing`, fill = as.factor(Group),
+             label = labels)) +
+    labs(fill = "Groups")
+}
+
 #' Barplot of missing metabolites percents
 #' 
 #' @importFrom scales percent
@@ -95,71 +170,19 @@ plot_mv_types <- function(dat) {
 #' 
 #' @export
 
-plot_NA_percent <- function(dat, type = NULL){
-  if(is.null(type)){
-    if(!is.null(attr(dat, "group"))){
-      ratios <- attr(dat, "NA_info")[["NA_ratios"]] %>%
-        group_by(metabolite) %>%
-        summarise(NA_frac = mean(NA_frac))
-    }else ratios <- attr(dat, "NA_info")[["NA_ratios"]]
-      
-    labels <- unlist(as.character(
-      paste0(round(ratios[["NA_frac"]]*100), "%")
-      ))
-      
-    ggplot(ratios,
-           aes(x = metabolite, y = NA_frac)) +
-      geom_col(width = 0.3) +
-      scale_y_continuous(labels = scales::percent) +
-      geom_label(aes(label = labels)) +
-      coord_flip() +
-      metabocrates_theme()
-  }else if(type == "NA_type"){
-    NA_percent <- dat %>%
-      filter(`sample type` == "Sample") %>%
-      select(all_of(c(attr(dat, "metabolites")))) %>%
-      pivot_longer(attr(dat, "metabolites"),
-                   names_to = "Metabolite",
-                   values_to = "Type") %>%
-      group_by(Metabolite) %>%
-      mutate(`Number of values` = n()) %>%
-      filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
-      ungroup() %>%
-      group_by(Metabolite, Type) %>%
-      summarise(`% Missing` = n()/first(`Number of values`)) %>%
-      ungroup()
-    
-    all_NA_percent <- expand.grid(
-      Metabolite = attr(dat, "metabolite"),
-      Type = attr(dat, "NA_info")[["counts"]][["type"]]) %>%
-      left_join(NA_percent, by = c("Metabolite", "Type")) %>%
-      mutate(`% Missing` = ifelse(is.na(`% Missing`), 0, `% Missing`))
-    
-    labels <- unlist(as.character(
-      paste0(round(all_NA_percent[["% Missing"]]*100), "%")
-    ))
-    
-    ggplot(all_NA_percent, aes(x = Type, y = `% Missing`,
-                           fill = Type)) +
-      geom_col(width = 0.1) +
-      scale_y_continuous(labels = scales::percent) +
-      geom_label(aes(label = labels), size = 2.6) +
-      facet_wrap(~ Metabolite, ncol = 1) +
-      metabocrates_theme()
-  }else if(type == "group"){
-    labels <- unlist(as.character(
-      paste0(round(attr(dat, "NA_info")[["NA_ratios"]][["NA_frac"]]*100), "%")
-    ))
-    
-    ggplot(attr(dat, "NA_info")[["NA_ratios"]],
-           aes(x = metabolite, y = NA_frac, fill = as.factor(`get("group")`))) +
-      geom_col(width = 0.6, position = "identity", color = "white") +
-      scale_y_continuous(labels = scales::percent) +
-      geom_label(aes(label = labels), size = 2.6,
-                 position = position_dodge(width= 0.6)) +
-      coord_flip() +
-      metabocrates_theme()
-  }
+plot_NA_percent <- function(dat, type = "joint"){
+  ggplot_obj <- switch(type,
+    "joint" = create_joint_NA_plot(dat),
+    "NA_type" = create_NA_type_NA_plot(dat),
+    "group" = create_group_NA_plot(dat))
+  
+  ggplot_obj +
+    geom_col(width = 0.4, position = "stack", color = "white") +
+    scale_y_continuous(labels = scales::percent) +
+    labs(x = "Metabolites", y = "% Missing") +
+    geom_text(size = 2.6, position = position_stack(vjust = 0.5)) +
+    coord_flip() +
+    metabocrates_theme()
 }
 
 #' Heatmap of missing metabolites values
