@@ -150,21 +150,24 @@ unremove_all <- function(raw_data, type) {
 #' 
 #' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
 #' function.
-#' @param metabolites a list of metabolites to unremove
+#' @param metabolites a vector of metabolites to unremove
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' test_dat <- read_data(path)
-#' test_dat <- 
+#' test_dat <- remove_metabolites(test_dat, c("C0", "C1", "C2"), "LOD")
+#' test_dat <- remove_metabolites(test_dat, "C0", "QC")
+#' attr(test_dat, "removed")
 #' attr(unremove_metabolites(test_dat, c("C0", "C1")), "removed")
-#' attr(unremove_all(test_dat, "LOD"), "removed")
 #' 
 #' @export
 #' 
-unremove_metabolites <- function(raw_data, metabolites) {
+unremove_metabolites <- function(raw_data, metabolites){
   attr(raw_data, "removed") <- lapply(
-    attr(raw_data, "removed"),
-    function(type) type[which(!(type %in% metabolites))])
+    attr(raw_data, "removed"), function(type){
+      new_removed <- type[which(!(type %in% metabolites))]
+      if(length(new_removed) == 0 | is.null(new_removed)) NULL else new_removed
+  })
   
   raw_data
 }
