@@ -151,14 +151,17 @@ create_group_NA_plot <- function(dat){
     labs(fill = "Groups")
 }
 
-#' Barplot of missing metabolites percents
+#' Barplot of missing values percents
 #' 
 #' @importFrom scales percent
 #' 
 #' @inheritParams plot_mv_types
 #' 
 #' @param type a character denoting which type of plot should be made. This 
-#' function accepts either "joint", "NA_type" or "group". TODO: what does it mean?
+#' function accepts either "joint", "NA_type" or "group".
+#' Default type is "joint", which creates plot of missing values percents
+#' in each metabolite. Types "NA_type" and "group" add the division into
+#' all missing values types and levels in grouping column respectively.
 #' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
