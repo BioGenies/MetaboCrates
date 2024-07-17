@@ -22,3 +22,19 @@ test_that("unremove_all usuwa metabolity z atrybutu removed", {
   
   expect_equal(attr(modified_dat, "removed")[[type]], NULL)
 })
+
+test_that("unremove_metabolites usuwa odpowiednie metabolity
+          z atrybutu removed", {
+  test_dat <- structure(list(), removed = list(
+    LOD = c("C0", "C1", "C2", "C3", "C4"),
+    QC = c("C0", "C2"),
+    QC_man = c("C1", "C2")))
+  
+  unremoved_dat <- structure(list(), removed = list(
+    LOD = c("C1", "C3"),
+    QC = NULL,
+    QC_man = c("C1")))
+  
+  expect_identical(unremove_metabolites(test_dat, c("C0", "C2", "C4")),
+                   unremoved_dat)
+})
