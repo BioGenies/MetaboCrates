@@ -146,6 +146,28 @@ unremove_all <- function(raw_data, type) {
   raw_data
 }
 
+#' Removing given metabolites from the attribute removed
+#' 
+#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
+#' function.
+#' @param metabolites a list of metabolites to unremove
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' test_dat <- read_data(path)
+#' test_dat <- 
+#' attr(unremove_metabolites(test_dat, c("C0", "C1")), "removed")
+#' attr(unremove_all(test_dat, "LOD"), "removed")
+#' 
+#' @export
+#' 
+unremove_metabolites <- function(raw_data, metabolites) {
+  attr(raw_data, "removed") <- lapply(
+    attr(raw_data, "removed"),
+    function(type) type[which(!(type %in% metabolites))])
+  
+  raw_data
+}
 
 #' Show metabolites without removed
 #' 
