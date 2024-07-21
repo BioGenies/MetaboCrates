@@ -14,7 +14,7 @@ Authors@R: c(
               email = "f.gaj16@gmail.com", 
               role = c("aut", "ctb")),
           person("Joanna", "Pokora", , 
-              email = "first.last@example.com", 
+              email = "pokorajo@gmail.com", 
               role = c("aut", "ctb"))
           )
 Maintainer: Krystyna Grzesiak <krygrz11@gmail.com>
@@ -34,7 +34,8 @@ Imports: dplyr,
          stringr,
          tidyr,
          tools,
-         ggplot2
+         ggplot2,
+         reshape2
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3

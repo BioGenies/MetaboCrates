@@ -269,10 +269,24 @@ create_qqplots <- function(dat){
     ggplot(aes(sample = Type)) +
     geom_qq() +
     geom_qq_line() +
-    facet_wrap(~ Metabolite, ncol = 1, scales = "free") +
+    facet_wrap(~ Metabolite, ncol = 1, scales = "free_y") +
     labs(x = "Normal quantiles", y = "Sample quantiles") +
     metabocrates_theme()
 }
 
+#' Heatmap of correlations between metabolites
+#' 
+#' @importFrom reshape2 melt
+#' 
+#' @export
 
-  
+create_correlations_heatmap <- function(dat){
+  create_long_metabolites_tibble(dat) %>%
+    cor() %>%
+    melt() %>%
+    ggplot(aes(x = Var1, y = Var2, fill = value)) +
+    geom_tile() +
+    labs(x = "Metabolites", y = "Metabolites")
+    metabocrates_theme()
+}
+
