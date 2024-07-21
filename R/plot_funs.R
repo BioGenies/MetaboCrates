@@ -93,18 +93,26 @@ create_joint_NA_plot <- function(dat){
     
   ggplot(NA_percent, aes(x = metabolite, y = NA_frac, label = labels))
 }
+
+#' Long tibble with metabolites
+#' 
+#' @keywords internal
+
+create_long_metabolites_tibble <- function(dat){
+  dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(attr(dat, "metabolites"))) %>%
+    pivot_longer(attr(dat, "metabolites"),
+                 names_to = "Metabolite",
+                 values_to = "Type")
+}
   
 #' ggplot object for plot_NA_percent with type "NA_type"
 #'
 #' @keywords internal
  
 create_NA_type_NA_plot <- function(dat){
-  NA_percent <- dat %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(attr(dat, "metabolites"))) %>%
-    pivot_longer(attr(dat, "metabolites"),
-                 names_to = "Metabolite",
-                 values_to = "Type") %>%
+  NA_percent <- create_long_metabolites_tibble(dat) %>%
     group_by(Metabolite) %>%
     mutate(`Number of values` = n()) %>%
     filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
@@ -127,12 +135,7 @@ create_NA_type_NA_plot <- function(dat){
 #' @keywords internal
 
 create_group_NA_plot <- function(dat){
-  NA_percent <- dat %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(c(attr(dat, "metabolites"), attr(dat, "group")))) %>%
-    pivot_longer(attr(dat, "metabolites"),
-                 names_to = "Metabolite",
-                 values_to = "Type") %>%
+  NA_percent <- create_long_metabolites_tibble(dat) %>%
     group_by(Metabolite) %>%
     mutate(`Number of values` = n(), Group = get(attr(dat, "group"))) %>%
     filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
@@ -210,3 +213,66 @@ plot_heatmap <- function(dat){
     scale_fill_manual(values = c(`FALSE` = "grey", `TRUE` = "black")) +
     metabocrates_theme()
 }
+
+#' Histograms of individual metabolites values
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_histograms(dat)
+#' 
+#' @export
+
+create_histograms <- function(dat){
+  create_long_metabolites_tibble(dat) %>%
+    mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
+    ggplot(aes(x = Type)) +
+    geom_histogram() +
+    facet_wrap(~ Metabolite, ncol = 1, scales = "free_y") +
+    labs(x = "Value", y = "Count") +
+    metabocrates_theme()
+}
+
+#' Boxplots of individual metabolites values
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_boxplots(dat)
+#' 
+#' @export
+
+create_boxplots <- function(dat){
+  create_long_metabolites_tibble(dat) %>%
+    mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
+    ggplot(aes(x = Type, y = Metabolite)) +
+    geom_boxplot() +
+    labs(x = "Value", y = "Metabolite") +
+    metabocrates_theme()
+}
+
+#' Qqplots of individual metabolites values
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_boxplots(dat)
+#' 
+#' @export
+
+create_ggplots <- function(dat){
+  create_long_metabolites_tibble(dat) %>%
+    mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
+    ggplot(aes(sample = Type)) +
+    geom_qq() +
+    geom_qq_line() +
+    facet_wrap(~ Metabolite, ncol = 1, scales = "free") +
+    labs(x = "Normal quantiles", y = "Sample quantiles") +
+    metabocrates_theme()
+}
+
+
+  
