@@ -259,11 +259,11 @@ create_boxplots <- function(dat){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_boxplots(dat)
+#' create_qqplots(dat)
 #' 
 #' @export
 
-create_ggplots <- function(dat){
+create_qqplots <- function(dat){
   create_long_metabolites_tibble(dat) %>%
     mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
     ggplot(aes(sample = Type)) +
