@@ -258,7 +258,6 @@ create_boxplots <- function(dat){
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_qqplots(dat)
 #' 
 #' @export
@@ -278,15 +277,24 @@ create_qqplots <- function(dat){
 #' 
 #' @importFrom reshape2 melt
 #' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat[,18:26] <- sapply(dat[,18:26], function(col){
+#' ifelse(is.na(as.numeric(col)), 0, as.numeric(col))
+#' })
+#' create_correlations_heatmap(dat)
+#' 
 #' @export
 
 create_correlations_heatmap <- function(dat){
-  create_long_metabolites_tibble(dat) %>%
+  dat %>%
+    select(all_of(attr(dat, "metabolites"))) %>%
     cor() %>%
     melt() %>%
     ggplot(aes(x = Var1, y = Var2, fill = value)) +
     geom_tile() +
-    labs(x = "Metabolites", y = "Metabolites")
+    labs(x = "Metabolites", y = "Metabolites") +
     metabocrates_theme()
 }
 
