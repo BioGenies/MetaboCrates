@@ -224,6 +224,7 @@ plot_heatmap <- function(dat){
 #' 
 #' @export
 
+# Konkretny
 create_histograms <- function(dat){
   create_long_metabolites_tibble(dat) %>%
     mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
@@ -287,6 +288,7 @@ create_qqplots <- function(dat){
 #' 
 #' @export
 
+# Obrót nazw
 create_correlations_heatmap <- function(dat){
   dat %>%
     select(all_of(attr(dat, "metabolites"))) %>%

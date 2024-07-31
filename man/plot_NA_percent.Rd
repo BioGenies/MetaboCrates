@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_NA_percent}
 \alias{plot_NA_percent}
-\title{Barplot of missing metabolites percents}
+\title{Barplot of missing values percents}
 \usage{
 plot_NA_percent(dat, type = "joint")
 }
@@ -10,10 +10,13 @@ plot_NA_percent(dat, type = "joint")
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
 
 \item{type}{a character denoting which type of plot should be made. This
-function accepts either "joint", "NA_type" or "group". TODO: what does it mean?}
+function accepts either "joint", "NA_type" or "group".
+Default type is "joint", which creates plot of missing values percents
+in each metabolite. Types "NA_type" and "group" add the division into
+all missing values types and levels in grouping column respectively.}
 }
 \description{
-Barplot of missing metabolites percents
+Barplot of missing values percents
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
