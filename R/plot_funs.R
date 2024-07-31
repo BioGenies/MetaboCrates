@@ -310,3 +310,26 @@ create_correlations_heatmap <- function(dat){
     theme(axis.text.x = element_text(angle = 90))
 }
 
+#' PCA plot
+#' 
+#' @import ggfortify
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_PCA_plot(attr(dat, "completed"))
+#' 
+#' @export
+
+create_PCA_plot <- function(dat){
+  dat_without_na <- dat %>%
+    drop_na(all_of(attr(dat, "metabolites"))) %>%
+    rename(sample_type = `sample type`)
+  dat_without_na %>%
+    select(all_of(attr(dat, "metabolites"))) %>%
+    prcomp(scale. = TRUE) %>%
+    autoplot(data = dat_without_na, color = 'sample_type') +
+    scale_color_discrete(name = "Sample type") +
+    metabocrates_theme()
+}
