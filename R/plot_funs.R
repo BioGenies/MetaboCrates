@@ -214,89 +214,99 @@ plot_heatmap <- function(dat){
     metabocrates_theme()
 }
 
-#' Histograms of individual metabolites values
+#' Histogram of individual metabolite values
+#' 
+#' @param metabolite The name of metabolite of interest.
+#' @param bins_num Number of bins on a histogram. Defaults to 30.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_histograms(dat)
+#' create_histogram(attr(dat, "completed"), "C0")
 #' 
 #' @export
 
-# Konkretny
-create_histograms <- function(dat){
-  create_long_metabolites_tibble(dat) %>%
-    mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
-    ggplot(aes(x = Type)) +
-    geom_histogram() +
-    facet_wrap(~ Metabolite, ncol = 1, scales = "free_y") +
-    labs(x = "Value", y = "Count") +
+create_histogram <- function(dat, metabolite, bins_num = 30){
+  dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(metabolite) %>%
+    ggplot(aes(x = get(metabolite))) +
+    geom_histogram(bins = bins_num) +
+    labs(x = metabolite, y = "Count") +
     metabocrates_theme()
 }
 
-#' Boxplots of individual metabolites values
+#' Boxplot of individual metabolite values
+#' 
+#' @param metabolite The name of metabolite of interest.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_boxplots(dat)
+#' create_boxplot(attr(dat, "completed"), "C0")
 #' 
 #' @export
 
-create_boxplots <- function(dat){
-  create_long_metabolites_tibble(dat) %>%
-    mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
-    ggplot(aes(x = Type, y = Metabolite)) +
+create_boxplot <- function(dat, metabolite){
+  dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(metabolite) %>%
+    ggplot(aes(x = metabolite, y = get(metabolite))) +
     geom_boxplot() +
-    labs(x = "Value", y = "Metabolite") +
+    labs(x = NULL, y = "Value") +
     metabocrates_theme()
 }
 
-#' Qqplots of individual metabolites values
+#' Qqplot of individual metabolite values
+#' 
+#' @param metabolite The name of metabolite of interest.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' create_qqplots(dat)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_qqplot(attr(dat, "completed"), "C0")
 #' 
 #' @export
 
-create_qqplots <- function(dat){
-  create_long_metabolites_tibble(dat) %>%
-    mutate(Type = ifelse(is.na(Type), 0, as.integer(Type))) %>%
-    ggplot(aes(sample = Type)) +
+create_qqplot <- function(dat, metabolite){
+  dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(metabolite) %>%
+    ggplot(aes(sample = get(metabolite))) +
     geom_qq() +
     geom_qq_line() +
-    facet_wrap(~ Metabolite, ncol = 1, scales = "free_y") +
-    labs(x = "Normal quantiles", y = "Sample quantiles") +
+    labs(x = "Normal quantiles", y =  paste0(metabolite, " quantiles")) +
     metabocrates_theme()
 }
 
 #' Heatmap of correlations between metabolites
 #' 
+#' @importFrom stringr str_trunc
 #' @importFrom reshape2 melt
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' dat[,18:26] <- sapply(dat[,18:26], function(col){
-#' ifelse(is.na(as.numeric(col)), 0, as.numeric(col))
-#' })
-#' create_correlations_heatmap(dat)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_correlations_heatmap(attr(dat, "completed"))
 #' 
 #' @export
 
-# Obrót nazw
 create_correlations_heatmap <- function(dat){
   dat %>%
+    filter(`sample type` == "Sample") %>%
     select(all_of(attr(dat, "metabolites"))) %>%
-    cor() %>%
+    cor(use = "na.or.complete") %>%
     melt() %>%
     ggplot(aes(x = Var1, y = Var2, fill = value)) +
     geom_tile() +
+    scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
+    scale_y_discrete(labels = function(x) str_trunc(x, 10)) +
     labs(x = "Metabolites", y = "Metabolites") +
-    metabocrates_theme()
+    metabocrates_theme() +
+    theme(axis.text.x = element_text(angle = 90))
 }
 
