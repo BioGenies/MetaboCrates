@@ -4,7 +4,13 @@
 \alias{create_PCA_plot}
 \title{PCA plot}
 \usage{
-create_PCA_plot(dat)
+create_PCA_plot(dat, type = "sample_type")
+}
+\arguments{
+\item{type}{a character denoting which type of PCA plot should be created.
+Default is "sample_type", which makes a plot for quality control. Type
+"group" creates a PCA plot with respect to the groups of samples with type
+'Sample'.}
 }
 \description{
 PCA plot
@@ -14,5 +20,6 @@ path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
 create_PCA_plot(attr(dat, "completed"))
+create_PCA_plot(attr(dat, "completed"), type = "group")
 
 }

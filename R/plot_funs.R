@@ -313,23 +313,39 @@ create_correlations_heatmap <- function(dat){
 #' PCA plot
 #' 
 #' @import ggfortify
+#' @importFrom tidyr drop_na
+#' @importFrom stringr str_to_title
+#' 
+#' @param type a character denoting which type of PCA plot should be created.
+#' Default is "sample_type", which makes a plot for quality control. Type
+#' "group" creates a PCA plot with respect to the groups of samples with type
+#' 'Sample'.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(attr(dat, "completed"))
+#' create_PCA_plot(attr(dat, "completed"), type = "group")
 #' 
 #' @export
 
-create_PCA_plot <- function(dat){
+create_PCA_plot <- function(dat, type = "sample_type"){
+  dat <- switch(type,
+                "sample_type" = rename(dat, sample_type = `sample type`),
+                "group" = filter(dat, `sample type` == "Sample"))
+  
   dat_without_na <- dat %>%
     drop_na(all_of(attr(dat, "metabolites"))) %>%
-    rename(sample_type = `sample type`)
+    mutate(across(all_of(type), ~ factor(., ordered = TRUE)))
+  
   dat_without_na %>%
     select(all_of(attr(dat, "metabolites"))) %>%
+    select(where(~ sd(.) != 0)) %>%
     prcomp(scale. = TRUE) %>%
-    autoplot(data = dat_without_na, color = 'sample_type') +
-    scale_color_discrete(name = "Sample type") +
+    autoplot(data = dat_without_na, color = type,
+             frame = TRUE, frame.type = "norm") +
+    scale_color_discrete(name = str_to_title(gsub("_", " ", type))) +
+    scale_fill_discrete(name = str_to_title(gsub("_", " ", type))) +
     metabocrates_theme()
 }
