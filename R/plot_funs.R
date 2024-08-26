@@ -331,19 +331,25 @@ create_correlations_heatmap <- function(dat){
 #' @export
 
 create_PCA_plot <- function(dat, type = "sample_type"){
-  dat <- switch(type,
-                "sample_type" = rename(dat, sample_type = `sample type`),
-                "group" = filter(dat, `sample type` == "Sample"))
+  mod_dat <- dat %>%
+    drop_na(all_of(attr(dat, "metabolites")))
   
-  dat_without_na <- dat %>%
-    drop_na(all_of(attr(dat, "metabolites"))) %>%
-    mutate(across(all_of(type), ~ factor(., ordered = TRUE)))
+  mod_dat <- switch(type,
+                    "sample_type" = rename(mod_dat,
+                                           sample_type = `sample type`),
+                    "group" = mod_dat %>%
+                      filter(`sample type` == "Sample") %>%
+                      mutate(group = as.factor(group)))
   
-  dat_without_na %>%
+  metabo_dat <- mod_dat %>%
+    mutate(across(all_of(type), ~ factor(., ordered = TRUE))) %>%
     select(all_of(attr(dat, "metabolites"))) %>%
-    select(where(~ sd(.) != 0)) %>%
-    prcomp(scale. = TRUE) %>%
-    autoplot(data = dat_without_na, color = type,
+    select(where(~ n_distinct(.) > 1))
+  
+  colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
+    
+  prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit) %>%
+    autoplot(data = mod_dat, color = type,
              frame = TRUE, frame.type = "norm") +
     scale_color_discrete(name = str_to_title(gsub("_", " ", type))) +
     scale_fill_discrete(name = str_to_title(gsub("_", " ", type))) +
