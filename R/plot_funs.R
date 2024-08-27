@@ -310,8 +310,6 @@ create_correlations_heatmap <- function(dat){
     theme(axis.text.x = element_text(angle = 90))
 }
 
-<<<<<<< HEAD
-
 #' Estimated density of metabolite with LOD cut-off
 #' 
 #' @export
@@ -398,7 +396,6 @@ pca_variance <- function(dat) {
     metabocrates_theme()
 }
 
-=======
 #' PCA plot
 #' 
 #' @import ggfortify
@@ -444,4 +441,3 @@ create_PCA_plot <- function(dat, type = "sample_type"){
     scale_fill_discrete(name = str_to_title(gsub("_", " ", type))) +
     metabocrates_theme()
 }
->>>>>>> b2b3dd1eac94f549c9c30ec32d5a68cde5350ca3

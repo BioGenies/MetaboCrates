@@ -163,6 +163,7 @@ validate_raw_data <- function(raw_data) {
 #' types and their counts
 #' - \code{group} : a character name of group from the table
 #' - \code{removed}: a list of removed metabolites
+#' - \code{plate bar code}: each measurement has two plate bar codes depending on the method used
 #' 
 #' @keywords internal
 
