@@ -290,3 +290,90 @@ create_correlations_heatmap <- function(dat){
     metabocrates_theme()
 }
 
+
+#' Estimated density of metabolite with LOD cut-off
+#' 
+#' @export
+create_histogram_with_lod <- function(dat, metabolite_name) {
+  metabolites <- attr(dat, "metabolites")
+  
+  lod_info <- attr(dat, "LOD_table") %>%
+    filter(type == "LOD (calc.)") %>%
+    pull(metabolite_name)  %>%
+    sum()
+  
+  plot_data <- attr(dat, "completed") %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(metabolite_name)) %>%
+    pivot_longer(cols = all_of(metabolite_name), names_to = "Metabolite", values_to = "Value") %>%
+    mutate(Value = as.numeric(Value))
+  
+  ggplot(plot_data, aes(x = Value)) +
+    geom_density() +
+    geom_vline(xintercept = lod_info, color = "red", linetype = "dashed", size = 1) +
+    labs(x = paste(metabolite_name), y = "Count",
+         title = paste("Histogram of", metabolite_name, "with LOD Cutoff")) +
+    metabocrates_theme()
+}
+
+
+#' Plot of two metabolites
+#' 
+#' @export
+create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
+  plot_data <- attr(dat, "completed") %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(c("plate bar code", metabolite1, metabolite2)))
+  
+  LOD <- attr(dat, "LOD_table") %>%
+    filter(type == "LOD (calc.)") %>%
+    select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
+    filter(if_all(everything(), ~ . != 0))
+  
+  LOD["plate bar code"] <- sapply(LOD["plate bar code"], function(x) gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1", x))
+  
+  grouped_data <- plot_data %>%
+    group_by(`plate bar code`)
+  
+  
+  ggplot(grouped_data, aes(x = get(metabolite1), y = get(metabolite2), color = `plate bar code`)) +
+    geom_point() +
+    geom_hline(data = LOD, aes(yintercept = .data[[paste0(metabolite2)]], color = `plate bar code`), linetype = "dashed") +
+    geom_vline(data = LOD, aes(xintercept = .data[[paste0(metabolite1)]], color = `plate bar code`), linetype = "dashed") +
+    labs(x = paste(metabolite1), y = paste(metabolite2)) +
+    metabocrates_theme()
+}
+
+
+#' pca
+#' 
+#' @export
+pca_variance <- function(dat) {
+  data <- attr(dat, "completed") %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(attr(dat, "metabolites")))
+  
+  data <- data[complete.cases(data), sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
+
+  pca_result <- prcomp(data, scale. = TRUE, center = TRUE)
+  
+  variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+  
+  cumulative_variance <- cumsum(variance_explained)
+  
+  variance_df <- data.frame(
+    Component = paste0("PC", 1:length(variance_explained)),
+    Variance_Explained = variance_explained,
+    Cumulative_Variance = cumulative_variance
+  )
+  
+  ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    geom_line(aes(y = Cumulative_Variance), group = 1, color = "red") +
+    geom_point(aes(y = Cumulative_Variance), color = "red") +
+    labs(title = "Variance Explained by Principal Components",
+         x = "Principal Component",
+         y = "Variance Explained") +
+    metabocrates_theme()
+}
+

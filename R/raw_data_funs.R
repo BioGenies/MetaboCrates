@@ -247,3 +247,27 @@ calculate_CV <- function(dat){
   
   dat
 }
+
+#' Get CV to remove
+#'
+#' @description Returns metabolite names having more CV value 
+#' than the given treshold.
+#' 
+#' @param dat object with CV attribute
+#' @param treshold
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' dat <- calculate_CV(dat)
+#' get_CV_to_remove(dat, 0.3)
+#' 
+#' @export
+#'
+get_CV_to_remove <- function(dat, treshold){
+  attr(dat, "cv") %>%
+    filter(CV > treshold) %>%
+    distinct(metabolite) %>% 
+    pull(metabolite)
+}
