@@ -2,10 +2,23 @@
 % Please edit documentation in R/plot_funs.R
 \name{pca_variance}
 \alias{pca_variance}
-\title{pca}
+\title{Plot of Variance Explained by Principal Components}
 \usage{
 pca_variance(dat)
 }
+\arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type "Sample".}
+}
 \description{
-pca
+This function creates a barplot showing the variance explained by each principal component
+from a Principal Component Analysis (PCA) on metabolomics data. The plot also includes
+a line graph representing the cumulative variance explained by the components.
+}
+\examples{
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+dat <- complete_data(dat, "limit", "limit", "limit")
+pca_variance(dat)
+
 }

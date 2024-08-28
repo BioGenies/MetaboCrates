@@ -310,10 +310,26 @@ create_correlations_heatmap <- function(dat){
     theme(axis.text.x = element_text(angle = 90))
 }
 
-#' Estimated density of metabolite with LOD cut-off
-#' 
+#' This function creates a density plot for a specified metabolite, overlaying a vertical dashed line 
+#' indicating the Limit of Detection (LOD) cutoff. The LOD value is derived from the `LOD_table` attribute 
+#' of the `dat` object.
+#'
+#' @param dat A `raw_data` object, the output of the [read_data()] function. The data should contain the metabolite values 
+#' and LOD information.
+#' @param metabolite_name A character string specifying the name of the metabolite for which the histogram should be created.
+#'
+#'
+#' @importFrom ggplot2 ggplot geom_density geom_vline labs aes
+#' @importFrom dplyr filter select mutate
+#'
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_histogram_with_lod(dat, "C0")
+#'
 #' @export
-create_histogram_with_lod <- function(dat, metabolite_name) {
+create_density_with_lod <- function(dat, metabolite_name) {
   metabolites <- attr(dat, "metabolites")
   
   lod_info <- attr(dat, "LOD_table") %>%
@@ -364,8 +380,23 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 }
 
 
-#' pca
+#' Plot of Variance Explained by Principal Components
+#'
+#' This function creates a barplot showing the variance explained by each principal component 
+#' from a Principal Component Analysis (PCA) on metabolomics data. The plot also includes 
+#' a line graph representing the cumulative variance explained by the components.
+#'
+#' @param dat A `raw_data` object, the output of the [read_data()] function. 
+#' The data should be completed and filtered to include only samples of type "Sample".
+#'
+#' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
 #' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' pca_variance(dat)
+#'
 #' @export
 pca_variance <- function(dat) {
   data <- attr(dat, "completed") %>%
@@ -439,5 +470,38 @@ create_PCA_plot <- function(dat, type = "sample_type"){
              frame = TRUE, frame.type = "norm") +
     scale_color_discrete(name = str_to_title(gsub("_", " ", type))) +
     scale_fill_discrete(name = str_to_title(gsub("_", " ", type))) +
+    metabocrates_theme()
+}
+
+#' Beeswarm Plot of Metabolite Values
+#'
+#' This function creates a beeswarm plot for a specified metabolite, allowing visualization 
+#' of the distribution of metabolite values across different plate bar code.
+#'
+#' @param dat A `raw_data` object, the output of the [read_data()] function. 
+#' The data should contain metabolite values and sample information.
+#' @param metabolite A character string specifying the name of the metabolite for which the beeswarm plot should be created.
+#'
+#' @importFrom ggbeeswarm geom_beeswarm
+#' @importFrom ggplot2 ggplot aes labs
+#'
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' path <- get_example_data("dwa_sety_example.xlsx")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_beeswarm_plot(dat, "C0")
+#'
+#' @export
+create_beeswarm_plot <- function(dat, metabolite) {
+  plot_data <- attr(dat, "completed") %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(c("plate bar code", metabolite))) %>%
+    group_by(`plate bar code`)
+  
+  ggplot(plot_data, aes(x = `plate bar code`, y = get(metabolite), color = `plate bar code`)) +
+    geom_beeswarm(cex = 2) +
+    labs(title = paste("Beeswarm Plot of", metabolite),
+         y = metabolite) +
     metabocrates_theme()
 }

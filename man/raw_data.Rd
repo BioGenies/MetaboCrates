@@ -44,6 +44,7 @@ to "sample" type samples).
 types and their counts
 \item \code{group} : a character name of group from the table
 \item \code{removed}: a list of removed metabolites
+\item \code{plate bar code}: each measurement has two plate bar codes depending on the method used
 }
 }
 \description{
