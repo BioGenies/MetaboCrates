@@ -14,7 +14,7 @@ The data should contain metabolite values and sample information.}
 }
 \description{
 This function creates a beeswarm plot for a specified metabolite, allowing visualization
-of the distribution of metabolite values across different sample types or groups.
+of the distribution of metabolite values across different plate bar code.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
