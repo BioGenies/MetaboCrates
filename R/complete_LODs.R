@@ -120,15 +120,22 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
     method,
     halfmin = {
       merged_dat %>% 
-        mutate(value = ifelse(value == "< LOD", 0.5 * general_min(value), value))
+        group_by(compound) %>% 
+        mutate(value = ifelse(value == "< LOD" & !is.na(value), 
+                              0.5 * general_min(value), value)) 
     },
     halflimit = {
       merged_dat %>% 
-        mutate(value = ifelse(value == "< LOD", 0.5 * thresh_est, value))
+        mutate(value = ifelse(value == "< LOD" & !is.na(value), 
+                              0.5 * thresh_est, value))
     },
     random = {
       merged_dat %>%  
-        mutate(value = ifelse(value == "< LOD", runif(1, 0, thresh_est), value))
+        mutate(value = ifelse(value == "< LOD" & !is.na(value), 
+                              runif(
+                                sum(value == "< LOD" & !is.na(value)), 0, 
+                                thresh_est[value == "< LOD" & !is.na(value)]), 
+                              value))
     },
     limit = {
       merged_dat %>% 
