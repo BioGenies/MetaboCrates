@@ -28,15 +28,16 @@ Suggests:
     spelling,
     testthat (>= 3.0.0)
 Imports: dplyr,
+         ggbeeswarm,
+         ggfortify,
+         ggplot2,
          readxl,
+         reshape2,
          scales,
          stringi,
          stringr,
          tidyr,
-         tools,
-         ggplot2,
-         reshape2,
-         ggfortify
+         tools
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
