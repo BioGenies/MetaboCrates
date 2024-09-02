@@ -18,9 +18,4 @@ changing missing values into NAs.}
 This function imputes values below limit of quantification
 ("> ULOQ")
 }
-\examples{
-path <- get_example_data("small_biocrates_example.xls")
-dat <- read_data(path)
-
-}
 \keyword{internal}

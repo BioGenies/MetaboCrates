@@ -20,9 +20,4 @@ It can be NULL depending on the \code{method} parameter.}
 \description{
 Complete values below limit of detection
 }
-\examples{
-path <- get_example_data("small_biocrates_example.xls")
-dat <- read_data(path)
-
-}
 \keyword{internal}

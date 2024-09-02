@@ -72,14 +72,14 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
   }else {
     message("Skipping < ULOQ imputation.")
   }
-
+  
   suppressWarnings({
     completed_dat <- gathered_data %>% 
       spread(key = compound, value = value) %>% 
       arrange(tmp_id) %>% 
       mutate_at(all_of(attr(dat, "metabolites")), as.numeric)
   })
-
+  
   tmp_dat <- dat
   tmp_dat[, colnames(completed_dat)] <- completed_dat
   attr(dat, "completed") <- tmp_dat
@@ -100,10 +100,6 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' "halflimit", "limit" or NULL meaning changing missing values into NAs.
 #' @param LOD_vals description
 #' 
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' 
 #' @keywords internal
 #' 
 
@@ -117,21 +113,21 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
     stop(paste0("There is no ", LOD_type, " values in LOD table."))
   
   merged_dat <- gathered_data %>% 
-    merge(filter(LOD_vals, grepl(LOD_type, type)), 
-          by = c("plate bar code", "compound"), all = TRUE)
+    left_join(filter(LOD_vals, grepl(LOD_type, type)), 
+              by = c("plate bar code", "compound"))
   
   merged_dat <- switch (
     method,
     halfmin = {
       merged_dat %>% 
-        mutate(value = ifelse(value == "< LOD", 0.5 * min(value), value))
+        mutate(value = ifelse(value == "< LOD", 0.5 * general_min(value), value))
     },
     halflimit = {
       merged_dat %>% 
         mutate(value = ifelse(value == "< LOD", 0.5 * thresh_est, value))
     },
     random = {
-      merged_dat %>% 
+      merged_dat %>%  
         mutate(value = ifelse(value == "< LOD", runif(1, 0, thresh_est), value))
     },
     limit = {
@@ -186,10 +182,6 @@ match_plate_codes <- function(LOD_table, sets) {
 #' changing missing values into NAs.
 #' @param LOD_vals description
 #' 
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' 
 #' @keywords internal
 #' 
 
@@ -225,10 +217,6 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
 #' changing missing values into NAs.
 #' @param LOD_vals description
 #' 
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' 
 #' @keywords internal
 #' 
 
@@ -250,3 +238,24 @@ complete_LLOQ <- function(gathered_data, method, LOD_vals) {
   merged_dat %>% 
     select(- type, -thresh_est)
 }
+
+
+#' Calculate minimum ignoring character values
+#' 
+#' @description This function calculates minimum without values such as NA's, 
+#' values below or above LOD limit and so on. 
+#' 
+#' @param x a vector of observations
+#' 
+#' @examples
+#' x <- c("<LOD", 5, 6, NA, 9, 16)
+#' general_min(x)
+#' 
+#' @keywords internal
+#' 
+
+general_min <- function(x) {
+  min(as.numeric(x[!is.na(as.numeric(x))]))
+}
+
+
