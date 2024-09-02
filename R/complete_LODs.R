@@ -262,7 +262,9 @@ complete_LLOQ <- function(gathered_data, method, LOD_vals) {
 #' 
 
 general_min <- function(x) {
-  min(as.numeric(x[!is.na(as.numeric(x))]))
+  suppressWarnings({
+    min(as.numeric(x[!is.na(as.numeric(x))]))
+  })
 }
 
 
