@@ -102,6 +102,7 @@ ui <- navbarPage(
                                              color = "#3e3f3a")
                           ),
                           column(8,
+                                 br(),
                                  withSpinner(plotOutput("mv_types_plt", width = "70%"),
                                              color = "#3e3f3a")
                           )
@@ -121,17 +122,34 @@ ui <- navbarPage(
                  br(),
                  h4("Select column containing grouping variable from the table.
              Click again to unselect."),
+                 h4("A proper group column should contain names of groups. It 
+                    can't contain missing values (NA's) for samples."),
                  br(),
+                 h3("Selected:"),
                  htmlOutput("selected_group"),
                  br(),
                ),
                column(9,
                       column(12, align = "right", 
                              h2("Group selection (step 2/7)"),
-                             h3("next: Filtering")),
-                      column(9, offset = 1, 
-                             withSpinner(DT::dataTableOutput("group_columns"),
-                                         color = "#3e3f3a"))
+                             h3("next: Filtering"),
+                             br()),
+                      tabsetPanel(
+                        tabPanel("Groups",
+                                 column(9, offset = 1, 
+                                        withSpinner(DT::dataTableOutput("group_columns"),
+                                                    color = "#3e3f3a"))
+                        ),
+                        tabPanel("Summary",
+                                 column(9, offset = 1,
+                                        br(),
+                                        br(),
+                                        withSpinner(plotOutput("groups_plt", 
+                                                               width = "70%"),
+                                                    color = "#3e3f3a")
+                                 )   
+                        )
+                      )
                )
       ),
       tabPanel("Filtering",
@@ -364,10 +382,89 @@ server <- function(input, output, session) {
     
     non_metabolites_dat <- dat[["metabocrates_dat"]] %>% 
       select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
+      select(-`plate bar code`, - `sample bar code`, -`collection date`,
+             -`sample identification`, -`op`, -`org. info`, -`plate note`,
+             -`plate production no.`, -`well position`, -`sample volume`, 
+             -`run number`, -`injection number`, -`measurement time`) %>% 
       custom_datatable(scrollY = 550,
                        paging = FALSE,
                        selection = list(mode = "single", target = "column"))
   })
+  
+  
+  
+  
+  output[["selected_group"]] <- renderUI({
+    req(dat[["metabocrates_dat"]])
+    
+    dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
+    
+    if(!is.null(input[["group_columns_columns_selected"]])) {
+      
+      group_candidates <- dat[["metabocrates_dat"]] %>% 
+        select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
+        select(-`plate bar code`, - `sample bar code`, -`collection date`,
+               -`sample identification`, -`op`, -`org. info`, -`plate note`,
+               -`plate production no.`, -`well position`, -`sample volume`, 
+               -`run number`, -`injection number`, -`measurement time`)
+      
+      group_name <- colnames(group_candidates)[input[["group_columns_columns_selected"]]]
+      
+      group_col_samples <- dat[["metabocrates_dat"]] %>%  
+        filter(`sample type` == "Sample") %>% 
+        pull(group_name)
+      
+      if(group_col_samples %>%  is.na() %>%  any()) {
+        sendSweetAlert(session = session,
+                       title = "Invalid group: missing group labels",
+                       text = "Make sure that all samples have non-missing group name!",
+                       type = "error")
+        req(NULL)
+      }
+      if(any(table(group_col_samples) < 2)) {
+        sendSweetAlert(session = session,
+                       title = "Invalid group: too many groups",
+                       text = "We require at least 2 obsevations per group.",
+                       type = "error")
+        req(NULL)
+      }
+      
+      if(length(unique(group_col_samples)) == 1) {
+        sendSweetAlert(session = session,
+                       title = "Single group",
+                       text = "Provided column contains only one unique label.",
+                       type = "warning")
+      } else {
+        sendSweetAlert(session = session,
+                       title = "Great!",
+                       text = paste0("Group ", group_name, " selected!"),
+                       type = "success")
+      }
+      
+      dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat"]], 
+                                                   group_name)
+      
+      group_name <- HTML(
+        paste0(group_name, ", <br/> 
+               Levels: ", paste0(sort(unique(group_col_samples)), collapse = ", "))
+      )
+    } else {
+      req(NULL)
+    }
+    
+    HTML(group_name)
+  })
+  
+  
+  output[["groups_plt"]] <- renderPlot({
+    req(dat[["metabocrates_dat_group"]])
+    
+    if(!is.null(attr(dat[["metabocrates_dat_group"]], "group")))
+      plot_groups(dat[["metabocrates_dat_group"]])
+    
+  })
+  
+  
   
   ######### imputation
   
