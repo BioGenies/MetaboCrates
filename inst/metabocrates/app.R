@@ -13,6 +13,8 @@ library(shinyhelper)
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
 source("app_supplementary/ui_supp.R")
+source("app_supplementary/plot_with_button_module.R")
+source("app_supplementary/table_with_button_module.R")
 
 panels_vec <- c("About", "Uploading data", "Group selection",
                 "Filtering", "Completing",  "Quality control", "Summary", 
@@ -20,6 +22,15 @@ panels_vec <- c("About", "Uploading data", "Group selection",
 
 
 ui <- navbarPage(
+  tags$head(
+    tags$style(HTML(
+      ".dataTables_wrapper .dataTables_filter{
+            float: left !important;
+            padding-left: 550px !important;
+          }"
+    ))
+  ),
+  
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
   tabPanel("About",
@@ -89,8 +100,7 @@ ui <- navbarPage(
                         tabPanel(
                           "Compounds matrix",
                           br(),
-                          withSpinner(DT::dataTableOutput("biocrates_matrix"),
-                                      color = "#3e3f3a")
+                          table_with_button_UI("biocrates_matrix")
                         ),
                         tabPanel(
                           align = "center",
@@ -98,13 +108,11 @@ ui <- navbarPage(
                           br(),
                           br(),
                           column(4, 
-                                 withSpinner(DT::dataTableOutput("mv_types_tbl"),
-                                             color = "#3e3f3a")
+                                 table_with_button_UI("mv_types_tbl")
                           ),
                           column(8,
                                  br(),
-                                 withSpinner(plotOutput("mv_types_plt", width = "70%"),
-                                             color = "#3e3f3a")
+                                 plot_with_button_UI("mv_types_plt")
                           )
                           
                         )
@@ -136,17 +144,14 @@ ui <- navbarPage(
                              br()),
                       tabsetPanel(
                         tabPanel("Groups",
-                                 column(9, offset = 1, 
-                                        withSpinner(DT::dataTableOutput("group_columns"),
-                                                    color = "#3e3f3a"))
+                                 column(9, offset = 1,
+                                        table_with_button_UI("group_columns"))
                         ),
                         tabPanel("Summary",
                                  column(9, offset = 1,
                                         br(),
                                         br(),
-                                        withSpinner(plotOutput("groups_plt", 
-                                                               width = "70%"),
-                                                    color = "#3e3f3a")
+                                        plot_with_button_UI("groups_plt")
                                  )   
                         )
                       )
@@ -204,11 +209,9 @@ ui <- navbarPage(
                       column(12, 
                              tabsetPanel(
                                tabPanel("Metabolomic matrix",
-                                        withSpinner(DT::dataTableOutput("completed_tbl"),
-                                                    color = "#3e3f3a")),
+                                        table_with_button_UI("completed_tbl")),
                                tabPanel("Table of limits",
-                                        withSpinner(DT::dataTableOutput("LOD_tbl"),
-                                                    color = "#3e3f3a"))
+                                        table_with_button_UI("LOD_tbl"))
                              ),
                       )
                )
@@ -256,6 +259,10 @@ ui <- navbarPage(
 
 
 server <- function(input, output, session) {
+  
+  #### helpers
+  
+  observe_helpers(help_dir = "texts")
   
   ##### reactive variables
   
@@ -346,8 +353,7 @@ server <- function(input, output, session) {
     ))
   })
   
-  
-  output[["biocrates_matrix"]] <- DT::renderDataTable({
+  biocrates_matrix_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     metabolites <- attr(dat[["metabocrates_dat"]], "metabolites")
@@ -359,25 +365,27 @@ server <- function(input, output, session) {
       custom_datatable(scrollY = 400,
                        paging = FALSE)
   })
+  table_with_button_SERVER("biocrates_matrix", biocrates_matrix_reactive)
   
-  output[["mv_types_tbl"]] <- DT::renderDataTable({ 
+  mv_types_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     attr(dat[["metabocrates_dat"]], "NA_info")[["counts"]] %>% 
       custom_datatable(scrollY = 200, paging = FALSE)
   })
+  table_with_button_SERVER("mv_types_tbl", mv_types_tbl_reactive)
   
-  
-  output[["mv_types_plt"]] <- renderPlot({
+  mv_types_plt_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     plot_mv_types(dat[["metabocrates_dat"]])
   })
+  plot_with_button_SERVER("mv_types_plt", mv_types_plt_reactive)
   
   
   ######### groups selection
   
-  output[["group_columns"]] <- DT::renderDataTable({
+  group_columns_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     non_metabolites_dat <- dat[["metabocrates_dat"]] %>% 
@@ -386,13 +394,11 @@ server <- function(input, output, session) {
              -`sample identification`, -`op`, -`org. info`, -`plate note`,
              -`plate production no.`, -`well position`, -`sample volume`, 
              -`run number`, -`injection number`, -`measurement time`) %>% 
-      custom_datatable(scrollY = 550,
+      custom_datatable(scrollY = 450,
                        paging = FALSE,
                        selection = list(mode = "single", target = "column"))
   })
-  
-  
-  
+  table_with_button_SERVER("group_columns", group_columns_reactive)
   
   output[["selected_group"]] <- renderUI({
     req(dat[["metabocrates_dat"]])
@@ -455,20 +461,18 @@ server <- function(input, output, session) {
     HTML(group_name)
   })
   
-  
-  output[["groups_plt"]] <- renderPlot({
+  groups_plt_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
     if(!is.null(attr(dat[["metabocrates_dat_group"]], "group")))
       plot_groups(dat[["metabocrates_dat_group"]])
-    
   })
-  
+  plot_with_button_SERVER("groups_plt", groups_plt_reactive)
   
   
   ######### imputation
   
-  output[["LOD_tbl"]] <- DT::renderDataTable({
+  LOD_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     attr(dat[["metabocrates_dat"]], "LOD_table") %>% 
@@ -477,9 +481,10 @@ server <- function(input, output, session) {
                        paging = FALSE,
                        selection = list(mode = "single", target = "column"))
   })
+  table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
   
   
-  output[["completed_tbl"]] <- DT::renderDataTable({
+  completed_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     metabolites <- attr(dat[["metabocrates_dat"]], "metabolites")
@@ -499,8 +504,8 @@ server <- function(input, output, session) {
         custom_datatable(scrollY = 400,
                          paging = FALSE)
     }
-    
   })
+  table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
   
   
   
