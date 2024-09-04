@@ -386,10 +386,10 @@ server <- function(input, output, session) {
   
   ######### groups selection
   
-  group_columns_reactive <- reactive({
+  group_columns_DT <- reactive({
     req(dat[["metabocrates_dat"]])
     
-    non_metabolites_dat <- dat[["metabocrates_dat"]] %>% 
+    dat[["metabocrates_dat"]] %>% 
       select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
       select(-`plate bar code`, - `sample bar code`, -`collection date`,
              -`sample identification`, -`op`, -`org. info`, -`plate note`,
@@ -399,14 +399,17 @@ server <- function(input, output, session) {
                        paging = FALSE,
                        selection = list(mode = "single", target = "column"))
   })
-  table_with_button_SERVER("group_columns", group_columns_reactive)
+  
+  
+  table_with_button_SERVER("group_columns", group_columns_DT)
+  
   
   output[["selected_group"]] <- renderUI({
     req(dat[["metabocrates_dat"]])
     
     dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
     
-    if(!is.null(input[["group_columns_columns_selected"]])) {
+    if(!is.null(input[["group_columns-table_columns_selected"]])) {
       
       group_candidates <- dat[["metabocrates_dat"]] %>% 
         select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
@@ -415,7 +418,7 @@ server <- function(input, output, session) {
                -`plate production no.`, -`well position`, -`sample volume`, 
                -`run number`, -`injection number`, -`measurement time`)
       
-      group_name <- colnames(group_candidates)[input[["group_columns_columns_selected"]]]
+      group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]]]
       
       group_col_samples <- dat[["metabocrates_dat"]] %>%  
         filter(`sample type` == "Sample") %>% 
@@ -462,12 +465,15 @@ server <- function(input, output, session) {
     HTML(group_name)
   })
   
+  
   groups_plt_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
     if(!is.null(attr(dat[["metabocrates_dat_group"]], "group")))
       plot_groups(dat[["metabocrates_dat_group"]])
   })
+  
+  
   plot_with_button_SERVER("groups_plt", groups_plt_reactive)
   
   
@@ -482,6 +488,7 @@ server <- function(input, output, session) {
                        paging = FALSE,
                        selection = list(mode = "single", target = "column"))
   })
+  
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
   
   

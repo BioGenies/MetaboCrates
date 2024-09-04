@@ -1,3 +1,4 @@
+
 table_with_button_UI <- function(id){
   ns <- NS(id)
   
@@ -21,6 +22,7 @@ table_with_button_UI <- function(id){
 
 table_with_button_SERVER <- function(id, dat_reactive){
   moduleServer(id, function(input, output, session){
+    
     output[["table"]] <- renderDT(dat_reactive())
     
     output[["download_button"]] <- downloadHandler(
