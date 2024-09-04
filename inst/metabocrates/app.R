@@ -145,6 +145,7 @@ ui <- navbarPage(
                       tabsetPanel(
                         tabPanel("Groups",
                                  column(9, offset = 1,
+                                        br(),
                                         table_with_button_UI("group_columns"))
                         ),
                         tabPanel("Summary",
