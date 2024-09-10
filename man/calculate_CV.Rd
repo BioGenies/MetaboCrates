@@ -15,7 +15,7 @@ Calculate CV for different QC samples depending on metabolite
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-dat <- complete_data(dat)
+dat <- complete_data(dat, "limit", "limit", "limit")
 calculate_CV(dat)
 
 }
