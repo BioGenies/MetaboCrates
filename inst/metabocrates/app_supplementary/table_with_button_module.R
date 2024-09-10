@@ -1,23 +1,8 @@
 
 table_with_button_UI <- function(id){
-  ns <- NS(id)
-  
-  fluidRow(
-    column(11,
-           helper(DTOutput(ns("table")),
+  helper(DTOutput(NS(id, "table")),
                   type = "markdown",
                   content = id)
-           ),
-    column(1,
-           downloadBttn(
-             ns("download_button"),
-             style = "jelly",
-             label = NULL,
-             color = "primary",
-             icon = icon("download")
-           )
-           )
-    )
 }
 
 table_with_button_SERVER <- function(id, dat_reactive){

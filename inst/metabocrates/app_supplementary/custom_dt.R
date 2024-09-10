@@ -6,11 +6,14 @@ custom_datatable <- function(dat,
   DT::datatable(dat,
                 editable = FALSE,
                 selection = selection,
+                extensions = "Buttons",
                 options = list(paging = paging,
                                scrollX = TRUE,
                                scrollY = scrollY,
                                pageLength = 15,
-                               searching = FALSE),
+                               searching = FALSE,
+                               dom = 'Bfrtip',
+                               buttons = c("csv", "excel", "pdf")),
                 class = "display nowrap")
 }
 
