@@ -382,12 +382,18 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 
 #' Plot of Variance Explained by Principal Components
 #'
-#' This function creates a barplot showing the variance explained by each principal component 
-#' from a Principal Component Analysis (PCA) on metabolomics data. The plot also includes 
-#' a line graph representing the cumulative variance explained by the components.
+#' This function creates a barplot showing the minimum number of the greatest
+#' variances explained by each principal component from a Principal Component
+#' Analysis pc(PCA) on metabolomics data, which cumulative sum is less or equal
+#' than given treshold. The plot also includes a line graph representing
+#' the cumulative variance explained by the components.
 #'
 #' @param dat A `raw_data` object, the output of the [read_data()] function. 
 #' The data should be completed and filtered to include only samples of type "Sample".
+#' @param treshold A value indicating the maximum cumulative variance
+#' of components to display.
+#' #' @param max_num An optional parameter indicating the maximum number
+#' of components to display.
 #'
 #' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
 #' 
@@ -395,17 +401,18 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' pca_variance(dat)
+#' pca_variance(dat, 0.8, 5)
 #'
 #' @export
-pca_variance <- function(dat) {
+pca_variance <- function(dat, treshold, max_num = NULL) {
   data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(attr(dat, "metabolites")))
   
-  data <- data[complete.cases(data), sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
+  data <- data[complete.cases(data),
+               sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
 
-  pca_result <- prcomp(data, scale. = TRUE, center = TRUE)
+  pca_result <- prcomp(data, scale. = TRUE, center = TRUE, rank. = max_num)
   
   variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
   
@@ -417,10 +424,13 @@ pca_variance <- function(dat) {
     Cumulative_Variance = cumulative_variance
   )
   
+  rel_comp_num <- max(which(variance_df[["Cumulative_Variance"]] <= treshold))
+  
   ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
     geom_bar(stat = "identity", fill = "steelblue") +
     geom_line(aes(y = Cumulative_Variance), group = 1, color = "red") +
     geom_point(aes(y = Cumulative_Variance), color = "red") +
+    coord_cartesian(xlim = c(1, rel_comp_num)) +
     labs(title = "Variance Explained by Principal Components",
          x = "Principal Component",
          y = "Variance Explained") +
