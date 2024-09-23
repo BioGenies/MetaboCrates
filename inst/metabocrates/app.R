@@ -319,7 +319,16 @@ server <- function(input, output, session) {
     validate(need(tools::file_ext(path) %in% c("xlsx", "xls"),
                   paste("Please upload an xlsx or xls file!")))
     
-    try({ uploaded_data <- read_data(path)})
+    uploaded_data <- try({read_data(path)})
+    
+    if(inherits(uploaded_data, "try-error")) {
+      sendSweetAlert(session, "Error!", "Check validity of your file!", 
+                     type = "error")
+      dat[["metabocrates_dat"]] <- NULL
+      req(NULL)
+    }
+
+    
     dat[["metabocrates_dat"]] <- uploaded_data
     
   })
