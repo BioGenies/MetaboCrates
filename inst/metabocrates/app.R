@@ -122,38 +122,44 @@ ui <- navbarPage(
       #############
       tabPanel("Group selection",
                nav_btns_UI("Group selection"),
-               column(
-                 3,
-                 style = "background-color:#f8f5f0; border-right: 1px solid",
-                 br(),
-                 h2("(optional)"),
-                 br(),
-                 h4("Select column containing grouping variable from the table.
-             Click again to unselect."),
-                 h4("A proper group column should contain names of groups. It 
-                    can't contain missing values (NA's) for samples."),
-                 br(),
-                 h3("Selected:"),
-                 htmlOutput("selected_group"),
-                 br(),
-               ),
                column(9,
+                      style = "background-color:#f8f5f0; border-right: 1px solid",
+                      column(2,
+                             h2("(optional)"),
+                      ),
+                      column(10,
+                             br(),
+                             h4("Select column containing grouping variable from the table.
+             Click again to unselect."),
+                             h5("A proper group column should contain names of groups. It 
+                    can't contain missing values (NA's) for samples."),
+                             br()
+                      )
+               ),
+               column(3,
                       column(12, align = "right", 
                              h2("Group selection (step 2/7)"),
                              h3("next: Filtering"),
                              br()),
+               ),
+               br(),
+               
+               column(3, 
+                      h3("Selected:"),
+                      htmlOutput("selected_group")
+               ),
+               
+               column(9,
                       tabsetPanel(
-                        tabPanel("Groups",
-                                 column(9, offset = 1,
-                                        br(),
-                                        table_with_button_UI("group_columns"))
+                        tabPanel(
+                          "Groups",
+                          br(),
+                          table_with_button_UI("group_columns")
                         ),
-                        tabPanel("Summary",
-                                 column(9, offset = 1,
-                                        br(),
-                                        br(),
-                                        plot_with_button_UI("groups_plt")
-                                 )   
+                        tabPanel(
+                          "Summary",
+                          br(),
+                          plot_with_button_UI("groups_plt")
                         )
                       )
                )
@@ -364,7 +370,7 @@ server <- function(input, output, session) {
       mutate_all(as.character) %>% 
       mutate_all(display_short) %>% 
       custom_datatable(scrollY = 400,
-                       paging = FALSE)
+                       paging = TRUE)
   })
   table_with_button_SERVER("biocrates_matrix", biocrates_matrix_reactive)
   
@@ -396,7 +402,7 @@ server <- function(input, output, session) {
              -`plate production no.`, -`well position`, -`sample volume`, 
              -`run number`, -`injection number`, -`measurement time`) %>% 
       custom_datatable(scrollY = 450,
-                       paging = FALSE,
+                       paging = TRUE,
                        selection = list(mode = "single", target = "column"))
   })
   
@@ -418,7 +424,7 @@ server <- function(input, output, session) {
                -`plate production no.`, -`well position`, -`sample volume`, 
                -`run number`, -`injection number`, -`measurement time`)
       
-      group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]]]
+      group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
       
       group_col_samples <- dat[["metabocrates_dat"]] %>%  
         filter(`sample type` == "Sample") %>% 
@@ -485,7 +491,7 @@ server <- function(input, output, session) {
     attr(dat[["metabocrates_dat"]], "LOD_table") %>% 
       select(-type) %>% 
       custom_datatable(scrollY = 300,
-                       paging = FALSE,
+                       paging = TRUE,
                        selection = list(mode = "single", target = "column"))
   })
   
@@ -503,14 +509,14 @@ server <- function(input, output, session) {
         mutate_all(as.character) %>% 
         mutate_all(display_short) %>% 
         custom_datatable(scrollY = 400,
-                         paging = FALSE)
+                         paging = TRUE)
     } else {
       attr(dat[["metabocrates_dat"]], "completed") %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
         mutate_all(round) %>% 
         custom_datatable(scrollY = 400,
-                         paging = FALSE)
+                         paging = TRUE)
     }
   })
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
