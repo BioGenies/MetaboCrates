@@ -14,7 +14,8 @@ custom_datatable <- function(dat,
                                searching = FALSE,
                                dom = 'Bfrtip',
                                buttons = c("csv", "excel", "pdf")),
-                class = "display nowrap")
+                class = "display nowrap",
+                rownames = FALSE)
 }
 
 
