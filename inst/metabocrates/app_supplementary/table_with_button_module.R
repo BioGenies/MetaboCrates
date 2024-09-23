@@ -1,8 +1,10 @@
 
 table_with_button_UI <- function(id){
-  helper(DTOutput(NS(id, "table")),
-                  type = "markdown",
-                  content = id)
+  helper(
+    withSpinner(DTOutput(NS(id, "table"))),
+    type = "markdown",
+    content = id
+  )
 }
 
 table_with_button_SERVER <- function(id, dat_reactive){
