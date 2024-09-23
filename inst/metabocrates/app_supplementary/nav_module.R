@@ -52,9 +52,6 @@ nav_btns_UI <- function(id) {
       )
     }
   }
-  
-  
-
 }
 
 

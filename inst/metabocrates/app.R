@@ -216,8 +216,10 @@ ui <- navbarPage(
                       column(12, 
                              tabsetPanel(
                                tabPanel("Metabolomic matrix",
+                                        br(),
                                         table_with_button_UI("completed_tbl")),
                                tabPanel("Table of limits",
+                                        br(),
                                         table_with_button_UI("LOD_tbl"))
                              ),
                       )
@@ -328,7 +330,6 @@ server <- function(input, output, session) {
       req(NULL)
     }
 
-    
     dat[["metabocrates_dat"]] <- uploaded_data
     
   })
@@ -369,19 +370,23 @@ server <- function(input, output, session) {
     ))
   })
   
+  
   biocrates_matrix_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
     metabolites <- attr(dat[["metabocrates_dat"]], "metabolites")
     
     dat[["metabocrates_dat"]] %>% 
-      select(all_of(metabolites)) %>% 
+      select(`sample type`, all_of(metabolites)) %>% 
       mutate_all(as.character) %>% 
       mutate_all(display_short) %>% 
       custom_datatable(scrollY = 400,
                        paging = TRUE)
   })
+  
+  
   table_with_button_SERVER("biocrates_matrix", biocrates_matrix_reactive)
+  
   
   mv_types_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
@@ -389,7 +394,10 @@ server <- function(input, output, session) {
     attr(dat[["metabocrates_dat"]], "NA_info")[["counts"]] %>% 
       custom_datatable(scrollY = 200, paging = FALSE)
   })
+  
+  
   table_with_button_SERVER("mv_types_tbl", mv_types_tbl_reactive)
+  
   
   mv_types_plt_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
