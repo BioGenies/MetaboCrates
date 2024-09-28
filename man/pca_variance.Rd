@@ -8,7 +8,8 @@ pca_variance(dat, treshold, max_num = NULL)
 }
 \arguments{
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
-The data should be completed and filtered to include only samples of type "Sample".}
+The data should be completed and filtered to include only samples of type
+"Sample".}
 
 \item{treshold}{A value indicating the maximum cumulative variance
 of components to display.
