@@ -22,17 +22,11 @@ panels_vec <- c("About", "Uploading data", "Group selection",
 
 
 ui <- navbarPage(
-  tags$head(
-    tags$style(HTML(
-      ".dataTables_wrapper .dataTables_filter{
-            float: left !important;
-            padding-left: 550px !important;
-          }"
-    ))
-  ),
+  includeCSS("www/style.css"),
   
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
+  
   tabPanel("About",
            ui_content_about()
   ),
@@ -149,7 +143,7 @@ ui <- navbarPage(
                       htmlOutput("selected_group")
                ),
                
-               column(9,
+               column(8,
                       tabsetPanel(
                         tabPanel(
                           "Groups",
@@ -164,12 +158,84 @@ ui <- navbarPage(
                       )
                )
       ),
+      ####################
       tabPanel("Filtering",
                nav_btns_UI("Filtering"),
-               column(12, align = "right", 
-                      h2("Compounds filtering (step 3/7)"),
-                      h3("next: Completing")),
+               column(3,
+                      style = "background-color:#f8f5f0; border-right: 1px solid",
+                      br(),
+                      h4("Provide threshold."),
+                      h5("All metabolites that contain more missing values than 
+                         provided threshold will be removed."),
+                      br(),
+                      numericInput(
+                        inputId = "filtering_threshold",
+                        label = "threshold [%]",
+                        value = 80,
+                        min = 0,
+                        max = 100
+                      ),
+                      br(),
+                      
+                      column(8, 
+                             h4("The following metabolites will be removed:"),
+                      ),
+                      column(4,
+                             align = "right",
+                             dropdownButton(
+                               multiInput(
+                                 inputId = "LOD_to_remove",
+                                 label = "Click metabolite name to select or unselect.",
+                                 choices = character(0),
+                                 width = "90%",
+                                 options = list(
+                                   enable_search = TRUE,
+                                   non_selected_header = "Metabolites:",
+                                   selected_header = "Metabolites to remove:"
+                                 )
+                               ),
+                               circle = TRUE, status = "default",
+                               icon = icon("gear"), width = "700px",
+                               
+                               tooltip = tooltipOptions(title = "Click to edit metabolites to remove!")
+                             ),
+                      ),
+                      br(),
+                      br(),
+                      br(),
+                      column(12, htmlOutput("LOD_to_remove_txt")),
+                      br(),
+                      br(),
+                      br(),
+                      column(2, align = "center", 
+                             actionButton("LOD_remove_btn", label = "Remove")),
+                      column(2, align = "center", offset = 1,
+                             actionButton("LOD_undo_btn", label = "Undo")),
+                      br(),
+                      br(),
+                      br()
+               ),
+               column(9,
+                      column(6, 
+                             h2("Clean your data here."),
+                      ),
+                      column(6, align = "right", 
+                             h2("Compounds filtering (step 3/7)"),
+                             h3("next: Completing")
+                      ),
+                      tabsetPanel(
+                        tabPanel("Ratios of missing values",
+                                 column(10, offset = 1,
+                                        br(),
+                                        br(),
+                                        table_with_button_UI("NA_ratios_tbl"))
+                        ),
+                        tabPanel("Visualization")
+                      )
+               )
+               
       ),
+      #################
       tabPanel("Completing",
                nav_btns_UI("Completing"),        
                column(3,
@@ -277,8 +343,6 @@ server <- function(input, output, session) {
   
   dat <- reactiveValues()
   
-  
-  
   ##### navigation modules
   
   callModule(nav_btns_SERVER, "Uploading data", parent_session = session, 
@@ -329,7 +393,10 @@ server <- function(input, output, session) {
       dat[["metabocrates_dat"]] <- NULL
       req(NULL)
     }
-
+    
+    updateMultiInput(session, "LOD_to_remove", 
+                     choices = attr(dat[["metabocrates_dat"]], "metabolites"))
+    
     dat[["metabocrates_dat"]] <- uploaded_data
     
   })
@@ -357,6 +424,9 @@ server <- function(input, output, session) {
       nrow()
     
     sample_types <- pull(attr(uploaded_dat, "samples"), `sample type`)
+    
+    updateMultiInput(session, "LOD_to_remove", 
+                     choices = attr(dat[["metabocrates_dat"]], "metabolites"))
     
     HTML(paste0(
       "<h4> Data summary:</h4><br/> <br/> ",
@@ -498,6 +568,66 @@ server <- function(input, output, session) {
   
   
   plot_with_button_SERVER("groups_plt", groups_plt_reactive)
+  
+  
+  ######### filtering
+  
+  output[["LOD_to_remove_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat"]])
+    req(input[["filtering_threshold"]])
+    
+    to_remove <- setdiff(
+      get_LOD_to_remove(attr(dat[["metabocrates_dat"]], "NA_info"), 
+                        input[["filtering_threshold"]]/100), 
+      attr(dat[["metabocrates_dat"]], "removed")[["LOD"]]
+    )
+    
+    updateMultiInput(session, "LOD_to_remove", 
+                     selected = to_remove)
+    
+    
+    if(length(to_remove) == 0)
+      HTML("None.")
+    else {
+      HTML(paste0(to_remove, collapse = ", "))
+    }
+  })
+  
+  
+  observeEvent(input[["LOD_remove_btn"]], {
+    req(dat[["metabocrates_dat"]])
+    req(input[["LOD_to_remove"]])
+    
+    
+    dat[["metabocrates_dat"]] <- remove_metabolites(
+      dat[["metabocrates_dat"]],
+      metabolites_to_remove = input[["LOD_to_remove"]],
+      type = "LOD"
+    )
+    
+    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat"]], "metabolites"), 
+                               attr(dat[["metabocrates_dat"]], "removed")[["LOD"]])
+    
+    updateMultiInput(session, "LOD_to_remove", 
+                     choices = metabolites_vec)
+  })
+  
+  
+  NA_ratios_tbl <- reactive({
+    req(dat[["metabocrates_dat"]])
+    
+    attr(dat[["metabocrates_dat"]], "NA_info")[["NA_ratios"]] %>% 
+      filter(!(metabolite %in% attr(dat[["metabocrates_dat"]], "removed")[["LOD"]])) %>% 
+      arrange(NA_frac) %>% 
+      mutate(NA_frac = round(NA_frac, 3)) %>% 
+      custom_datatable(scrollY = 400, paging = TRUE)
+    
+  })
+  
+  
+  table_with_button_SERVER("NA_ratios_tbl", NA_ratios_tbl)
+  
+  
   
   
   ######### imputation
