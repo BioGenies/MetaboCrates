@@ -35,18 +35,18 @@ plot_groups <- function(dat){
   if(is.null(attr(dat, "group"))){
     stop("No groups column specified in data. You can add grouping using add_group() function.")
   }
-
-dat %>%
-  filter(`sample type` == "Sample") %>%
-  group_by(Groups = get(attr(dat, "group"))) %>%
-  summarise(Count = n()) %>%
-  ggplot(aes(x = Groups, y = Count)) +
-  geom_bar(stat = "identity") +
-  labs(title = paste0("Number of elements in groups of column \"",
+  
+  dat %>%
+    filter(`sample type` == "Sample") %>%
+    group_by(Groups = get(attr(dat, "group"))) %>%
+    summarise(Count = n()) %>%
+    ggplot(aes(x = Groups, y = Count)) +
+    geom_bar(stat = "identity") +
+    labs(title = paste0("Number of elements in groups of column \"",
                         attr(dat, "group"),
                         "\"")) +
-  geom_label(aes(label = Count)) +
-  metabocrates_theme()
+    geom_label(aes(label = Count)) +
+    metabocrates_theme()
 }
 
 
@@ -81,16 +81,16 @@ plot_mv_types <- function(dat) {
 #' @keywords internal
 
 create_joint_NA_plot <- function(dat){
-    if(!is.null(attr(dat, "group"))){
-      NA_percent <- attr(dat, "NA_info")[["NA_ratios"]] %>%
-        group_by(metabolite) %>%
-        summarise(NA_frac = mean(NA_frac))
-    }else NA_percent <- attr(dat, "NA_info")[["NA_ratios"]]
-    
+  if(!is.null(attr(dat, "group"))){
+    NA_percent <- attr(dat, "NA_info")[["NA_ratios"]] %>%
+      group_by(metabolite) %>%
+      summarise(NA_frac = mean(NA_frac))
+  }else NA_percent <- attr(dat, "NA_info")[["NA_ratios"]]
+  
   labels <- unlist(as.character(
     paste0(round(NA_percent[["NA_frac"]]*100), "%")
   ))
-    
+  
   ggplot(NA_percent, aes(x = metabolite, y = NA_frac, label = labels))
 }
 
@@ -106,11 +106,11 @@ create_long_metabolites_tibble <- function(dat){
                  names_to = "Metabolite",
                  values_to = "Type")
 }
-  
+
 #' ggplot object for plot_NA_percent with type "NA_type"
 #'
 #' @keywords internal
- 
+
 create_NA_type_NA_plot <- function(dat){
   NA_percent <- create_long_metabolites_tibble(dat) %>%
     group_by(Metabolite) %>%
@@ -178,9 +178,9 @@ create_group_NA_plot <- function(dat){
 
 plot_NA_percent <- function(dat, type = "joint"){
   ggplot_obj <- switch(type,
-    "joint" = create_joint_NA_plot(dat),
-    "NA_type" = create_NA_type_NA_plot(dat),
-    "group" = create_group_NA_plot(dat))
+                       "joint" = create_joint_NA_plot(dat),
+                       "NA_type" = create_NA_type_NA_plot(dat),
+                       "group" = create_group_NA_plot(dat))
   
   ggplot_obj +
     geom_col(width = 0.4, position = "stack", color = "white") +
@@ -310,13 +310,14 @@ create_correlations_heatmap <- function(dat){
     theme(axis.text.x = element_text(angle = 90))
 }
 
-#' This function creates a density plot for a specified metabolite, overlaying a vertical dashed line 
-#' indicating the Limit of Detection (LOD) cutoff. The LOD value is derived from the `LOD_table` attribute 
-#' of the `dat` object.
+#' This function creates a density plot for a specified metabolite, overlaying a 
+#' vertical dashed line indicating the Limit of Detection (LOD) cutoff. The LOD 
+#' value is derived from the `LOD_table` attribute of the `dat` object.
 #'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. The data should contain the metabolite values 
-#' and LOD information.
-#' @param metabolite_name A character string specifying the name of the metabolite for which the histogram should be created.
+#' @param dat A `raw_data` object, the output of the [read_data()] function. The 
+#' data should contain the metabolite values and LOD information.
+#' @param metabolite_name A character string specifying the name of the 
+#' metabolite for which the histogram should be created.
 #'
 #'
 #' @importFrom ggplot2 ggplot geom_density geom_vline labs aes
@@ -340,12 +341,15 @@ create_density_with_lod <- function(dat, metabolite_name) {
   plot_data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(metabolite_name)) %>%
-    pivot_longer(cols = all_of(metabolite_name), names_to = "Metabolite", values_to = "Value") %>%
+    pivot_longer(cols = all_of(metabolite_name), 
+                 names_to = "Metabolite", 
+                 values_to = "Value") %>%
     mutate(Value = as.numeric(Value))
   
   ggplot(plot_data, aes(x = Value)) +
     geom_density() +
-    geom_vline(xintercept = lod_info, color = "red", linetype = "dashed", size = 1) +
+    geom_vline(xintercept = lod_info, color = "red", linetype = "dashed", 
+               size = 1) +
     labs(x = paste(metabolite_name), y = "Count",
          title = paste("Histogram of", metabolite_name, "with LOD Cutoff")) +
     metabocrates_theme()
@@ -365,16 +369,22 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
     select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
     filter(if_all(everything(), ~ . != 0))
   
-  LOD["plate bar code"] <- sapply(LOD["plate bar code"], function(x) gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1", x))
+  LOD["plate bar code"] <- sapply(
+    LOD["plate bar code"], 
+    function(x) gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1", x)
+  )
   
   grouped_data <- plot_data %>%
     group_by(`plate bar code`)
   
   
-  ggplot(grouped_data, aes(x = get(metabolite1), y = get(metabolite2), color = `plate bar code`)) +
+  ggplot(grouped_data, aes(x = get(metabolite1), y = get(metabolite2), 
+                           color = `plate bar code`)) +
     geom_point() +
-    geom_hline(data = LOD, aes(yintercept = .data[[paste0(metabolite2)]], color = `plate bar code`), linetype = "dashed") +
-    geom_vline(data = LOD, aes(xintercept = .data[[paste0(metabolite1)]], color = `plate bar code`), linetype = "dashed") +
+    geom_hline(data = LOD, aes(yintercept = .data[[paste0(metabolite2)]], 
+                               color = `plate bar code`), linetype = "dashed") +
+    geom_vline(data = LOD, aes(xintercept = .data[[paste0(metabolite1)]], 
+                               color = `plate bar code`), linetype = "dashed") +
     labs(x = paste(metabolite1), y = paste(metabolite2)) +
     metabocrates_theme()
 }
@@ -387,15 +397,16 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #' Analysis pc(PCA) on metabolomics data, which cumulative sum is less or equal
 #' than given treshold. The plot also includes a line graph representing
 #' the cumulative variance explained by the components.
+#' 
+#' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
 #'
 #' @param dat A `raw_data` object, the output of the [read_data()] function. 
-#' The data should be completed and filtered to include only samples of type "Sample".
+#' The data should be completed and filtered to include only samples of type 
+#' "Sample".
 #' @param treshold A value indicating the maximum cumulative variance
 #' of components to display.
 #' #' @param max_num An optional parameter indicating the maximum number
 #' of components to display.
-#'
-#' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -411,7 +422,7 @@ pca_variance <- function(dat, treshold, max_num = NULL) {
   
   data <- data[complete.cases(data),
                sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
-
+  
   pca_result <- prcomp(data, scale. = TRUE, center = TRUE, rank. = max_num)
   
   variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
@@ -474,7 +485,7 @@ create_PCA_plot <- function(dat, type = "sample_type"){
     select(where(~ n_distinct(.) > 1))
   
   colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
-    
+  
   prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit) %>%
     autoplot(data = mod_dat, color = type,
              frame = TRUE, frame.type = "norm") +
@@ -485,33 +496,46 @@ create_PCA_plot <- function(dat, type = "sample_type"){
 
 #' Beeswarm Plot of Metabolite Values
 #'
-#' This function creates a beeswarm plot for a specified metabolite, allowing visualization 
-#' of the distribution of metabolite values across different plate bar code.
-#'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. 
-#' The data should contain metabolite values and sample information.
-#' @param metabolite A character string specifying the name of the metabolite for which the beeswarm plot should be created.
+#' This function creates a beeswarm plot for a specified metabolite, allowing 
+#' visualization of the distribution of metabolite values across different plate 
+#' bar code.
 #'
 #' @importFrom ggbeeswarm geom_beeswarm
 #' @importFrom ggplot2 ggplot aes labs
 #'
+#' @param dat A `raw_data` object, the output of the [read_data()] function. 
+#' The data should contain metabolite values and sample information.
+#' @param metabolite A character string specifying the name of the metabolite 
+#' for which the beeswarm plot should be created.
+#'
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
-#' path <- get_example_data("dwa_sety_example.xlsx")
+#' path <- get_example_data("two_sets_example.xlsx")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_beeswarm_plot(dat, "C0")
 #'
 #' @export
+
 create_beeswarm_plot <- function(dat, metabolite) {
   plot_data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(c("plate bar code", metabolite))) %>%
     group_by(`plate bar code`)
   
-  ggplot(plot_data, aes(x = `plate bar code`, y = get(metabolite), color = `plate bar code`)) +
+  ggplot(plot_data, aes(x = `plate bar code`, y = get(metabolite), 
+                        color = `plate bar code`)) +
     geom_beeswarm(cex = 2) +
     labs(title = paste("Beeswarm Plot of", metabolite),
          y = metabolite) +
     metabocrates_theme()
 }
+
+
+
+
+
+
+
+
+
