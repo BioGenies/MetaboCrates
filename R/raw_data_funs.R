@@ -98,7 +98,7 @@ get_LOD_to_remove <- function(NA_info, treshold){
   
   NA_info[["NA_ratios"]] %>%
     group_by(metabolite) %>% 
-    filter(all(NA_frac > treshold)) %>%
+    filter(all(NA_frac >= treshold)) %>%
     distinct(metabolite) %>% 
     pull(metabolite)
   
@@ -120,7 +120,8 @@ get_LOD_to_remove <- function(NA_info, treshold){
 #' 
 remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
   type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
-  attr(raw_data, "removed")[[type]] <- metabolites_to_remove
+  attr(raw_data, "removed")[[type]] <- 
+    c(attr(raw_data, "removed")[[type]], metabolites_to_remove)
   
   raw_data
 }
