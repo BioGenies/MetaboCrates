@@ -1,7 +1,8 @@
 
 #' Specify group in the Biocrates data
 #' 
-#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
+#' function.
 #' @param group_name a character name of a column from the data containing group.
 #' 
 #' @return \code{\link{raw_data}} object.
@@ -16,20 +17,20 @@
 #' @export
 #'
 
-add_group <- function(dat, group_name) {
+add_group <- function(raw_data, group_name) {
   
-  if(!(group_name %in% colnames(dat)))
+  if(!(group_name %in% colnames(raw_data)))
     stop(paste0("Provided column: ", group_name, 
                 " can't be found in your data!"))
   
-  if(!is.null(attr(dat, "group")))
+  if(!is.null(attr(raw_data, "group")))
     warning("You already have group defined in your data. It will be replaced!")
   
-  attr(dat, "group") <- group_name
+  attr(raw_data, "group") <- group_name
   
-  raw_data(as.data.frame(dat), 
-           LOD_table = attr(dat, "LOD_table"), 
-           metabolites = attr(dat, "metabolites"), 
+  raw_data(as.data.frame(raw_data), 
+           LOD_table = attr(raw_data, "LOD_table"), 
+           metabolites = attr(raw_data, "metabolites"), 
            group = group_name)
   
 }
@@ -53,23 +54,23 @@ add_group <- function(dat, group_name) {
 #' @export
 #' 
 
-get_info <- function(dat){
+get_info <- function(raw_data){
   
-  if(any(class(dat) != c("raw_data", "data.frame")))
+  if(any(class(raw_data) != c("raw_data", "data.frame")))
     stop("dat must be a raw_data object.")
   
   info_str <- paste0("Data contains ", 
-                     nrow(attr(dat, "samples")), 
+                     nrow(attr(raw_data, "samples")), 
                      " sample types and ", 
-                     nrow(attr(dat, "NA_info")[["counts"]]), 
+                     nrow(attr(raw_data, "NA_info")[["counts"]]), 
                      " NA types.")
   
-  if(!is.null(attr(dat, "group"))){
-    group_lvls <- dat %>%
-      select(!!sym(attr(dat, "group"))) %>%
+  if(!is.null(attr(raw_data, "group"))){
+    group_lvls <- raw_data %>%
+      select(!!sym(attr(raw_data, "group"))) %>%
       unique()
     info_str <- paste0(info_str, "\nAdded group \"", 
-                       attr(dat, "group"), "\" contains ", 
+                       attr(raw_data, "group"), "\" contains ", 
                        nrow(group_lvls), " levels.")
   }
   
@@ -83,31 +84,49 @@ get_info <- function(dat){
 #' @description Returns metabolite names having more NA values in each group 
 #' than the given treshold.
 #' 
-#' @param NA_info Attribute of the raw_data object.
+#' @inheritParams add_group
+#' 
 #' @param treshold Percentage value.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
+#' get_LOD_to_remove(raw_data, 0.1)
 #' 
 #' @export
 #'
 
-get_LOD_to_remove <- function(NA_info, treshold){
+get_LOD_to_remove <- function(raw_data, treshold = 0.8, use_group = TRUE){
   
-  NA_info[["NA_ratios"]] %>%
-    group_by(metabolite) %>% 
-    filter(all(NA_frac >= treshold)) %>%
-    distinct(metabolite) %>% 
-    pull(metabolite)
+  if(is.null(attr(raw_data, "group")) & use_group) {
+    message("No group to use! It will be ignored. 
+If you want to use group provode it with add_group function first.")
+    use_group <- FALSE
+  }
+
+  if(use_group) {
+    to_remove <- attr(raw_data, "NA_info")[["NA_ratios_group"]] %>% 
+      group_by(metabolite) %>% 
+      filter(all(NA_frac >= treshold)) %>%
+      pull(metabolite) %>% 
+      unique()
+  } else {
+    to_remove <- attr(raw_data, "NA_info")[["NA_ratios_type"]] %>% 
+      group_by(metabolite) %>% 
+      reframe(NA_frac = sum(NA_frac)) %>% 
+      filter(NA_frac >= treshold) %>% 
+      pull(metabolite) %>% 
+      unique()
+  }
   
+  to_remove
 }
 
 
 #' Adding metabolites to the attribute removed
-#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
-#' function.
+#' 
+#' @inheritParams add_group
+#' 
 #' @param metabolites_to_remove metabolites to remove
 #' @param type type of metabolites to remove
 #' 
@@ -128,8 +147,9 @@ remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
 
 
 #' Setting attribute removed to NULL
-#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
-#' function.
+#' 
+#' @inheritParams add_group
+#' 
 #' @param type type of metabolites to remove
 #' 
 #' @examples
@@ -149,8 +169,8 @@ unremove_all <- function(raw_data, type) {
 
 #' Removing given metabolites from the attribute removed
 #' 
-#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
-#' function.
+#' @inheritParams add_group
+#' 
 #' @param metabolites a vector of metabolites to unremove
 #' 
 #' @examples
@@ -168,7 +188,7 @@ unremove_metabolites <- function(raw_data, metabolites){
     attr(raw_data, "removed"), function(type){
       new_removed <- type[which(!(type %in% metabolites))]
       if(length(new_removed) == 0 | is.null(new_removed)) NULL else new_removed
-  })
+    })
   
   raw_data
 }

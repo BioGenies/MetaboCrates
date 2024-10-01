@@ -177,6 +177,7 @@ create_group_NA_plot <- function(dat){
 #' @export
 
 plot_NA_percent <- function(dat, type = "joint"){
+  
   ggplot_obj <- switch(type,
                        "joint" = create_joint_NA_plot(dat),
                        "NA_type" = create_NA_type_NA_plot(dat),

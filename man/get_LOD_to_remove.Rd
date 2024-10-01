@@ -4,10 +4,11 @@
 \alias{get_LOD_to_remove}
 \title{Get metabolites to remove}
 \usage{
-get_LOD_to_remove(NA_info, treshold)
+get_LOD_to_remove(raw_data, treshold = 0.8, use_group = TRUE)
 }
 \arguments{
-\item{NA_info}{Attribute of the raw_data object.}
+\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
 \item{treshold}{Percentage value.}
 }
@@ -18,6 +19,6 @@ than the given treshold.
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
+get_LOD_to_remove(raw_data, 0.1)
 
 }

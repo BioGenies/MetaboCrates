@@ -94,27 +94,36 @@ test_that("Values in LOD_table are correct.", {
 
 ## NA_info
 NA_info <- attr(test_dat, "NA_info")
-NA_ratios <- NA_info[["NA_ratios"]]
+NA_ratios_type <- NA_info[["NA_ratios_type"]]
 counts <- NA_info[["counts"]]
 
 test_that("NA_info object is correct.", {
-  expect_true(length(NA_info) == 2)
+  expect_true(length(NA_info) == 3)
   expect_true(inherits(NA_info, "list"))
 })
 
-test_that("NA_ratios is valid.", {
-  expect_true(!is.null(NA_ratios))
-  expect_true(inherits(NA_ratios, "data.frame"))
-  expect_true(all(colnames(NA_ratios) %in% c("metabolite", "type", "NA_frac")))
+test_that("NA_ratios_type is valid.", {
+  expect_true(!is.null(NA_ratios_type))
+  expect_true(inherits(NA_ratios_type, "data.frame"))
+  expect_true(all(colnames(NA_ratios_type) %in% c("metabolite", "type", "NA_frac")))
   
 })
 
 test_that("counts object is valid.", {
   expect_identical(counts, 
-                   structure(list(type = c("< LLOQ", "< LOD", "> ULOQ"), 
-                                  n = c(6L, 109L, 9L)), 
+                   structure(list(type = c("< LOD", "> ULOQ", "< LLOQ"), 
+                                  n = c(109, 9, 6)), 
                              class = c("tbl_df", "tbl", "data.frame"), 
                              row.names = c(NA, -3L)))
+})
+
+test_dat_grp <- add_group(test_dat, "group")
+NA_ratios_group <- attr(test_dat_grp, "NA_info")[["NA_ratios_group"]]
+
+test_that("NA_ratios_group is valid.", {
+  expect_true(!is.null(NA_ratios_group))
+  expect_true(inherits(NA_ratios_group, "data.frame"))
+  expect_true(all(colnames(NA_ratios_group) %in% c("metabolite", "grouping_column", "NA_frac")))
 })
 
 

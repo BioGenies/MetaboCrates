@@ -584,8 +584,10 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["filtering_threshold"]])
     
+    browser()
+    
     to_remove <- setdiff(
-      get_LOD_to_remove(attr(dat[["metabocrates_dat_group"]], "NA_info"), 
+      get_LOD_to_remove(dat[["metabocrates_dat_group"]], 
                         input[["filtering_threshold"]]/100), 
       attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
     )
@@ -638,7 +640,7 @@ server <- function(input, output, session) {
                                     "removed")[["LOD"]])) %>% 
       arrange(-NA_frac) %>% 
       mutate(NA_frac = round(NA_frac, 3)) %>% 
-      rename(group = 'get("group")') %>% 
+      rename(group = grouping_column) %>% 
       custom_datatable(scrollY = 400, paging = TRUE)
     
   })
