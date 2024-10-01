@@ -148,6 +148,8 @@ ui <- navbarPage(
                         tabPanel(
                           "Groups",
                           br(),
+                          br(),
+                          br(),
                           table_with_button_UI("group_columns")
                         ),
                         tabPanel(
@@ -230,7 +232,13 @@ ui <- navbarPage(
                                         br(),
                                         table_with_button_UI("NA_ratios_tbl"))
                         ),
-                        tabPanel("Visualization")
+                        tabPanel("Visualization",
+                                 column(10, offset = 1,
+                                        br(),
+                                        br(),
+                                        plot_with_button_UI("NA_ratios_plt")  
+                                 )
+                        )
                       )
                )
                
@@ -573,13 +581,13 @@ server <- function(input, output, session) {
   ######### filtering
   
   output[["LOD_to_remove_txt"]] <- renderUI({
-    req(dat[["metabocrates_dat"]])
+    req(dat[["metabocrates_dat_group"]])
     req(input[["filtering_threshold"]])
     
     to_remove <- setdiff(
-      get_LOD_to_remove(attr(dat[["metabocrates_dat"]], "NA_info"), 
+      get_LOD_to_remove(attr(dat[["metabocrates_dat_group"]], "NA_info"), 
                         input[["filtering_threshold"]]/100), 
-      attr(dat[["metabocrates_dat"]], "removed")[["LOD"]]
+      attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
     )
     
     updateMultiInput(session, "LOD_to_remove", 
@@ -595,31 +603,42 @@ server <- function(input, output, session) {
   
   
   observeEvent(input[["LOD_remove_btn"]], {
-    req(dat[["metabocrates_dat"]])
+    req(dat[["metabocrates_dat_group"]])
     req(input[["LOD_to_remove"]])
     
-    
-    dat[["metabocrates_dat"]] <- remove_metabolites(
-      dat[["metabocrates_dat"]],
+    dat[["metabocrates_dat_group"]] <- remove_metabolites(
+      dat[["metabocrates_dat_group"]],
       metabolites_to_remove = input[["LOD_to_remove"]],
       type = "LOD"
     )
-    
-    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat"]], "metabolites"), 
-                               attr(dat[["metabocrates_dat"]], "removed")[["LOD"]])
+    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                               attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
     
     updateMultiInput(session, "LOD_to_remove", 
                      choices = metabolites_vec)
   })
   
   
-  NA_ratios_tbl <- reactive({
-    req(dat[["metabocrates_dat"]])
+  observeEvent(input[["LOD_undo_btn"]], {
+    req(dat[["metabocrates_dat_group"]])
     
-    attr(dat[["metabocrates_dat"]], "NA_info")[["NA_ratios"]] %>% 
-      filter(!(metabolite %in% attr(dat[["metabocrates_dat"]], "removed")[["LOD"]])) %>% 
-      arrange(NA_frac) %>% 
+    dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]],
+                                                    type = "LOD")
+    
+    updateMultiInput(session, "LOD_to_remove", 
+                     choices = attr(dat[["metabocrates_dat_group"]], "metabolites"))
+  })
+  
+  
+  NA_ratios_tbl <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios"]] %>% 
+      filter(!(metabolite %in% attr(dat[["metabocrates_dat_group"]], 
+                                    "removed")[["LOD"]])) %>% 
+      arrange(-NA_frac) %>% 
       mutate(NA_frac = round(NA_frac, 3)) %>% 
+      rename(group = 'get("group")') %>% 
       custom_datatable(scrollY = 400, paging = TRUE)
     
   })
@@ -627,15 +646,22 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("NA_ratios_tbl", NA_ratios_tbl)
   
+  NA_ratios_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    plot_NA_percent(dat[["metabocrates_dat_group"]])
+  })
   
+  
+  plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt)
   
   
   ######### imputation
   
   LOD_tbl_reactive <- reactive({
-    req(dat[["metabocrates_dat"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    attr(dat[["metabocrates_dat"]], "LOD_table") %>% 
+    attr(dat[["metabocrates_dat_group"]], "LOD_table") %>% 
       select(-type) %>% 
       custom_datatable(scrollY = 300,
                        paging = TRUE,
@@ -646,12 +672,12 @@ server <- function(input, output, session) {
   
   
   completed_tbl_reactive <- reactive({
-    req(dat[["metabocrates_dat"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    metabolites <- attr(dat[["metabocrates_dat"]], "metabolites")
+    metabolites <- attr(dat[["metabocrates_dat_group"]], "metabolites")
     
-    if(is.null(attr(dat[["metabocrates_dat"]], "completed"))) {
-      dat[["metabocrates_dat"]] %>% 
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
+      dat[["metabocrates_dat_group"]] %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.character) %>% 
         mutate_all(display_short) %>% 
@@ -666,16 +692,12 @@ server <- function(input, output, session) {
                          paging = TRUE)
     }
   })
+  
+  
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
-  
-  
-  
-  
   
 }
 
-shinyApp(ui, server)
-
-
+shinyApp(ui, server, options = list(launch.browser = TRUE))
 
 
