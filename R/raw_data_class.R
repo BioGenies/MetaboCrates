@@ -175,23 +175,43 @@ raw_data <- function(metabolomics_matrix,
   metabolomics_matrix <- metabolomics_matrix %>% 
     as.data.frame(check.names = FALSE)
   
-  NA_ratios <- metabolomics_matrix %>% 
-    filter(`sample type` == "Sample") %>% 
-    select(any_of(metabolites), get("group")) %>% 
-    tidyr::gather("metabolite", "value", -get("group")) %>% 
-    group_by(metabolite, get("group")) %>% 
-    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", 
-                                          "> ULOQ", "NA", "∞"))) %>% 
-    ungroup()
+  grouping_variable_tmp <- group
+  
+  if(is.null(grouping_variable_tmp)) {
+    grouping_column <- NA
+    group_levels <- NA
+  } else {
+    grouping_column <- metabolomics_matrix[[grouping_variable_tmp]]
+    group_levels <- na.omit(unique(grouping_column))
+  }
   
   miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
   
-  tmp <- metabolomics_matrix %>% 
-    filter(`sample type` == "Sample")
+  NA_table_long <- metabolomics_matrix %>% 
+    mutate(grouping_column = grouping_column) %>% 
+    filter(`sample type` == "Sample") %>% 
+    select(any_of(metabolites), grouping_column) %>% 
+    mutate(n_samples = n()) %>% 
+    tidyr::gather("metabolite", "value", -"n_samples", -"grouping_column") %>% 
+    filter(value %in% miss_vals) %>% 
+    rename(type = "value") 
   
-  counts <- lapply(miss_vals, function(i) {
-    data.frame(type = i, n = sum(tmp == i, na.rm = TRUE))
-  }) %>%  bind_rows()
+  NA_ratios <- NA_table_long %>% 
+    group_by(metabolite, type, grouping_column) %>% 
+    reframe(NA_frac = n()/n_samples) %>% 
+    unique() %>%
+    right_join(expand.grid(type = miss_vals,
+                           metabolite = metabolites,
+                           grouping_column = group_levels),
+               by = c("metabolite", "type", 'grouping_column')) %>% 
+    mutate(NA_frac = ifelse(is.na(NA_frac), 0, NA_frac)) %>% 
+    arrange(metabolite, grouping_column) %>% 
+    ungroup() %>% 
+    select_if(~ sum(is.na(.)) == 0)
+  
+  counts <- NA_table_long %>% 
+    group_by(type) %>% 
+    reframe(n = n()) 
   
   NA_info = list(NA_ratios = NA_ratios, counts = counts)
   
