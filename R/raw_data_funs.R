@@ -100,7 +100,7 @@ get_LOD_to_remove <- function(raw_data, treshold = 0.8, use_group = TRUE){
   
   if(is.null(attr(raw_data, "group")) & use_group) {
     message("No group to use! It will be ignored. 
-If you want to use group provode it with add_group function first.")
+If you want to use group provide it with add_group function first.")
     use_group <- FALSE
   }
 
