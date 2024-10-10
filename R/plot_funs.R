@@ -337,7 +337,7 @@ create_density_with_lod <- function(dat, metabolite_name) {
   lod_info <- attr(dat, "LOD_table") %>%
     filter(type == "LOD (calc.)") %>%
     pull(metabolite_name)  %>%
-    sum()
+    sum(na.rm = TRUE)
   
   plot_data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
