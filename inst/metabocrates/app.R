@@ -660,6 +660,17 @@ server <- function(input, output, session) {
   
   ######### imputation
   
+  LOD_type_reactive <- reactive({
+    req(dat[["metabocrates_dat"]])
+    
+    dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
+    
+    c("calc.", "OP")[c(any(grepl("calc.", dat_LOD_type)),
+                       any(grepl("OP", dat_LOD_type)))]
+  })
+  
+  observe(updateSelectInput(session, "LOD_type", choices = LOD_type_reactive()))
+  
   LOD_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
