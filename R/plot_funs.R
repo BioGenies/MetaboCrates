@@ -76,83 +76,6 @@ plot_mv_types <- function(dat) {
     metabocrates_theme()
 }
 
-#' ggplot object for plot_NA_percent with type "joint"
-#'
-#' @keywords internal
-
-create_joint_NA_plot <- function(dat){
-  if(!is.null(attr(dat, "group"))){
-    NA_percent <- attr(dat, "NA_info")[["NA_ratios"]] %>%
-      group_by(metabolite) %>%
-      summarise(NA_frac = mean(NA_frac))
-  }else NA_percent <- attr(dat, "NA_info")[["NA_ratios"]]
-  
-  labels <- unlist(as.character(
-    paste0(round(NA_percent[["NA_frac"]]*100), "%")
-  ))
-  
-  ggplot(NA_percent, aes(x = metabolite, y = NA_frac, label = labels))
-}
-
-#' Long tibble with metabolites
-#' 
-#' @keywords internal
-
-create_long_metabolites_tibble <- function(dat){
-  dat %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(attr(dat, "metabolites"))) %>%
-    pivot_longer(attr(dat, "metabolites"),
-                 names_to = "Metabolite",
-                 values_to = "Type")
-}
-
-#' ggplot object for plot_NA_percent with type "NA_type"
-#'
-#' @keywords internal
-
-create_NA_type_NA_plot <- function(dat){
-  NA_percent <- create_long_metabolites_tibble(dat) %>%
-    group_by(Metabolite) %>%
-    mutate(`Number of values` = n()) %>%
-    filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
-    ungroup() %>%
-    group_by(Metabolite, Type) %>%
-    summarise(`% Missing` = n()/first(`Number of values`)) %>%
-    ungroup()
-  
-  labels <- unlist(as.character(
-    paste0(round(NA_percent[["% Missing"]]*100), "%")
-  ))
-  
-  ggplot(NA_percent,
-         aes(x = Metabolite, y = `% Missing`, fill = Type, label = labels)) +
-    labs(fill = "Missing values types")
-}
-
-#' ggplot object for plot_NA_percent with type "group"
-#'
-#' @keywords internal
-
-create_group_NA_plot <- function(dat){
-  NA_percent <- create_long_metabolites_tibble(dat) %>%
-    group_by(Metabolite) %>%
-    mutate(`Number of values` = n(), Group = get(attr(dat, "group"))) %>%
-    filter(Type %in% attr(dat, "NA_info")[["counts"]][["type"]]) %>%
-    ungroup() %>%
-    group_by(Metabolite, Group) %>%
-    summarise(`% Missing` = n()/first(`Number of values`)) %>%
-    ungroup()
-  
-  labels <- unlist(as.character(
-    paste0(round(NA_percent[["% Missing"]]*100), "%")
-  ))
-  
-  ggplot(NA_percent,
-         aes(x = Metabolite, y = `% Missing`, fill = as.factor(Group),
-             label = labels)) +
-    labs(fill = "Groups")
-}
 
 #' Barplot of missing values percents
 #' 
@@ -178,17 +101,33 @@ create_group_NA_plot <- function(dat){
 
 plot_NA_percent <- function(dat, type = "joint"){
   
-  ggplot_obj <- switch(type,
-                       "joint" = create_joint_NA_plot(dat),
-                       "NA_type" = create_NA_type_NA_plot(dat),
-                       "group" = create_group_NA_plot(dat))
+  ggplot_obj <- 
+    switch(type,
+           "joint" = {
+             attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
+               filter(NA_frac > 0) %>% 
+               group_by(metabolite) %>% 
+               summarise(NA_frac = sum(NA_frac)) %>% 
+               mutate(labels = paste0(round(NA_frac * 100, 1), " %")) %>% 
+               ggplot(aes(x = NA_frac, y = metabolite, label = labels))
+           },
+           "NA_type" = {
+             attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
+               filter(NA_frac > 0) %>% 
+               mutate(labels = paste0(round(NA_frac * 100, 1), " %")) %>% 
+               ggplot(aes(x = NA_frac, y = metabolite, fill = type, label = labels))
+           },
+           "group" = {
+             attr(dat, "NA_info")[["NA_ratios_group"]] %>% 
+               filter(NA_frac > 0) %>% 
+               mutate(labels = paste0(round(NA_frac * 100, 1), " %"),
+                      grouping_column = as.character(grouping_column)) %>% 
+               ggplot(aes(x = NA_frac, y = metabolite, fill = grouping_column, label = labels))
+           })
   
   ggplot_obj +
-    geom_col(width = 0.4, position = "stack", color = "white") +
-    scale_y_continuous(labels = scales::percent) +
-    labs(x = "Metabolites", y = "% Missing") +
+    geom_col(width = 0.5) +
     geom_text(size = 2.6, position = position_stack(vjust = 0.5)) +
-    coord_flip() +
     metabocrates_theme()
 }
 
