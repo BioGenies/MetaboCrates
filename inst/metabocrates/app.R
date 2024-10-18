@@ -209,13 +209,19 @@ ui <- navbarPage(
                       br(),
                       br(),
                       br(),
-                      column(2, align = "center", 
+                      column(2, align = "center", offset = 2, 
                              actionButton("LOD_remove_btn", label = "Remove")),
-                      column(2, align = "center", offset = 1,
+                      br(),
+                      br(),
+                      br(),
+                      column(12, h4("Removed metabolites:")),
+                      column(12, htmlOutput("LOD_removed_txt")),
+                      br(),
+                      br(),
+                      column(2, align = "center", offset = 2,
                              actionButton("LOD_undo_btn", label = "Undo")),
-                      br(),
-                      br(),
                       br()
+                      
                ),
                column(9,
                       column(6, 
@@ -584,8 +590,6 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["filtering_threshold"]])
     
-    browser()
-    
     to_remove <- setdiff(
       get_LOD_to_remove(dat[["metabocrates_dat_group"]], 
                         input[["filtering_threshold"]]/100), 
@@ -600,6 +604,19 @@ server <- function(input, output, session) {
       HTML("None.")
     else {
       HTML(paste0(to_remove, collapse = ", "))
+    }
+  })
+  
+  
+  output[["LOD_removed_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
+    
+    if(length(removed) == 0)
+      HTML("None.")
+    else {
+      HTML(paste0(removed, collapse = ", "))
     }
   })
   
@@ -635,12 +652,16 @@ server <- function(input, output, session) {
   NA_ratios_tbl <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios"]] %>% 
+    NA_table_type <- 
+      ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "group")), 
+             "NA_ratios_type",
+             "NA_ratios_group")
+    
+    attr(dat[["metabocrates_dat_group"]], "NA_info")[[NA_table_type]] %>% 
       filter(!(metabolite %in% attr(dat[["metabocrates_dat_group"]], 
                                     "removed")[["LOD"]])) %>% 
       arrange(-NA_frac) %>% 
       mutate(NA_frac = round(NA_frac, 3)) %>% 
-      rename(group = grouping_column) %>% 
       custom_datatable(scrollY = 400, paging = TRUE)
     
   })
