@@ -417,7 +417,7 @@ create_PCA_plot <- function(dat, type = "sample_type"){
                                            sample_type = `sample type`),
                     "group" = mod_dat %>%
                       filter(`sample type` == "Sample") %>%
-                      mutate(group = as.factor(group)))
+                      mutate(group = as.factor(get(attr(dat, "group")))))
   
   metabo_dat <- mod_dat %>%
     mutate(across(all_of(type), ~ factor(., ordered = TRUE))) %>%
@@ -470,12 +470,3 @@ create_beeswarm_plot <- function(dat, metabolite) {
          y = metabolite) +
     metabocrates_theme()
 }
-
-
-
-
-
-
-
-
-
