@@ -123,40 +123,40 @@ Aside from removing metabolites, the data imputation can be also performed, usin
 Completed dataset is then stored as the `completed` attribute.
 
 ```{r}
-#comp_dat <- complete_data(grouped_dat, LOD_method = "limit")
+comp_dat <- complete_data(grouped_dat, LOD_method = "limit")
 ```
 
 Getting metabolites to remove can be also based on the coefficient of variation value. In the following example, metabolites with CV value greater than 0.8 are returned.
 
 ```{r}
-#comp_dat <- calculate_CV(comp_dat)
+comp_dat <- calculate_CV(comp_dat)
 
-#get_CV_to_remove(comp_dat, 0.8)[1:10]
+get_CV_to_remove(comp_dat, 0.8)[1:10]
 ```
 
 To remove the metabolites from data, the function below can be used. Instead of actually removing them from data, this function adds provided metabolites to the *removed* attribute. Additionaly, the type of removal can be specified - either LOD, QC or QC_man.
 
 ```{r}
-#dat_with_metabo_removed <- remove_metabolites(comp_dat, c("C8", "C10"), "LOD")
-#dat_with_metabo_removed <- remove_metabolites(dat_with_metabo_removed, c("C8", "C12:1"), "QC_man")
+dat_with_metabo_removed <- remove_metabolites(comp_dat, c("C8", "C10"), "LOD")
+dat_with_metabo_removed <- remove_metabolites(dat_with_metabo_removed, c("C8", "C12:1"), "QC_man")
 
-#attr(dat_with_metabo_removed, "removed")
+attr(dat_with_metabo_removed, "removed")
 ```
 
 Then, the data and LOD ratios without removed metabolites can be displayed. Below, the first 10 rows of both tibbles and chosen columns of the first are visible.
 
 ```{r}
-# show_data(dat_with_metabo_removed)[1:5, c(1:3, 19:21)]
-# 
-# show_ratios(dat_with_metabo_removed)[7:12,]
+show_data(dat_with_metabo_removed)[1:5, c(1:3, 19:21)]
+
+show_ratios(dat_with_metabo_removed)[7:12,]
 ```
 
 There are two options for unremoving metabolites - either the specific ones are can be chosen or all metabolites from the specified type can be restored.
 
 ```{r}
-# attr(unremove_metabolites(dat_with_metabo_removed, "C8"), "removed")
-# 
-# attr(unremove_all(dat_with_metabo_removed, "QC_man"), "removed")
+attr(unremove_metabolites(dat_with_metabo_removed, "C8"), "removed")
+
+attr(unremove_all(dat_with_metabo_removed, "QC_man"), "removed")
 ```
 
 ## Quality control
@@ -164,7 +164,7 @@ There are two options for unremoving metabolites - either the specific ones are 
 The function below creates the PCA plot with respect to the sample type.
 
 ```{r}
-# create_PCA_plot(attr(comp_dat, "completed"))
+create_PCA_plot(attr(comp_dat, "completed"))
 ```
 
 ## Analysis
@@ -174,14 +174,14 @@ First, let's create the barplots of missing values percents. Below function take
 ```{r}
 library(ggplot2)
 
-# plot_NA_percent(grouped_dat) +
-#   xlim(attr(grouped_dat, "metabolites")[5:10])
-# 
-# plot_NA_percent(grouped_dat, type = "NA_type") +
-#   xlim(attr(grouped_dat, "metabolites")[5:10])
-# 
-# plot_NA_percent(grouped_dat, type = "group") +
-#   xlim(attr(grouped_dat, "metabolites")[5:10])
+plot_NA_percent(grouped_dat) +
+  xlim(attr(grouped_dat, "metabolites")[5:10])
+
+plot_NA_percent(grouped_dat, type = "NA_type") +
+  xlim(attr(grouped_dat, "metabolites")[5:10])
+
+plot_NA_percent(grouped_dat, type = "group") +
+  xlim(attr(grouped_dat, "metabolites")[5:10])
 ```
 
 Next function creates heatmap, which shows if value is missing for each sample and metabolite. Below the cropped plot is presented, with the metabolites from 5th to 10th and first 50 samples.
@@ -195,47 +195,47 @@ plot_heatmap(dat) +
 Moreover, the heatmap of correlations between all metabolites can be created, using the below function.
 
 ```{r}
-# create_correlations_heatmap(attr(comp_dat, "completed")) +
-#   xlim(attr(comp_dat, "metabolites")[5:10]) +
-#   ylim(attr(comp_dat, "metabolites")[5:10])
+create_correlations_heatmap(attr(comp_dat, "completed")) +
+  xlim(attr(comp_dat, "metabolites")[5:10]) +
+  ylim(attr(comp_dat, "metabolites")[5:10])
 ```
 
 Aside from plots corresponding to the all metabolites, *MetaboCrates* package provides also tools for visualisations related to the specific metabolite. Next three functions create histogram, boxplot and qqplot, based on the values measured for one metabolite.
 
 ```{r}
-# create_histogram(attr(comp_dat, "completed"), "C0")
-# 
-# create_boxplot(attr(comp_dat, "completed"), "C0")
-# 
-# create_qqplot(attr(comp_dat, "completed"), "C0")
+create_histogram(attr(comp_dat, "completed"), "C0")
+
+create_boxplot(attr(comp_dat, "completed"), "C0")
+ 
+create_qqplot(attr(comp_dat, "completed"), "C0")
 ```
 
 Moreover, the package allows for creating the density plot for a specific metabolite, with a dash line representing the limit of detection retrevied from the LOD table.
 
 ```{r}
-# create_density_with_lod(comp_dat, "C0")
+create_density_with_lod(comp_dat, "C0")
 ```
 
 Next, one can create a beeswarm plot for a specified metabolite, visualizing the distribution of metabolite values across different plate bar codes.
 
 ```{r}
-# create_beeswarm_plot(comp_dat, "C0")
+create_beeswarm_plot(comp_dat, "C0")
 ```
 
 Another function creates a scatter plot of two metabolites values pairs. It also incorporates information about plate bar code and limit of detection values.
 
 ```{r}
-# create_plot_of_2_metabolites(comp_dat, "C0", "C8")
+create_plot_of_2_metabolites(comp_dat, "C0", "C8")
 ```
 
 Next tool allows for creating a barplot, showing the minimum number of the greatest variances explained by each principal component from a Principal Component Analysis, which cumulative sum is less or equal than given treshold. The plot also includes a line graph representing the cumulative variance explained by the components. Below, the treshold was set to 80%.
 
 ```{r}
-# pca_variance(comp_dat, 0.8)
+pca_variance(comp_dat, 0.8)
 ```
 
 Other Principal Component Analysis tool is the `create_pca_plot()` function, mentioned in the `Quality control` section. Its argument `type` can be set as `group`, which creates a PCA plot with respect to the specified group levels.
 
 ```{r}
-# create_pca_plot(comp_dat, type = "group")
+create_PCA_plot(attr(comp_dat, "completed"), type = "group")
 ```
