@@ -288,10 +288,10 @@ ui <- navbarPage(
                              h2("Gaps completing (step 4/7)",
                                 h3("next: Quality control"))),
                       column(12, 
-                             tabsetPanel(
+                             tabsetPanel(id = "imputation_tabset",
                                tabPanel("Metabolomic matrix",
                                         br(),
-                                        table_with_button_UI("completed_tbl")),
+                                        table_with_button_UI("biocrates_matrix")),
                                tabPanel("Table of limits",
                                         br(),
                                         table_with_button_UI("LOD_tbl"))
@@ -683,7 +683,6 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
   
-  
   completed_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
@@ -709,6 +708,12 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
   
+  observeEvent(input$complete_btn, {
+    prependTab("imputation_tabset",
+               tabPanel("Completed metabolomic matrix",
+                        br(),
+                        table_with_button_UI("completed_tbl")))
+  })
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
