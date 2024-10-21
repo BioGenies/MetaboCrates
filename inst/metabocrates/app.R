@@ -163,7 +163,7 @@ ui <- navbarPage(
       ####################
       tabPanel("Filtering",
                nav_btns_UI("Filtering"),
-               column(3,
+               column(4,
                       style = "background-color:#f8f5f0; border-right: 1px solid",
                       br(),
                       h4("Provide threshold."),
@@ -223,7 +223,7 @@ ui <- navbarPage(
                       br()
                       
                ),
-               column(9,
+               column(8,
                       column(6, 
                              h2("Clean your data here."),
                       ),
@@ -295,18 +295,18 @@ ui <- navbarPage(
                                 h3("next: Quality control"))),
                       column(12, 
                              tabsetPanel(id = "imputation_tabset",
-                               tabPanel("Metabolomic matrix",
-                                        br(),
-                                        table_with_button_UI("biocrates_matrix")),
-                               tabPanel("Table of limits",
-                                        br(),
-                                        table_with_button_UI("LOD_tbl")),
-                               tabPanel("Visualization",
-                                        br(),
-                                        tabsetPanel(
-                                          tabPanel("Missing values percents",
-                                                   plot_with_button_UI("NA_ratios_plt"))
-                                        ))
+                                         tabPanel("Metabolomic matrix",
+                                                  br(),
+                                                  table_with_button_UI("biocrates_matrix")),
+                                         tabPanel("Table of limits",
+                                                  br(),
+                                                  table_with_button_UI("LOD_tbl")),
+                                         tabPanel("Visualization",
+                                                  br(),
+                                                  tabsetPanel(
+                                                    tabPanel("Missing values percents",
+                                                             plot_with_button_UI("NA_ratios_plt"))
+                                                  ))
                              ),
                       )
                )
@@ -600,11 +600,11 @@ server <- function(input, output, session) {
       get_LOD_to_remove(dat[["metabocrates_dat_group"]], 
                         input[["filtering_threshold"]]/100), 
       attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
-    )
+    ) %>% 
+      c(input[["LOD_to_remove"]]) %>% 
+      unique()
     
-    updateMultiInput(session, "LOD_to_remove", 
-                     selected = to_remove)
-    
+    updateMultiInput(session, "LOD_to_remove", selected = to_remove)
     
     if(length(to_remove) == 0)
       HTML("None.")
