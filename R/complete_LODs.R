@@ -43,34 +43,46 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
            -`sample type`, -`plate bar code`, -tmp_id)
   
   ### LOD imputation
-  if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
-    message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
-    gathered_data <- complete_LOD(gathered_data = gathered_data,  
-                                  method = LOD_method, 
-                                  LOD_type = LOD_type, 
-                                  LOD_vals = LOD_vals)
+  if(!is.null(NA_info[["< LOD"]])) {
+    if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
+      message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
+      gathered_data <- complete_LOD(gathered_data = gathered_data,  
+                                    method = LOD_method, 
+                                    LOD_type = LOD_type, 
+                                    LOD_vals = LOD_vals)
+    } else {
+      message("Skipping < LOD imputation.")
+    }
   } else {
-    message("Skipping < LOD imputation.")
+    message("No < LOD values found.")
   }
   
   ### LLOQ imputation
-  if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
-    message(paste0("Completing ", NA_info[["< LLOQ"]], " < LLOQ values..."))
-    gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
-                                   method = LLOQ_method, 
-                                   LOD_vals = LOD_vals)
+  if(!is.null(NA_info[["< LLOQ"]])) {
+    if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
+      message(paste0("Completing ", NA_info[["< LLOQ"]], " < LLOQ values..."))
+      gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
+                                     method = LLOQ_method, 
+                                     LOD_vals = LOD_vals)
+    } else {
+      message("Skipping < LLOQ imputation.")
+    }
   } else {
-    message("Skipping < LLOQ imputation.")
+    message("No < LLOQ values found.")
   }
   
   ### ULOQ imputation
-  if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
-    message(paste0("Completing ", NA_info[["> ULOQ"]], " < ULOQ values..."))
-    gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
-                                   method = ULOQ_method, 
-                                   LOD_vals = LOD_vals)
-  }else {
-    message("Skipping < ULOQ imputation.")
+  if(!is.null(NA_info[["> ULOQ"]])) {
+    if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
+      message(paste0("Completing ", NA_info[["> ULOQ"]], " < ULOQ values..."))
+      gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
+                                     method = ULOQ_method, 
+                                     LOD_vals = LOD_vals)
+    } else {
+      message("Skipping > ULOQ imputation.")
+    }
+  } else {
+    message("No > ULOQ values found.")
   }
   
   suppressWarnings({
@@ -266,5 +278,4 @@ general_min <- function(x) {
     min(as.numeric(x[!is.na(as.numeric(x))]))
   })
 }
-
 

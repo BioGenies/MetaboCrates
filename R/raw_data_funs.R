@@ -230,8 +230,10 @@ show_data <- function(dat){
 #' 
 
 show_ratios <- function(dat){
-  attr(dat, "NA_info")[["NA_ratios"]] %>%
-    filter(!metabolite %in% unlist(attr(dat, "removed")))
+  attr(dat, "NA_info")[["NA_ratios_type"]] %>%
+    filter(!metabolite %in% unlist(attr(dat, "removed"))) %>%
+    group_by(metabolite) %>%
+    summarise(NA_frac = sum(NA_frac))
 }
 
 #' Calculate CV for different QC samples depending on metabolite

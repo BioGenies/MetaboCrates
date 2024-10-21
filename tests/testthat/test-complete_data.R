@@ -71,7 +71,7 @@ test_that("Imputation of only LODs", {
 dat_completed <- complete_data(dat, LLOQ_method = "limit")
 dat_completed <- attributes(dat_completed)[["completed"]]
 
-test_that("Imputation of only LODs", {
+test_that("Imputation of only LLOQs", {
   expect_equal(sum(is.na(dat_completed)), 324)
 })
 
@@ -81,9 +81,4 @@ dat_completed <- attributes(dat_completed)[["completed"]]
 test_that("Imputation of only ULOQs", {
   expect_equal(sum(is.na(dat_completed)), 319)
 })
-
-
-
-
-
 

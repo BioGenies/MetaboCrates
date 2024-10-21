@@ -294,13 +294,19 @@ ui <- navbarPage(
                              h2("Gaps completing (step 4/7)",
                                 h3("next: Quality control"))),
                       column(12, 
-                             tabsetPanel(
+                             tabsetPanel(id = "imputation_tabset",
                                tabPanel("Metabolomic matrix",
                                         br(),
-                                        table_with_button_UI("completed_tbl")),
+                                        table_with_button_UI("biocrates_matrix")),
                                tabPanel("Table of limits",
                                         br(),
-                                        table_with_button_UI("LOD_tbl"))
+                                        table_with_button_UI("LOD_tbl")),
+                               tabPanel("Visualization",
+                                        br(),
+                                        tabsetPanel(
+                                          tabPanel("Missing values percents",
+                                                   plot_with_button_UI("NA_ratios_plt"))
+                                        ))
                              ),
                       )
                )
@@ -681,6 +687,17 @@ server <- function(input, output, session) {
   
   ######### imputation
   
+  LOD_type_reactive <- reactive({
+    req(dat[["metabocrates_dat"]])
+    
+    dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
+    
+    c("calc.", "OP")[c(any(grepl("calc.", dat_LOD_type)),
+                       any(grepl("OP", dat_LOD_type)))]
+  })
+  
+  observe(updateSelectInput(session, "LOD_type", choices = LOD_type_reactive()))
+  
   LOD_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
@@ -692,7 +709,6 @@ server <- function(input, output, session) {
   })
   
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
-  
   
   completed_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
@@ -718,6 +734,28 @@ server <- function(input, output, session) {
   
   
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
+  
+  observeEvent(input$complete_btn, {
+    req(dat[["metabocrates_dat"]])
+    
+    if(!is.null(dat[["metabocrates_dat_group"]])){
+      dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat_group"]]
+    }else{
+      dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat"]]
+    }
+    
+    dat[["metabocrates_dat_comp"]] <-
+      complete_data(dat[["metabocrates_dat_comp"]],
+                    LOD_method = input[["LOD_method"]],
+                    LLOQ_method = input[["LLOQ_method"]],
+                    ULOQ_method = input[["ULOQ_method"]],
+                    LOD_type = input[["LOD_type"]])
+    
+    prependTab("imputation_tabset",
+               tabPanel("Completed metabolomic matrix",
+                        br(),
+                        table_with_button_UI("completed_tbl")))
+  })
   
 }
 
