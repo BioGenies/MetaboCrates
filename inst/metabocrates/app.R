@@ -414,9 +414,6 @@ server <- function(input, output, session) {
       req(NULL)
     }
     
-    updateMultiInput(session, "LOD_to_remove", 
-                     choices = attr(dat[["metabocrates_dat"]], "metabolites"))
-    
     dat[["metabocrates_dat"]] <- uploaded_data
     
   })
@@ -447,6 +444,13 @@ server <- function(input, output, session) {
     
     updateMultiInput(session, "LOD_to_remove", 
                      choices = attr(dat[["metabocrates_dat"]], "metabolites"))
+
+    dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
+    
+    aval_LOD_types <- c("calc", "OP")[c(any(grepl("calc.", dat_LOD_type)),
+                                        any(grepl("OP", dat_LOD_type)))]
+    
+    updateSelectInput(session, "LOD_type", choices = aval_LOD_types)
     
     HTML(paste0(
       "<h4> Data summary:</h4><br/> <br/> ",
@@ -687,17 +691,6 @@ server <- function(input, output, session) {
   
   ######### imputation
   
-  LOD_type_reactive <- reactive({
-    req(dat[["metabocrates_dat"]])
-    
-    dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
-    
-    c("calc.", "OP")[c(any(grepl("calc.", dat_LOD_type)),
-                       any(grepl("OP", dat_LOD_type)))]
-  })
-  
-  observe(updateSelectInput(session, "LOD_type", choices = LOD_type_reactive()))
-  
   LOD_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
@@ -711,19 +704,19 @@ server <- function(input, output, session) {
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
   
   completed_tbl_reactive <- reactive({
-    req(dat[["metabocrates_dat_group"]])
+    req(dat[["metabocrates_dat_comp"]])
     
-    metabolites <- attr(dat[["metabocrates_dat_group"]], "metabolites")
+    metabolites <- attr(dat[["metabocrates_dat_comp"]], "metabolites")
     
-    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
-      dat[["metabocrates_dat_group"]] %>% 
+    if(is.null(attr(dat[["metabocrates_dat_comp"]], "completed"))) {
+      dat[["metabocrates_dat_comp"]] %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.character) %>% 
         mutate_all(display_short) %>% 
         custom_datatable(scrollY = 400,
                          paging = TRUE)
     } else {
-      attr(dat[["metabocrates_dat"]], "completed") %>% 
+      attr(dat[["metabocrates_dat_comp"]], "completed") %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
         mutate_all(round) %>% 
