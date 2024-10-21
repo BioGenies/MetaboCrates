@@ -121,7 +121,8 @@ plot_NA_percent <- function(dat, type = "joint"){
              attr(dat, "NA_info")[["NA_ratios_group"]] %>% 
                filter(NA_frac > 0) %>% 
                mutate(labels = paste0(round(NA_frac * 100, 1), " %"),
-                      grouping_column = as.character(grouping_column)) %>% 
+                      grouping_column = as.character(grouping_column),
+                      NA_frac = NA_frac/length(unique(grouping_column))) %>% 
                ggplot(aes(x = NA_frac, y = metabolite, fill = grouping_column, label = labels))
            })
   
