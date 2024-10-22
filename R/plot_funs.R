@@ -471,3 +471,49 @@ create_beeswarm_plot <- function(dat, metabolite) {
          y = metabolite) +
     metabocrates_theme()
 }
+
+
+#' Venn diagram for group levels
+#'
+#' This function creates Venn diagram, showing counts of metabolites having
+#' ratios of missing values larger than the given treshold for each group level.
+#' Function works only when group has up to 5 levels.
+#' 
+#' @importFrom ggvenn ggvenn
+#' 
+#' @param dat A grouped `raw_data` object - the output of the [read_data()]
+#' function with group specified with [add_group()].
+#' @param treshold A minimum ratio of metabolite missing values in one group
+#' level for metabolite to be included in the diagram, given as decimal.
+#' 
+#' @examples#'
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- add_group(dat, "group")
+#' create_venn_diagram(dat, 0.1)
+#' 
+#' @export
+
+create_venn_diagram <- function(dat, treshold){
+  if(is.null(attr(dat, "group"))){
+    stop("No group specified.")
+  }
+  
+  if(length(unique(dat[[attr(dat, "group")]])) > 5){
+    stop("Group has more than 4 levels.")
+  }
+  
+  NA_metabo_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
+    pivot_wider(names_from = "grouping_column", values_from = "NA_frac") %>%
+    mutate(across(!metabolite, ~ .x >= treshold)) %>%
+    select(!metabolite)
+  
+  venn_colors <-
+    c("red", "green", "blue", "purple", "orange")[1:ncol(NA_metabo_group)]
+  
+  ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
+         fill_alpha = 0.4) +
+    scale_fill_manual(values = venn_colors) +
+    scale_colour_manual(values = venn_colors)
+}
+

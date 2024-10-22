@@ -457,6 +457,18 @@
       ],
       "Hash": "44c6a2f8202d5b7e878ea274b1092426"
     },
+    "ggvenn": {
+      "Package": "ggvenn",
+      "Version": "0.1.10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "dplyr",
+        "ggplot2",
+        "grid"
+      ],
+      "Hash": "76c1d0fc86099be703106f11ba755520"
+    },
     "glue": {
       "Package": "glue",
       "Version": "1.7.0",

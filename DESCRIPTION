@@ -39,7 +39,8 @@ Imports: dplyr,
          stringi,
          stringr,
          tidyr,
-         tools
+         tools,
+         ggvenn
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
