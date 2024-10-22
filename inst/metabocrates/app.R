@@ -298,6 +298,10 @@ ui <- navbarPage(
                                          tabPanel("Metabolomic matrix",
                                                   br(),
                                                   table_with_button_UI("biocrates_matrix")),
+                                         tabPanel(value = "completed_tab",
+                                                  "Completed data",
+                                                  br(),
+                                                  table_with_button_UI("completed_tbl")),
                                          tabPanel("Table of limits",
                                                   br(),
                                                   table_with_button_UI("LOD_tbl")),
@@ -725,7 +729,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
   
   observeEvent(input$complete_btn, {
@@ -744,10 +747,9 @@ server <- function(input, output, session) {
                     ULOQ_method = input[["ULOQ_method"]],
                     LOD_type = input[["LOD_type"]])
     
-    prependTab("imputation_tabset",
-               tabPanel("Completed metabolomic matrix",
-                        br(),
-                        table_with_button_UI("completed_tbl")))
+    updateTabsetPanel(session,
+                      "imputation_tabset",
+                      selected = "completed_tab")
   })
   
 }
