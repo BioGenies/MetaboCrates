@@ -4,16 +4,16 @@
 \alias{get_CV_to_remove}
 \title{Get CV to remove}
 \usage{
-get_CV_to_remove(dat, treshold)
+get_CV_to_remove(dat, threshold)
 }
 \arguments{
 \item{dat}{object with CV attribute}
 
-\item{treshold}{}
+\item{threshold}{}
 }
 \description{
 Returns metabolite names having more CV value
-than the given treshold.
+than the given threshold.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

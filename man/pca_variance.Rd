@@ -4,14 +4,14 @@
 \alias{pca_variance}
 \title{Plot of Variance Explained by Principal Components}
 \usage{
-pca_variance(dat, treshold, max_num = NULL)
+pca_variance(dat, threshold, max_num = NULL)
 }
 \arguments{
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
 The data should be completed and filtered to include only samples of type
 "Sample".}
 
-\item{treshold}{A value indicating the maximum cumulative variance
+\item{threshold}{A value indicating the maximum cumulative variance
 of components to display.
 #' @param max_num An optional parameter indicating the maximum number
 of components to display.}
@@ -19,8 +19,8 @@ of components to display.}
 \description{
 This function creates a barplot showing the minimum number of the greatest
 variances explained by each principal component from a Principal Component
-Analysis pc(PCA) on metabolomics data, which cumulative sum is less or equal
-than given treshold. The plot also includes a line graph representing
+Analysis (PCA) on metabolomics data, which cumulative sum is less or equal
+than given threshold. The plot also includes a line graph representing
 the cumulative variance explained by the components.
 }
 \examples{

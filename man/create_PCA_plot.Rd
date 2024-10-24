@@ -19,7 +19,7 @@ PCA plot
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_PCA_plot(attr(dat, "completed"))
-create_PCA_plot(attr(dat, "completed"), type = "group")
+create_PCA_plot(dat)
+create_PCA_plot(dat, type = "group")
 
 }

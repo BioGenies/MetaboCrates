@@ -82,11 +82,11 @@ get_info <- function(raw_data){
 #' Get metabolites to remove
 #'
 #' @description Returns metabolite names having more NA values in each group 
-#' than the given treshold.
+#' than the given threshold.
 #' 
 #' @inheritParams add_group
 #' 
-#' @param treshold Percentage value.
+#' @param threshold Percentage value.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -96,7 +96,7 @@ get_info <- function(raw_data){
 #' @export
 #'
 
-get_LOD_to_remove <- function(raw_data, treshold = 0.8, use_group = TRUE){
+get_LOD_to_remove <- function(raw_data, threshold = 0.8, use_group = TRUE){
   
   if(is.null(attr(raw_data, "group")) & use_group) {
     message("No group to use! It will be ignored. 
@@ -107,14 +107,14 @@ If you want to use group provide it with add_group function first.")
   if(use_group) {
     to_remove <- attr(raw_data, "NA_info")[["NA_ratios_group"]] %>% 
       group_by(metabolite) %>% 
-      filter(all(NA_frac >= treshold)) %>%
+      filter(all(NA_frac >= threshold)) %>%
       pull(metabolite) %>% 
       unique()
   } else {
     to_remove <- attr(raw_data, "NA_info")[["NA_ratios_type"]] %>% 
       group_by(metabolite) %>% 
       reframe(NA_frac = sum(NA_frac)) %>% 
-      filter(NA_frac >= treshold) %>% 
+      filter(NA_frac >= threshold) %>% 
       pull(metabolite) %>% 
       unique()
   }
@@ -253,6 +253,10 @@ show_ratios <- function(dat){
 #' @export
 
 calculate_CV <- function(dat){
+  if(is.null(attr(dat, "completed"))){
+    stop("Complete data first.")
+  }
+  
   attr(dat, "cv") <- attr(dat, "completed") %>%
     select(`sample type`, all_of(attr(dat, "metabolites"))) %>%
     filter(str_detect(`sample type`, "^QC")) %>%
@@ -274,10 +278,10 @@ calculate_CV <- function(dat){
 #' Get CV to remove
 #'
 #' @description Returns metabolite names having more CV value 
-#' than the given treshold.
+#' than the given threshold.
 #' 
 #' @param dat object with CV attribute
-#' @param treshold
+#' @param threshold
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -288,9 +292,12 @@ calculate_CV <- function(dat){
 #' 
 #' @export
 #'
-get_CV_to_remove <- function(dat, treshold){
+get_CV_to_remove <- function(dat, threshold){
+  if(is.null(attr(dat, "cv"))){
+    stop("First calculate the coefficient of variation using calculate_CV().")
+  }
   attr(dat, "cv") %>%
-    filter(CV > treshold) %>%
+    filter(CV > threshold) %>%
     distinct(metabolite) %>% 
     pull(metabolite)
 }

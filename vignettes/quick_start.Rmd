@@ -104,7 +104,7 @@ get_info(grouped_dat)
 plot_groups(grouped_dat)
 ```
 
-Next, let's focus on the clearance of data. When ugrouped data passed, function below returns the names of metabolites which have more than the given treshold of missing values. If the grouping column is specified, then it returnes only metabolites for which the treshold is exceeded in each group level. In the examples below the treshold is 20%.
+Next, let's focus on the clearance of data. When ugrouped data passed, function below returns the names of metabolites which have more than the given threshold of missing values. If the grouping column is specified, then it returnes only metabolites for which the threshold is exceeded in each group level. In the examples below the threshold is 20%.
 
 ```{r}
 get_LOD_to_remove(dat, 0.2)[1:10]
@@ -164,7 +164,7 @@ attr(unremove_all(dat_with_metabo_removed, "QC_man"), "removed")
 The function below creates the PCA plot with respect to the sample type.
 
 ```{r}
-create_PCA_plot(attr(comp_dat, "completed"))
+create_PCA_plot(comp_dat)
 ```
 
 ## Analysis
@@ -228,7 +228,7 @@ Another function creates a scatter plot of two metabolites values pairs. It also
 create_plot_of_2_metabolites(comp_dat, "C0", "C8")
 ```
 
-Next tool allows for creating a barplot, showing the minimum number of the greatest variances explained by each principal component from a Principal Component Analysis, which cumulative sum is less or equal than given treshold. The plot also includes a line graph representing the cumulative variance explained by the components. Below, the treshold was set to 80%.
+Next tool allows for creating a barplot, showing the minimum number of the greatest variances explained by each principal component from a Principal Component Analysis, which cumulative sum is less or equal than given threshold. The plot also includes a line graph representing the cumulative variance explained by the components. Below, the threshold was set to 80%.
 
 ```{r}
 pca_variance(comp_dat, 0.8)
@@ -237,5 +237,5 @@ pca_variance(comp_dat, 0.8)
 Other Principal Component Analysis tool is the `create_pca_plot()` function, mentioned in the `Quality control` section. Its argument `type` can be set as `group`, which creates a PCA plot with respect to the specified group levels.
 
 ```{r}
-create_PCA_plot(attr(comp_dat, "completed"), type = "group")
+create_PCA_plot(comp_dat, type = "group")
 ```
