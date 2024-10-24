@@ -261,7 +261,7 @@ ui <- navbarPage(
                       selectInput(
                         inputId = 'LOD_method',
                         label = "< LOD imputation method.",
-                        choices = c("halfmin", "random", "halflimit", "limit", "none"),
+                        choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none"),
                       ),
                       selectInput(
                         inputId = 'LOD_type',
@@ -280,7 +280,7 @@ ui <- navbarPage(
                       selectInput(
                         inputId = 'ULOQ_method',
                         label = "> ULOQ imputation method.",
-                        choices = c("limit", "none"),
+                        choices = c("limit", "third quartile", "none"),
                       ),
                       br(),
                       br(),

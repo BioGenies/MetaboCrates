@@ -118,7 +118,9 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 
 complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   
-  method <- match.arg(method, c("halfmin", "random", "halflimit", "limit", NULL))
+  method <- match.arg(method,
+                      c("halfmin", "random", "halflimit", "limit",
+                        "limit-0.2min", NULL))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
   
   if(!any(grepl(LOD_type, LOD_vals[["type"]])))
@@ -152,6 +154,12 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
     limit = {
       merged_dat %>% 
         mutate(value = ifelse(value == "< LOD", thresh_est, value))
+    },
+    `limit-0.2min` = {
+      merged_dat %>%
+        mutate(value = ifelse(value == "< LOD",
+                              thresh_est - 0.2 * general_min(value),
+                              value))
     }
   )
   
@@ -206,7 +214,7 @@ match_plate_codes <- function(LOD_table, sets) {
 
 complete_ULOQ <- function(gathered_data, method, LOD_vals) {
   
-  method <- match.arg(method, c("limit"))
+  method <- match.arg(method, c("limit", "third quartile"))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "ULOQ"), 
@@ -217,6 +225,12 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
     limit = {
       merged_dat %>% 
         mutate(value = ifelse(value == "> ULOQ", thresh_est, value))
+    },
+    `third quartile` = {
+      merged_dat %>%
+        mutate(value = ifelse(value == "> ULOQ",
+                              general_third_quartile(value),
+                              value))
     }
   )
   merged_dat %>% 
@@ -276,6 +290,26 @@ complete_LLOQ <- function(gathered_data, method, LOD_vals) {
 general_min <- function(x) {
   suppressWarnings({
     min(as.numeric(x[!is.na(as.numeric(x))]))
+  })
+}
+
+#' Calculate third quartile ignoring character values
+#' 
+#' @description This function calculates third quartile without values such as
+#' NA's, values below or above LOD limit and so on. 
+#' 
+#' @param x a vector of observations
+#' 
+#' @examples
+#' x <- c("<LOD", 5, 6, NA, 9, 16)
+#' general_third_quartile(x)
+#' 
+#' @keywords internal
+#' 
+
+general_third_quartile <- function(x){
+  suppressWarnings({
+    quantile(as.numeric(x[!is.na(as.numeric(x))]), prob = 0.75, type = 1)
   })
 }
 
