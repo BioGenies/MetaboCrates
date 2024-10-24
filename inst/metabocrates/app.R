@@ -316,12 +316,93 @@ ui <- navbarPage(
                )
                
       ),
+      #################
       tabPanel("Quality control",
-               nav_btns_UI("Quality control"),
-               column(12, align = "right", 
-                      h2("Quality control (step 5/7)"),
-                      h3("next: Summary")),
+               nav_btns_UI("QC"),
+               column(4,
+                      style = "background-color:#f8f5f0; border-right: 1px solid",
+                      br(),
+                      h4("Provide threshold."),
+                      h5("All metabolites for which the coefficient of variation
+                         value is greater than provided threshold will be
+                         removed."),
+                      br(),
+                      numericInput(
+                        inputId = "cv_threshold",
+                        label = "threshold",
+                        value = 0.8,
+                        min = 0,
+                        step = 0.1
+                      ),
+                      br(),
+                      
+                      column(8, 
+                             h4("The following metabolites will be removed:"),
+                      ),
+                      column(4,
+                             align = "right",
+                             dropdownButton(
+                               multiInput(
+                                 inputId = "CV_to_remove",
+                                 label = "Click metabolite name to select or unselect.",
+                                 choices = character(0),
+                                 width = "90%",
+                                 options = list(
+                                   enable_search = TRUE,
+                                   non_selected_header = "Metabolites:",
+                                   selected_header = "Metabolites to remove:"
+                                 )
+                               ),
+                               circle = TRUE, status = "default",
+                               icon = icon("gear"), width = "700px",
+                               
+                               tooltip = tooltipOptions(title = "Click to edit metabolites to remove!")
+                             ),
+                      ),
+                      br(),
+                      br(),
+                      br(),
+                      column(12, htmlOutput("CV_to_remove_txt")),
+                      br(),
+                      br(),
+                      br(),
+                      column(2, align = "center", offset = 2, 
+                             actionButton("CV_remove_btn", label = "Remove")),
+                      br(),
+                      br(),
+                      br(),
+                      column(12, h4("Removed metabolites:")),
+                      column(12, htmlOutput("CV_removed_txt")),
+                      br(),
+                      br(),
+                      column(2, align = "center", offset = 2,
+                             actionButton("CV_undo_btn", label = "Undo")),
+                      br()
+                      
+               ),
+               column(8,
+                      column(12, align = "right", 
+                             h2("Quality control (step 5/7)"),
+                             h3("next: Summary")
+                      ),
+                      tabsetPanel(
+                        tabPanel("CV table",
+                                 column(10, offset = 1,
+                                        br(),
+                                        br(),
+                                        table_with_button_UI("CV_tbl"))
+                        ),
+                        tabPanel("PCA",
+                                 column(10, offset = 1,
+                                        br(),
+                                        br(),
+                                        plot_with_button_UI("PCA_plt")  
+                                 )
+                        )
+                      )
+               )
       ),
+      #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
                column(12, align = "right", 
@@ -740,17 +821,123 @@ server <- function(input, output, session) {
       dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat"]]
     }
     
+    imp_method <- function(method){
+      if(method == "none") NULL
+      else method
+    }
+    
     dat[["metabocrates_dat_comp"]] <-
       complete_data(dat[["metabocrates_dat_comp"]],
-                    LOD_method = input[["LOD_method"]],
-                    LLOQ_method = input[["LLOQ_method"]],
-                    ULOQ_method = input[["ULOQ_method"]],
+                    LOD_method = imp_method(input[["LOD_method"]]),
+                    LLOQ_method = imp_method(input[["LLOQ_method"]]),
+                    ULOQ_method = imp_method(input[["ULOQ_method"]]),
                     LOD_type = input[["LOD_type"]])
+    
+    dat[["metabocrates_dat_comp"]] <-
+      calculate_CV(dat[["metabocrates_dat_comp"]])
+    
+    updateMultiInput(session, "CV_to_remove", 
+                     choices = setdiff(
+                       attr(dat[["metabocrates_dat_comp"]], "metabolites"),
+                       attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]
+                     ))
     
     updateTabsetPanel(session,
                       "imputation_tabset",
                       selected = "completed_tab")
   })
+  
+  ######## Quality control
+  
+  output[["CV_to_remove_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_comp"]])
+    req(input[["cv_threshold"]])
+    
+    to_remove <- setdiff(
+      get_CV_to_remove(dat[["metabocrates_dat_comp"]],
+                       input[["cv_threshold"]]),
+      c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+        attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]])
+      ) %>% 
+      c(input[["CV_to_remove"]]) %>% 
+      unique()
+    
+    updateMultiInput(session, "CV_to_remove", selected = to_remove)
+    
+    if(length(to_remove) == 0)
+      HTML("None.")
+    else {
+      HTML(paste0(to_remove, collapse = ", "))
+    }
+  })
+  
+  
+  output[["CV_removed_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_comp"]])
+    
+    removed <- c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+                 attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]])
+    
+    if(length(removed) == 0)
+      HTML("None.")
+    else {
+      HTML(paste0(removed, collapse = ", "))
+    }
+  })
+  
+  
+  observeEvent(input[["CV_remove_btn"]], {
+    req(dat[["metabocrates_dat_comp"]])
+    req(input[["CV_to_remove"]])
+    
+    dat[["metabocrates_dat_comp"]] <- remove_metabolites(
+      dat[["metabocrates_dat_comp"]],
+      metabolites_to_remove = input[["CV_to_remove"]],
+      type = "QC"
+    )
+    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_comp"]], "metabolites"), 
+                               attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]])
+    
+    updateMultiInput(session, "CV_to_remove", 
+                     choices = metabolites_vec)
+  })
+  
+  
+  observeEvent(input[["CV_undo_btn"]], {
+    req(dat[["metabocrates_dat_comp"]])
+    
+    dat[["metabocrates_dat_comp"]] <- unremove_all(dat[["metabocrates_dat_comp"]],
+                                                    type = "QC")
+    
+    updateMultiInput(session, "CV_to_remove", 
+                     choices = attr(dat[["metabocrates_dat_comp"]], "metabolites"))
+  })
+  
+  
+  CV_tbl <- reactive({
+    req(dat[["metabocrates_dat_comp"]])
+    
+    attr(dat[["metabocrates_dat_comp"]], "cv") %>% 
+      filter(!(metabolite %in%
+                 c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+                   attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))) %>% 
+      arrange(-CV) %>% 
+      mutate(CV = round(CV, 3)) %>% 
+      custom_datatable(scrollY = 400, paging = TRUE)
+    
+  })
+  
+  
+  table_with_button_SERVER("CV_tbl", CV_tbl)
+  
+  PCA_plt <- reactive({
+    req(dat[["metabocrates_dat_comp"]])
+    
+    create_PCA_plot(dat[["metabocrates_dat_comp"]], type = "sample_type")
+  })
+  
+  
+  plot_with_button_SERVER("PCA_plt", PCA_plt)
   
 }
 
