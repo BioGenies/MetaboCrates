@@ -4,18 +4,18 @@
 \alias{create_venn_diagram}
 \title{Venn diagram for group levels}
 \usage{
-create_venn_diagram(dat, treshold)
+create_venn_diagram(dat, threshold)
 }
 \arguments{
 \item{dat}{A grouped \code{raw_data} object - the output of the \code{\link[=read_data]{read_data()}}
 function with group specified with \code{\link[=add_group]{add_group()}}.}
 
-\item{treshold}{A minimum ratio of metabolite missing values in one group
+\item{threshold}{A minimum ratio of metabolite missing values in one group
 level for metabolite to be included in the diagram, given as decimal.}
 }
 \description{
 This function creates Venn diagram, showing counts of metabolites having
-ratios of missing values larger than the given treshold for each group level.
+ratios of missing values larger than the given threshold for each group level.
 Function works only when group has up to 5 levels.
 }
 \examples{

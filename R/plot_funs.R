@@ -335,8 +335,8 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #'
 #' This function creates a barplot showing the minimum number of the greatest
 #' variances explained by each principal component from a Principal Component
-#' Analysis pc(PCA) on metabolomics data, which cumulative sum is less or equal
-#' than given treshold. The plot also includes a line graph representing
+#' Analysis (PCA) on metabolomics data, which cumulative sum is less or equal
+#' than given threshold. The plot also includes a line graph representing
 #' the cumulative variance explained by the components.
 #' 
 #' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
@@ -344,7 +344,7 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #' @param dat A `raw_data` object, the output of the [read_data()] function. 
 #' The data should be completed and filtered to include only samples of type 
 #' "Sample".
-#' @param treshold A value indicating the maximum cumulative variance
+#' @param threshold A value indicating the maximum cumulative variance
 #' of components to display.
 #' #' @param max_num An optional parameter indicating the maximum number
 #' of components to display.
@@ -356,7 +356,7 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #' pca_variance(dat, 0.8, 5)
 #'
 #' @export
-pca_variance <- function(dat, treshold, max_num = NULL) {
+pca_variance <- function(dat, threshold, max_num = NULL) {
   data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(attr(dat, "metabolites")))
@@ -376,7 +376,7 @@ pca_variance <- function(dat, treshold, max_num = NULL) {
     Cumulative_Variance = cumulative_variance
   )
   
-  rel_comp_num <- max(which(variance_df[["Cumulative_Variance"]] <= treshold))
+  rel_comp_num <- max(which(variance_df[["Cumulative_Variance"]] <= threshold))
   
   ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
     geom_bar(stat = "identity", fill = "steelblue") +
@@ -404,13 +404,13 @@ pca_variance <- function(dat, treshold, max_num = NULL) {
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_PCA_plot(attr(dat, "completed"))
-#' create_PCA_plot(attr(dat, "completed"), type = "group")
+#' create_PCA_plot(dat)
+#' create_PCA_plot(dat, type = "group")
 #' 
 #' @export
 
 create_PCA_plot <- function(dat, type = "sample_type"){
-  mod_dat <- dat %>%
+  mod_dat <- attr(dat, "completed") %>%
     drop_na(all_of(attr(dat, "metabolites")))
   
   mod_dat <- switch(type,
@@ -476,14 +476,14 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' Venn diagram for group levels
 #'
 #' This function creates Venn diagram, showing counts of metabolites having
-#' ratios of missing values larger than the given treshold for each group level.
+#' ratios of missing values larger than the given threshold for each group level.
 #' Function works only when group has up to 5 levels.
 #' 
 #' @importFrom ggvenn ggvenn
 #' 
 #' @param dat A grouped `raw_data` object - the output of the [read_data()]
 #' function with group specified with [add_group()].
-#' @param treshold A minimum ratio of metabolite missing values in one group
+#' @param threshold A minimum ratio of metabolite missing values in one group
 #' level for metabolite to be included in the diagram, given as decimal.
 #' 
 #' @examples#'
@@ -494,7 +494,7 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' 
 #' @export
 
-create_venn_diagram <- function(dat, treshold){
+create_venn_diagram <- function(dat, threshold){
   if(is.null(attr(dat, "group"))){
     stop("No group specified.")
   }
@@ -505,7 +505,7 @@ create_venn_diagram <- function(dat, treshold){
   
   NA_metabo_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
     pivot_wider(names_from = "grouping_column", values_from = "NA_frac") %>%
-    mutate(across(!metabolite, ~ .x >= treshold)) %>%
+    mutate(across(!metabolite, ~ .x >= threshold)) %>%
     select(!metabolite)
   
   venn_colors <-
