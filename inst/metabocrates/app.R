@@ -371,7 +371,7 @@ ui <- navbarPage(
                       br(),
                       br(),
                       br(),
-                      column(12, h4("Removed metabolites:")),
+                      column(12, h4("Metabolites removed based on the CV value:")),
                       column(12, htmlOutput("CV_removed_txt")),
                       br(),
                       br(),
@@ -875,8 +875,7 @@ server <- function(input, output, session) {
   output[["CV_removed_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_comp"]])
     
-    removed <- c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
-                 attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]])
+    removed <- attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]]
     
     if(length(removed) == 0)
       HTML("None.")
@@ -896,7 +895,8 @@ server <- function(input, output, session) {
       type = "QC"
     )
     metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_comp"]], "metabolites"), 
-                               attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]])
+                               c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+                                 attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))
     
     updateMultiInput(session, "CV_to_remove", 
                      choices = metabolites_vec)
