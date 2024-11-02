@@ -22,6 +22,8 @@ panels_vec <- c("About", "Uploading data", "Group selection",
 
 
 ui <- navbarPage(
+  id = "main",
+  
   includeCSS("www/style.css"),
   
   theme = shinytheme("sandstone"),
@@ -318,7 +320,7 @@ ui <- navbarPage(
       ),
       #################
       tabPanel("Quality control",
-               nav_btns_UI("QC"),
+               nav_btns_UI("Quality control"),
                column(4,
                       style = "background-color:#f8f5f0; border-right: 1px solid",
                       br(),
