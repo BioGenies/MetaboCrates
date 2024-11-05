@@ -465,7 +465,7 @@ server <- function(input, output, session) {
              parent_session = session, panels_vec = panels_vec,
              panel_id = "Completing")
   
-  callModule(nav_btns_SERVER, id = "Quality control", parent_session = session, 
+  callModule(nav_btns_SERVER, id = "QC", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Quality control")
   
   callModule(nav_btns_SERVER, "Summary", parent_session = session, 
@@ -804,7 +804,7 @@ server <- function(input, output, session) {
       attr(dat[["metabocrates_dat_comp"]], "completed") %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
-        mutate_all(round) %>% 
+        mutate_all(round, 3) %>% 
         custom_datatable(scrollY = 400,
                          paging = TRUE)
     }
