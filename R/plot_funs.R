@@ -480,6 +480,7 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' Function works only when group has up to 5 levels.
 #' 
 #' @importFrom ggvenn ggvenn
+#' @importFrom tidyr pivot_wider
 #' 
 #' @param dat A grouped `raw_data` object - the output of the [read_data()]
 #' function with group specified with [add_group()].

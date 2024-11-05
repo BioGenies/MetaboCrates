@@ -18,7 +18,7 @@ nav_btns_UI <- function(id) {
       ),
     )
   }else {
-    if(id == "Summary") {
+    if(id == "Download") {
       tagList(
         tags$footer(
           align = "right",
@@ -63,12 +63,21 @@ nav_btns_SERVER <- function(input, output,
   
   observeEvent(input[["prev"]], {
     prev_panel <- panels_vec[which(panels_vec == panel_id) - 1]
+    
+    if(prev_panel == "Summary"){
+      updateNavbarPage(parent_session, inputId = "main", selected = "Analysis")
+    }
     updateTabsetPanel(parent_session, inputId = "run", selected = prev_panel)
   })
   
   observeEvent(input[["next"]], {
     next_panel <- panels_vec[which(panels_vec == panel_id) + 1]
-    updateTabsetPanel(parent_session, inputId = "run", selected = next_panel)
+    
+    if(next_panel == "Download"){
+      updateNavbarPage(parent_session, inputId = "main", selected = "Download")
+    }else{
+      updateTabsetPanel(parent_session, inputId = "run", selected = next_panel)
+    }
   })
 }
 
