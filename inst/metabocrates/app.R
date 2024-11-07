@@ -118,7 +118,7 @@ ui <- navbarPage(
       #############
       tabPanel("Group selection",
                nav_btns_UI("Group selection"),
-               column(9,
+               column(8,
                       style = "background-color:#f8f5f0; border-right: 1px solid",
                       column(2,
                              h2("(optional)"),
@@ -132,7 +132,7 @@ ui <- navbarPage(
                              br()
                       )
                ),
-               column(3,
+               column(4,
                       column(12, align = "right", 
                              h2("Group selection (step 2/7)"),
                              h3("next: Filtering"),
@@ -149,8 +149,6 @@ ui <- navbarPage(
                       tabsetPanel(
                         tabPanel(
                           "Groups",
-                          br(),
-                          br(),
                           br(),
                           table_with_button_UI("group_columns")
                         ),
@@ -240,12 +238,25 @@ ui <- navbarPage(
                                         br(),
                                         table_with_button_UI("NA_ratios_tbl"))
                         ),
-                        tabPanel("Visualization",
-                                 column(10, offset = 1,
+                        tabPanel("Ratios visualization",
+                                 column(1,
                                         br(),
                                         br(),
-                                        plot_with_button_UI("NA_ratios_plt")  
-                                 )
+                                        radioButtons("NA_percent_plt_type", 
+                                                     "Choose plot type",
+                                                     choices = c("joint", "NA_type"),
+                                                     selected = "joint",
+                                                     choiceNames = c("Joint ratios", "Show NA type"))),
+                                 column(11,
+                                        br(),
+                                        br(),
+                                        plot_with_button_UI("NA_ratios_plt"))
+                        ),
+                        tabPanel("Venn diagram",
+                                 br(),
+                                 h4("Provide a group with up to 5 levels to see Venn diagram."),
+                                 br(),
+                                 plot_with_button_UI("venn_diagram")
                         )
                       )
                )
@@ -299,7 +310,7 @@ ui <- navbarPage(
                              tabsetPanel(id = "imputation_tabset",
                                          tabPanel("Metabolomic matrix",
                                                   br(),
-                                                  table_with_button_UI("biocrates_matrix")),
+                                                  table_with_button_UI("todoID")),
                                          tabPanel(value = "completed_tab",
                                                   "Completed data",
                                                   br(),
@@ -311,7 +322,7 @@ ui <- navbarPage(
                                                   br(),
                                                   tabsetPanel(
                                                     tabPanel("Missing values percents",
-                                                             plot_with_button_UI("NA_ratios_plt"))
+                                                             plot_with_button_UI("..."))
                                                   ))
                              ),
                       )
@@ -531,7 +542,7 @@ server <- function(input, output, session) {
     
     updateMultiInput(session, "LOD_to_remove", 
                      choices = attr(dat[["metabocrates_dat"]], "metabolites"))
-
+    
     dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
     
     aval_LOD_types <- c("calc", "OP")[c(any(grepl("calc.", dat_LOD_type)),
@@ -599,7 +610,7 @@ server <- function(input, output, session) {
              -`sample identification`, -`op`, -`org. info`, -`plate note`,
              -`plate production no.`, -`well position`, -`sample volume`, 
              -`run number`, -`injection number`, -`measurement time`) %>% 
-      custom_datatable(scrollY = 450,
+      custom_datatable(scrollY = 300,
                        paging = TRUE,
                        selection = list(mode = "single", target = "column"))
   })
@@ -657,6 +668,10 @@ server <- function(input, output, session) {
       
       dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat"]], 
                                                    group_name)
+      
+      updateRadioButtons(session, inputId = "NA_percent_plt_type",
+                         choices = c("joint", "NA_type", "group"),
+                         choiceNames = c("Joint ratios", "Show NA type", "Show groups"))
       
       group_name <- HTML(
         paste0(group_name, ", <br/> 
@@ -759,7 +774,7 @@ server <- function(input, output, session) {
                                     "removed")[["LOD"]])) %>% 
       arrange(-NA_frac) %>% 
       mutate(NA_frac = round(NA_frac, 3)) %>% 
-      custom_datatable(scrollY = 400, paging = TRUE)
+      custom_datatable(scrollY = 300, paging = TRUE)
     
   })
   
@@ -768,12 +783,29 @@ server <- function(input, output, session) {
   
   NA_ratios_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["NA_percent_plt_type"]])
     
-    plot_NA_percent(dat[["metabocrates_dat_group"]])
+    plot_NA_percent(dat[["metabocrates_dat_group"]], 
+                    type = input[["NA_percent_plt_type"]])
   })
   
   
   plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt)
+  
+  
+  venn_plt <- reactive({
+    req(input[["filtering_threshold"]])
+    req(dat[["metabocrates_dat_group"]])
+    req(attr(dat[["metabocrates_dat_group"]], "group"))
+    
+    if(length(na.omit(unique(unlist(dat[["metabocrates_dat_group"]][attr(dat[["metabocrates_dat_group"]], "group")])))) > 5)
+      req(NULL)
+    
+    create_venn_diagram(dat[["metabocrates_dat_group"]], input[["filtering_threshold"]]/100)
+  })
+  
+  
+  plot_with_button_SERVER("venn_diagram", venn_plt)
   
   
   ######### imputation
@@ -860,7 +892,7 @@ server <- function(input, output, session) {
                        input[["cv_threshold"]]),
       c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
         attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]])
-      ) %>% 
+    ) %>% 
       c(input[["CV_to_remove"]]) %>% 
       unique()
     
@@ -909,7 +941,7 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_comp"]])
     
     dat[["metabocrates_dat_comp"]] <- unremove_all(dat[["metabocrates_dat_comp"]],
-                                                    type = "QC")
+                                                   type = "QC")
     
     updateMultiInput(session, "CV_to_remove", 
                      choices = attr(dat[["metabocrates_dat_comp"]], "metabolites"))

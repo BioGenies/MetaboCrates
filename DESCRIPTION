@@ -33,14 +33,14 @@ Imports: dplyr,
          ggbeeswarm,
          ggfortify,
          ggplot2,
+         ggvenn,
          readxl,
          reshape2,
          scales,
          stringi,
          stringr,
          tidyr,
-         tools,
-         ggvenn
+         tools
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
