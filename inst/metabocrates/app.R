@@ -244,7 +244,7 @@ ui <- navbarPage(
                                         br(),
                                         radioButtons("NA_percent_plt_type", 
                                                      "Choose plot type",
-                                                     choices = c("joint", "NA_type"),
+                                                     choiceValues = c("joint", "NA_type"),
                                                      selected = "joint",
                                                      choiceNames = c("Joint ratios", "Show NA type"))),
                                  column(11,
@@ -670,7 +670,7 @@ server <- function(input, output, session) {
                                                    group_name)
       
       updateRadioButtons(session, inputId = "NA_percent_plt_type",
-                         choices = c("joint", "NA_type", "group"),
+                         choiceValues = c("joint", "NA_type", "group"),
                          choiceNames = c("Joint ratios", "Show NA type", "Show groups"))
       
       group_name <- HTML(
@@ -698,24 +698,32 @@ server <- function(input, output, session) {
   
   ######### filtering
   
-  output[["LOD_to_remove_txt"]] <- renderUI({
+  to_remove <- reactive({
+    
     req(dat[["metabocrates_dat_group"]])
     req(input[["filtering_threshold"]])
     
-    to_remove <- setdiff(
+    to_remove_tmp <- setdiff(
       get_LOD_to_remove(dat[["metabocrates_dat_group"]], 
                         input[["filtering_threshold"]]/100), 
       attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
-    ) %>% 
-      c(input[["LOD_to_remove"]]) %>% 
-      unique()
+    )
     
-    updateMultiInput(session, "LOD_to_remove", selected = to_remove)
+    updateMultiInput(session, "LOD_to_remove", selected = to_remove_tmp)
     
-    if(length(to_remove) == 0)
+    to_remove_tmp
+  })
+  
+  
+  output[["LOD_to_remove_txt"]] <- renderUI({
+    
+    ro_remove_display <- unique(c(intersect(to_remove(), input[["LOD_to_remove"]]),
+                                  input[["LOD_to_remove"]]))
+
+    if(length(ro_remove_display) == 0)
       HTML("None.")
     else {
-      HTML(paste0(to_remove, collapse = ", "))
+      HTML(paste0(ro_remove_display, collapse = ", "))
     }
   })
   
