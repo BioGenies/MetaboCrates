@@ -504,6 +504,7 @@ create_venn_diagram <- function(dat, threshold){
   }
   
   NA_metabo_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
+    filter(!(metabolite %in% attr(dat, "removed")[["LOD"]])) %>% 
     pivot_wider(names_from = "grouping_column", values_from = "NA_frac") %>%
     mutate(across(!metabolite, ~ .x >= threshold)) %>%
     select(!metabolite)
