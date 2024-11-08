@@ -42,9 +42,8 @@ plot_groups <- function(dat){
     summarise(Count = n()) %>%
     ggplot(aes(x = Groups, y = Count)) +
     geom_bar(stat = "identity") +
-    labs(title = paste0("Number of elements in groups of column \"",
-                        attr(dat, "group"),
-                        "\"")) +
+    ggtitle(title = "Groups counts") +
+    xlab("Levels") +
     geom_label(aes(label = Count)) +
     metabocrates_theme()
 }
