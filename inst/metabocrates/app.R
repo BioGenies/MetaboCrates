@@ -140,24 +140,16 @@ ui <- navbarPage(
                ),
                br(),
                
-               column(3, 
-                      h3("Selected:"),
-                      htmlOutput("selected_group")
-               ),
+               h3("Selected:"),
+               htmlOutput("selected_group"),
                
-               column(8,
-                      tabsetPanel(
-                        tabPanel(
-                          "Groups",
-                          br(),
-                          table_with_button_UI("group_columns")
-                        ),
-                        tabPanel(
-                          "Summary",
-                          br(),
-                          plot_with_button_UI("groups_plt")
-                        )
-                      )
+               column(6,
+                      br(),
+                      table_with_button_UI("group_columns")
+               ),
+               column(4, offset = 1,
+                      br(),
+                      plot_with_button_UI("groups_plt")
                )
       ),
       ####################
@@ -267,7 +259,6 @@ ui <- navbarPage(
                nav_btns_UI("Completing"),        
                column(3,
                       style = "background-color:#f8f5f0; border-right: 1px solid",
-                      br(),
                       h3("Select methods for data imputation."),
                       br(),
                       h4("< LOD values"),
@@ -309,10 +300,6 @@ ui <- navbarPage(
                       column(12, 
                              tabsetPanel(id = "imputation_tabset",
                                          tabPanel("Metabolomic matrix",
-                                                  br(),
-                                                  table_with_button_UI("todoID")),
-                                         tabPanel(value = "completed_tab",
-                                                  "Completed data",
                                                   br(),
                                                   table_with_button_UI("completed_tbl")),
                                          tabPanel("Table of limits",
@@ -604,12 +591,16 @@ server <- function(input, output, session) {
   group_columns_DT <- reactive({
     req(dat[["metabocrates_dat"]])
     
-    dat[["metabocrates_dat"]] %>% 
+    dat[["group_candidates"]] <- dat[["metabocrates_dat"]] %>% 
       select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
       select(-`plate bar code`, - `sample bar code`, -`collection date`,
              -`sample identification`, -`op`, -`org. info`, -`plate note`,
              -`plate production no.`, -`well position`, -`sample volume`, 
              -`run number`, -`injection number`, -`measurement time`) %>% 
+      filter(`sample type` == "Sample") %>% 
+      select(-`sample type`, -`species`)
+    
+    dat[["group_candidates"]] %>% 
       custom_datatable(scrollY = 300,
                        paging = TRUE,
                        selection = list(mode = "single", target = "column"))
@@ -626,12 +617,7 @@ server <- function(input, output, session) {
     
     if(!is.null(input[["group_columns-table_columns_selected"]])) {
       
-      group_candidates <- dat[["metabocrates_dat"]] %>% 
-        select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
-        select(-`plate bar code`, - `sample bar code`, -`collection date`,
-               -`sample identification`, -`op`, -`org. info`, -`plate note`,
-               -`plate production no.`, -`well position`, -`sample volume`, 
-               -`run number`, -`injection number`, -`measurement time`)
+      group_candidates <- dat[["group_candidates"]]
       
       group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
       
@@ -719,7 +705,7 @@ server <- function(input, output, session) {
     
     ro_remove_display <- unique(c(intersect(to_remove(), input[["LOD_to_remove"]]),
                                   input[["LOD_to_remove"]]))
-
+    
     if(length(ro_remove_display) == 0)
       HTML("None.")
     else {
@@ -830,31 +816,33 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
   
+  
   completed_tbl_reactive <- reactive({
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
+
+    metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
     
-    metabolites <- attr(dat[["metabocrates_dat_comp"]], "metabolites")
-    
-    if(is.null(attr(dat[["metabocrates_dat_comp"]], "completed"))) {
-      dat[["metabocrates_dat_comp"]] %>% 
+    if(is.null(dat[["metabocrates_dat_comp"]])) {
+      dat_to_display <- dat[["metabocrates_dat"]] %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.character) %>% 
-        mutate_all(display_short) %>% 
-        custom_datatable(scrollY = 400,
-                         paging = TRUE)
+        mutate_all(display_short)
     } else {
-      attr(dat[["metabocrates_dat_comp"]], "completed") %>% 
+      dat_to_display <- attr(dat[["metabocrates_dat_comp"]], "completed") %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
-        mutate_all(round, 3) %>% 
-        custom_datatable(scrollY = 400,
-                         paging = TRUE)
+        mutate_all(round, 5) 
     }
+    
+    dat_to_display %>% 
+      
+      custom_datatable(scrollY = 400, paging = TRUE)
   })
   
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
   
-  observeEvent(input$complete_btn, {
+  observeEvent(input[["complete_btn"]], {
     req(dat[["metabocrates_dat"]])
     
     if(!is.null(dat[["metabocrates_dat_group"]])){
@@ -863,10 +851,7 @@ server <- function(input, output, session) {
       dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat"]]
     }
     
-    imp_method <- function(method){
-      if(method == "none") NULL
-      else method
-    }
+    imp_method <- function(method) ifelse(method == "none", NULL, method)
     
     dat[["metabocrates_dat_comp"]] <-
       complete_data(dat[["metabocrates_dat_comp"]],
@@ -883,10 +868,6 @@ server <- function(input, output, session) {
                        attr(dat[["metabocrates_dat_comp"]], "metabolites"),
                        attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]
                      ))
-    
-    updateTabsetPanel(session,
-                      "imputation_tabset",
-                      selected = "completed_tab")
   })
   
   ######## Quality control
