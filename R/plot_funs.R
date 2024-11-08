@@ -42,7 +42,7 @@ plot_groups <- function(dat){
     summarise(Count = n()) %>%
     ggplot(aes(x = Groups, y = Count)) +
     geom_bar(stat = "identity") +
-    ggtitle(title = "Groups counts") +
+    ggtitle("Groups counts") +
     xlab("Levels") +
     geom_label(aes(label = Count)) +
     metabocrates_theme()
