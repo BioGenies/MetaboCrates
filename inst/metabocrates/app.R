@@ -843,15 +843,14 @@ server <- function(input, output, session) {
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
   
   observeEvent(input[["complete_btn"]], {
-    req(dat[["metabocrates_dat"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    if(!is.null(dat[["metabocrates_dat_group"]])){
-      dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat_group"]]
-    }else{
-      dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat"]]
+    dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat_group"]]
+    
+    imp_method <- function(method){
+      if(method == "none") NULL
+      else method
     }
-    
-    imp_method <- function(method) ifelse(method == "none", NULL, method)
     
     dat[["metabocrates_dat_comp"]] <-
       complete_data(dat[["metabocrates_dat_comp"]],
