@@ -329,10 +329,10 @@ ui <- navbarPage(
                       br(),
                       numericInput(
                         inputId = "cv_threshold",
-                        label = "threshold",
-                        value = 0.8,
+                        label = "threshold [%]",
+                        value = 80,
                         min = 0,
-                        step = 0.1
+                        max = 100
                       ),
                       br(),
                       
