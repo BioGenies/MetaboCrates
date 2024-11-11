@@ -288,9 +288,11 @@ ui <- navbarPage(
                       ),
                       br(),
                       br(),
-                      actionButton(inputId = "complete_btn",
-                                   label = "Complete data"),
-                      br(),
+                      column(5, align = "center",
+                             actionButton(inputId = "complete_btn",
+                                          label = "Complete data")),
+                      column(4, align = "center", offset = 1,
+                             actionButton("complete_undo_btn", label = "Undo")),
                       br()
                ),
                column(9,
@@ -816,7 +818,6 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
   
-  
   completed_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
 
@@ -867,6 +868,12 @@ server <- function(input, output, session) {
                        attr(dat[["metabocrates_dat_comp"]], "metabolites"),
                        attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]
                      ))
+  })
+  
+  observeEvent(input[["complete_undo_btn"]], {
+    req(dat[["metabocrates_dat_comp"]])
+    
+    dat[["metabocrates_dat_comp"]] <- NULL
   })
   
   ######## Quality control
