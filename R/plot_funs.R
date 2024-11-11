@@ -409,6 +409,9 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' @export
 
 create_PCA_plot <- function(dat, type = "sample_type"){
+  if(type == "group" & is.null(attr(dat, "group")))
+    message("Provide a group to see the PCA plot.")
+  
   mod_dat <- attr(dat, "completed") %>%
     drop_na(all_of(attr(dat, "metabolites")))
   
