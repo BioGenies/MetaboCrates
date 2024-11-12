@@ -23,6 +23,8 @@
 complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
                           ULOQ_method = NULL, LOD_type = "calc") {
   
+  if(is.null(attr(dat, "NA_info"))[["counts"]])
+    message("No missing values found in data.")
   
   NA_info <- attr(dat, "NA_info")[["counts"]] %>% 
     filter(type %in% c("< LOD", "< LLOQ", "> ULOQ")) %>% 
