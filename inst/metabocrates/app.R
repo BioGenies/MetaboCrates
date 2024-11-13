@@ -837,8 +837,7 @@ server <- function(input, output, session) {
     }
     
     dat_to_display %>% 
-      
-      custom_datatable(scrollY = 400, paging = TRUE)
+      custom_datatable(scrollY = 300, paging = TRUE)
   })
   
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
