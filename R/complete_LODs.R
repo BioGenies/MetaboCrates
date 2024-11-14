@@ -23,10 +23,10 @@
 complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
                           ULOQ_method = NULL, LOD_type = "calc") {
   
-  if(is.null(attr(dat, "NA_info"))[["counts"]])
+  if(is.null(attr(dat, "NA_info")[["counts"]]))
     message("No missing values found in data.")
   
-  NA_info <- attr(dat, "NA_info")[["counts"]] %>% 
+  NA_info <- attr(dat, "NA_info")[["counts"]] %>%
     filter(type %in% c("< LOD", "< LLOQ", "> ULOQ")) %>% 
     spread(type, n)
   
@@ -291,7 +291,8 @@ complete_LLOQ <- function(gathered_data, method, LOD_vals) {
 
 general_min <- function(x) {
   suppressWarnings({
-    min(as.numeric(x[!is.na(as.numeric(x))]))
+    min_val <- min(as.numeric(x[!is.na(as.numeric(x))]))
+    ifelse(is.infinite(min_val), NA, min_val)
   })
 }
 
