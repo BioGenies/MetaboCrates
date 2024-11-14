@@ -474,7 +474,7 @@ server <- function(input, output, session) {
              parent_session = session, panels_vec = panels_vec,
              panel_id = "Completing")
   
-  callModule(nav_btns_SERVER, id = "QC", parent_session = session, 
+  callModule(nav_btns_SERVER, id = "Quality control", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Quality control")
   
   callModule(nav_btns_SERVER, "Summary", parent_session = session, 
@@ -845,8 +845,7 @@ server <- function(input, output, session) {
     }
     
     dat_to_display %>% 
-      
-      custom_datatable(scrollY = 400, paging = TRUE)
+      custom_datatable(scrollY = 300, paging = TRUE)
   })
   
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
@@ -962,9 +961,14 @@ server <- function(input, output, session) {
                  c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
                    attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))) %>% 
       arrange(-CV) %>% 
+<<<<<<< HEAD
       mutate(`CV [%]` = round(CV*100, 3)) %>%
       select(!CV) %>%
       custom_datatable(scrollY = 400, paging = TRUE)
+=======
+      mutate(CV = round(CV, 3)) %>% 
+      custom_datatable(scrollY = 300, paging = TRUE)
+>>>>>>> a1d9f70205c9f5933aa2b94046d1ce2d4f617fcd
     
   })
   
