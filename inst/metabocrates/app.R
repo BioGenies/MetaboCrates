@@ -8,7 +8,7 @@ library(shinyWidgets)
 library(shinycssloaders)
 library(DT)
 library(shinyhelper)
-
+library(bslib)
 
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
@@ -410,6 +410,13 @@ ui <- navbarPage(
                column(12, align = "right", 
                       h2("Summary (step 6/7)"),
                       h3("next: Download")),
+               column(6,
+                      h2("Metabolites removed based on the")),
+               column(4, align = "left",
+                      card(
+                        card_header("Missing values"),
+                        card_footer("Removed:[count]\nThreshold:[%]")
+                        ))
       ),
       
     )
@@ -769,7 +776,8 @@ server <- function(input, output, session) {
       filter(!(metabolite %in% attr(dat[["metabocrates_dat_group"]], 
                                     "removed")[["LOD"]])) %>% 
       arrange(-NA_frac) %>% 
-      mutate(NA_frac = round(NA_frac, 3)) %>% 
+      mutate(`NA fraction [%]` = round(NA_frac*100, 3)) %>%
+      select(!NA_frac) %>%
       custom_datatable(scrollY = 300, paging = TRUE)
     
   })
@@ -878,13 +886,13 @@ server <- function(input, output, session) {
   
   ######## Quality control
   
-  output[["CV_to_remove_txt"]] <- renderUI({
+  to_remove_CV <- reactive({
     req(dat[["metabocrates_dat_comp"]])
     req(input[["cv_threshold"]])
     
     to_remove <- setdiff(
       get_CV_to_remove(dat[["metabocrates_dat_comp"]],
-                       input[["cv_threshold"]]),
+                       input[["cv_threshold"]]/100),
       c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
         attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]])
     ) %>% 
@@ -893,13 +901,16 @@ server <- function(input, output, session) {
     
     updateMultiInput(session, "CV_to_remove", selected = to_remove)
     
-    if(length(to_remove) == 0)
-      HTML("None.")
-    else {
-      HTML(paste0(to_remove, collapse = ", "))
-    }
+    to_remove
   })
   
+  output[["CV_to_remove_txt"]] <- renderUI({
+    if(length(to_remove_CV()) == 0)
+      HTML("None.")
+    else {
+      HTML(paste0(to_remove_CV(), collapse = ", "))
+    }
+  })
   
   output[["CV_removed_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_comp"]])
@@ -951,7 +962,8 @@ server <- function(input, output, session) {
                  c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
                    attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))) %>% 
       arrange(-CV) %>% 
-      mutate(CV = round(CV, 3)) %>% 
+      mutate(`CV [%]` = round(CV*100, 3)) %>%
+      select(!CV) %>%
       custom_datatable(scrollY = 400, paging = TRUE)
     
   })
