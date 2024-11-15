@@ -404,13 +404,17 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat)
+#' dat <- add_group(dat, "group")
 #' create_PCA_plot(dat, type = "group")
 #' 
 #' @export
 
 create_PCA_plot <- function(dat, type = "sample_type"){
   if(type == "group" & is.null(attr(dat, "group")))
-    message("Provide a group to see the PCA plot.")
+    stop("Provide a group to see the PCA plot.")
+  
+  if(is.null(attr(dat, "completed")))
+    stop("Complete the missing values in data first.")
   
   mod_dat <- attr(dat, "completed") %>%
     drop_na(all_of(attr(dat, "metabolites")))
