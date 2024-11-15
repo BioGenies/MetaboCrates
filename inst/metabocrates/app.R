@@ -8,7 +8,6 @@ library(shinyWidgets)
 library(shinycssloaders)
 library(DT)
 library(shinyhelper)
-library(bslib)
 
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
@@ -222,36 +221,38 @@ ui <- navbarPage(
                       column(6, align = "right", 
                              h2("Compounds filtering (step 3/7)"),
                              h3("next: Completing")
-                      ),
-                      tabsetPanel(
-                        tabPanel("Ratios of missing values",
-                                 column(10, offset = 1,
-                                        br(),
-                                        br(),
-                                        table_with_button_UI("NA_ratios_tbl"))
-                        ),
-                        tabPanel("Ratios visualization",
-                                 column(1,
-                                        br(),
-                                        br(),
-                                        radioButtons("NA_percent_plt_type", 
-                                                     "Choose plot type",
-                                                     choiceValues = c("joint", "NA_type"),
-                                                     selected = "joint",
-                                                     choiceNames = c("Joint ratios", "Show NA type"))),
-                                 column(11,
-                                        br(),
-                                        br(),
-                                        plot_with_button_UI("NA_ratios_plt"))
-                        ),
-                        tabPanel("Venn diagram",
-                                 br(),
-                                 h4("Provide a group with up to 5 levels to see Venn diagram."),
-                                 br(),
-                                 plot_with_button_UI("venn_diagram")
-                        )
                       )
-               )
+                ),
+                column(8,
+                       tabsetPanel(
+                         tabPanel("Ratios of missing values",
+                                  column(10, offset = 1,
+                                         br(),
+                                         br(),
+                                         table_with_button_UI("NA_ratios_tbl"))
+                         ),
+                         tabPanel("Ratios visualization",
+                                  column(1,
+                                         br(),
+                                         br(),
+                                         radioButtons("NA_percent_plt_type", 
+                                                      "Choose plot type",
+                                                      choiceValues = c("joint", "NA_type"),
+                                                      selected = "joint",
+                                                      choiceNames = c("Joint ratios", "Show NA type"))),
+                                  column(11,
+                                         br(),
+                                         br(),
+                                         plot_with_button_UI("NA_ratios_plt"))
+                         ),
+                         tabPanel("Venn diagram",
+                                  br(),
+                                  h4("Provide a group with up to 5 levels to see Venn diagram."),
+                                  br(),
+                                  plot_with_button_UI("venn_diagram")
+                         )
+                       )
+                )
                
       ),
       #################
@@ -386,7 +387,9 @@ ui <- navbarPage(
                       column(12, align = "right", 
                              h2("Quality control (step 5/7)"),
                              h3("next: Summary")
-                      ),
+                      )
+               ),
+               column(8,
                       tabsetPanel(
                         tabPanel("CV table",
                                  column(10, offset = 1,
@@ -410,14 +413,31 @@ ui <- navbarPage(
                column(12, align = "right", 
                       h2("Summary (step 6/7)"),
                       h3("next: Download")),
-               column(6,
+               column(12,
                       h2("Metabolites removed based on the")),
-               column(4, align = "left",
-                      card(
-                        card_header("Missing values"),
-                        card_footer("Removed:[count]\nThreshold:[%]")
-                        ))
-      ),
+               br(),
+               br(),
+               column(4, offset = 1,
+                      style = "background-color:#f8f5f0; overflow-y:auto;
+                      border-right: 1px solid; border-left: 1px solid",
+                      h4("LOD ratio"),
+                      tags$hr(style="border-color: black;"),
+                      textOutput("LOD_summary"),
+                      tags$hr(style="border-color: black;"),
+                      h5("Treshold: "),
+                      h5("Removed: ")
+               ),
+               column(4, offset = 1,
+                      style = "background-color:#f8f5f0; overflow-y:auto;
+                      border-right: 1px solid; border-left: 1px solid",
+                      h4("Coefficient of variation"),
+                      tags$hr(style="border-color: black;"),
+                      textOutput("CV_summary"),
+                      tags$hr(style="border-color: black;"),
+                      h5("Treshold: "),
+                      h5("Removed: ")
+               )
+      )
       
     )
   ),
@@ -961,14 +981,9 @@ server <- function(input, output, session) {
                  c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
                    attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))) %>% 
       arrange(-CV) %>% 
-<<<<<<< HEAD
       mutate(`CV [%]` = round(CV*100, 3)) %>%
       select(!CV) %>%
-      custom_datatable(scrollY = 400, paging = TRUE)
-=======
-      mutate(CV = round(CV, 3)) %>% 
       custom_datatable(scrollY = 300, paging = TRUE)
->>>>>>> a1d9f70205c9f5933aa2b94046d1ce2d4f617fcd
     
   })
   
@@ -983,6 +998,22 @@ server <- function(input, output, session) {
   
   
   plot_with_button_SERVER("PCA_plt", PCA_plt)
+  
+  ######## Summary
+  
+  output[["LOD_summary"]] <- renderUI({
+    req(dat[["metabocrates_dat_comp"]])
+    
+    HTML(paste0(attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]],
+                sep = "<br>"))
+  })
+  
+  output[["CV_summary"]] <- renderUI({
+    req(dat[["metabocrates_dat_comp"]])
+    
+    HTML(paste0(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+                sep = "<br>"))
+  })
   
 }
 
