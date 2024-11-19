@@ -412,33 +412,45 @@ ui <- navbarPage(
                nav_btns_UI("Summary"),
                column(12, align = "right", 
                       h2("Summary (step 6/7)"),
-                      h3("next: Download")),
-               column(12,
-                      h2("Metabolites removed based on the")),
-               br(),
-               br(),
-               column(4, offset = 1,
-                      style = "background-color:#f8f5f0; overflow-y:auto;
-                      border-right: 1px solid; border-left: 1px solid",
-                      h4("LOD ratio"),
-                      tags$hr(style="border-color: black;"),
-                      textOutput("LOD_summary"),
-                      tags$hr(style="border-color: black;"),
-                      h5("Treshold: "),
-                      h5("Removed: ")
+                      h3("next: Download")
                ),
-               column(4, offset = 1,
-                      style = "background-color:#f8f5f0; overflow-y:auto;
-                      border-right: 1px solid; border-left: 1px solid",
-                      h4("Coefficient of variation"),
-                      tags$hr(style="border-color: black;"),
-                      textOutput("CV_summary"),
-                      tags$hr(style="border-color: black;"),
-                      h5("Treshold: "),
-                      h5("Removed: ")
+               fluidRow(
+                column(4, offset = 1,
+                       h3("Metabolites removed based on the")
+                ),
+                column(5, offset = 2,
+                       h3("Analysis summary")
+                )
+               ),
+               fluidRow(
+                 column(2, offset = 1,
+                        h4("Limit of detection"),
+                        tags$div(
+                          style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
+                                 border: 1px solid #ccc; padding: 11px;",
+                          htmlOutput("summary_LOD_removed_txt")
+                        ),
+                        htmlOutput("LOD_threshold_txt"),
+                        htmlOutput("LOD_count_txt")
+                 ),
+                 column(2,
+                        h4("Coefficient of Variation"),
+                        tags$div(
+                          style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
+                                 border: 1px solid #ccc; padding: 11px;",
+                          htmlOutput("summary_CV_removed_txt")
+                        ),
+                        htmlOutput("CV_threshold_txt"),
+                        htmlOutput("CV_count_txt")
+                 ),
+                 column(1, offset = 1,
+                        tags$div(style = "border-left: 2px solid black; height: 450px;")
+                 ),
+                 column(5,
+                        htmlOutput("summary_txt")
+                 )
                )
       )
-      
     )
   ),
   
@@ -1001,18 +1013,98 @@ server <- function(input, output, session) {
   
   ######## Summary
   
-  output[["LOD_summary"]] <- renderUI({
-    req(dat[["metabocrates_dat_comp"]])
+  output[["summary_LOD_removed_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
     
-    HTML(paste0(attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]],
-                sep = "<br>"))
+    HTML(paste(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+               collapse = "<br>"))
   })
   
-  output[["CV_summary"]] <- renderUI({
+  output[["LOD_threshold_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    threshold <- ifelse(
+      is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]),
+      "none",
+      paste0(input[["filtering_threshold"]], "%")
+    )
+    
+    HTML(paste0("<b>Threshold: ", threshold, "</b>"))
+  })
+  
+  output[["LOD_count_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    HTML(paste0("<b>Count: ",
+                length(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]),
+                "</b>"))
+  })
+  
+  output[["summary_CV_removed_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_comp"]])
     
-    HTML(paste0(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
-                sep = "<br>"))
+    HTML(paste(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+               collapse = "<br>"))
+  })
+  
+  output[["CV_threshold_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    if(is.null(dat[["metabocrates_dat_comp"]])){
+      HTML("<b>Treshold: none</b>")
+    }
+    
+    threshold <- ifelse(
+      is.null(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]]),
+      "none",
+      paste0(input[["cv_threshold"]], "%")
+    )
+      
+    HTML(paste0("<b>Threshold: ", threshold, "</b>"))
+  })
+  
+  output[["CV_count_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    if(is.null(dat[["metabocrates_dat_comp"]])){
+      HTML("<b>Count: 0</b>")
+    }
+    
+    HTML(paste0("<b>Count: ",
+                length(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]]),
+                "</b>"))
+  })
+  
+  output[["summary_txt"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    HTML(paste0(
+      "<div style='font-size: 16px;'>",
+      "<br><br><b>Grouping column: </b>",
+      ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "group")),
+             "none",
+             attr(dat[["metabocrates_dat_group"]], "group")),
+      "<br><br>",
+      "<b>Imputation:</b><br>",
+      ifelse(is.null(dat[["metabocrates_dat_comp"]]),
+             "<span style='margin-left: 2em;'>Skipped</span>",
+             paste0(
+               "<span style='margin-left: 1em;'><b>LOD method: </b></span>",
+               input[["LOD_method"]],
+               "<br>",
+               "<span style='margin-left: 1em;'><b>LOD type: </b></span>",
+               input[["LOD_type"]],
+               "<br>",
+               "<span style='margin-left: 1em;'><b>LLOQ method: </b></span>",
+               input[["LLOQ_method"]],
+               "<br>",
+               "<span style='margin-left: 1em;'><b>ULOQ method: </b></span>",
+               input[["ULOQ_method"]],
+               "<br><br>"
+             )
+      ),
+      "</div>"
+    ))
   })
   
 }
