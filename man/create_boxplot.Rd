@@ -16,6 +16,6 @@ Boxplot of individual metabolite values
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_boxplot(attr(dat, "completed"), "C0")
+create_boxplot(dat, "C0")
 
 }

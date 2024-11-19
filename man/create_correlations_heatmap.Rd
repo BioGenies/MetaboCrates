@@ -13,6 +13,6 @@ Heatmap of correlations between metabolites
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_correlations_heatmap(attr(dat, "completed"))
+create_correlations_heatmap(dat)
 
 }

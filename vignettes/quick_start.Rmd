@@ -195,7 +195,7 @@ plot_heatmap(dat) +
 Moreover, the heatmap of correlations between all metabolites can be created, using the below function.
 
 ```{r}
-create_correlations_heatmap(attr(comp_dat, "completed")) +
+create_correlations_heatmap(comp_dat) +
   xlim(attr(comp_dat, "metabolites")[5:10]) +
   ylim(attr(comp_dat, "metabolites")[5:10])
 ```
@@ -203,11 +203,11 @@ create_correlations_heatmap(attr(comp_dat, "completed")) +
 Aside from plots corresponding to the all metabolites, *MetaboCrates* package provides also tools for visualisations related to the specific metabolite. Next three functions create histogram, boxplot and qqplot, based on the values measured for one metabolite.
 
 ```{r}
-create_histogram(attr(comp_dat, "completed"), "C0")
+create_histogram(comp_dat, "C0")
 
-create_boxplot(attr(comp_dat, "completed"), "C0")
+create_boxplot(comp_dat, "C0")
  
-create_qqplot(attr(comp_dat, "completed"), "C0")
+create_qqplot(comp_dat, "C0")
 ```
 
 Moreover, the package allows for creating the density plot for a specific metabolite, with a dash line representing the limit of detection retrevied from the LOD table.

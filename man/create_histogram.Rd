@@ -18,6 +18,6 @@ Histogram of individual metabolite values
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_histogram(attr(dat, "completed"), "C0")
+create_histogram(dat, "C0")
 
 }

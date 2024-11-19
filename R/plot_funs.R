@@ -63,6 +63,9 @@ plot_groups <- function(dat){
 #' @export
 
 plot_mv_types <- function(dat) {
+  if(is.null(attr(dat, "NA_info")[["counts"]]))
+    stop("No missing values found.")
+    
   NA_info <- attr(dat, "NA_info")
   counts <- NA_info[["counts"]]
   
@@ -99,6 +102,8 @@ plot_mv_types <- function(dat) {
 #' @export
 
 plot_NA_percent <- function(dat, type = "joint"){
+  if(is.null(attr(dat, "NA_info")[["counts"]]))
+    stop("No missing values found.")
   
   ggplot_obj <- 
     switch(type,
@@ -163,12 +168,15 @@ plot_heatmap <- function(dat){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_histogram(attr(dat, "completed"), "C0")
+#' create_histogram(dat, "C0")
 #' 
 #' @export
 
 create_histogram <- function(dat, metabolite, bins_num = 30){
-  dat %>%
+  if(is.null(attr(dat, "completed")))
+    stop("Complete data first.")
+  
+  attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(metabolite) %>%
     ggplot(aes(x = get(metabolite))) +
@@ -185,12 +193,15 @@ create_histogram <- function(dat, metabolite, bins_num = 30){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_boxplot(attr(dat, "completed"), "C0")
+#' create_boxplot(dat, "C0")
 #' 
 #' @export
 
 create_boxplot <- function(dat, metabolite){
-  dat %>%
+  if(is.null(attr(dat, "completed")))
+    stop("Complete data first.")
+  
+  attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(metabolite) %>%
     ggplot(aes(x = metabolite, y = get(metabolite))) +
@@ -231,12 +242,15 @@ create_qqplot <- function(dat, metabolite){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_correlations_heatmap(attr(dat, "completed"))
+#' create_correlations_heatmap(dat)
 #' 
 #' @export
 
 create_correlations_heatmap <- function(dat){
-  dat %>%
+  if(is.null(attr(dat, "completed")))
+    stop("Complete data first.")
+  
+  attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(attr(dat, "metabolites"))) %>%
     cor(use = "na.or.complete") %>%
