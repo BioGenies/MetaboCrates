@@ -23,8 +23,8 @@
 complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
                           ULOQ_method = NULL, LOD_type = "calc") {
   
-  if(is.null(attr(dat, "NA_info")[["counts"]]))
-    message("No missing values found in data.")
+  if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
+    message("No missing values found.")
   
   NA_info <- attr(dat, "NA_info")[["counts"]] %>%
     filter(type %in% c("< LOD", "< LLOQ", "> ULOQ")) %>% 
@@ -55,7 +55,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     } else {
       message("Skipping < LOD imputation.")
     }
-  } else {
+  } else if(nrow(attr(dat, "NA_info")[["counts"]]) != 0){
     message("No < LOD values found.")
   }
   
@@ -69,7 +69,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     } else {
       message("Skipping < LLOQ imputation.")
     }
-  } else {
+  } else if(nrow(attr(dat, "NA_info")[["counts"]]) != 0){
     message("No < LLOQ values found.")
   }
   
@@ -83,7 +83,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     } else {
       message("Skipping > ULOQ imputation.")
     }
-  } else {
+  } else if(nrow(attr(dat, "NA_info")[["counts"]]) != 0){
     message("No > ULOQ values found.")
   }
   

@@ -63,7 +63,7 @@ plot_groups <- function(dat){
 #' @export
 
 plot_mv_types <- function(dat) {
-  if(is.null(attr(dat, "NA_info")[["counts"]]))
+  if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
     
   NA_info <- attr(dat, "NA_info")
@@ -102,7 +102,7 @@ plot_mv_types <- function(dat) {
 #' @export
 
 plot_NA_percent <- function(dat, type = "joint"){
-  if(is.null(attr(dat, "NA_info")[["counts"]]))
+  if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
   
   ggplot_obj <- 
