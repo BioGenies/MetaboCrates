@@ -200,8 +200,10 @@ ui <- navbarPage(
                       br(),
                       br(),
                       br(),
-                      column(2, align = "center", offset = 2, 
+                      column(6, align = "center", 
                              actionButton("LOD_remove_btn", label = "Remove")),
+                      column(6, align = "center",
+                             actionButton("LOD_undo_btn", label = "Undo")),
                       br(),
                       br(),
                       br(),
@@ -209,8 +211,9 @@ ui <- navbarPage(
                       column(12, htmlOutput("LOD_removed_txt")),
                       br(),
                       br(),
-                      column(2, align = "center", offset = 2,
-                             actionButton("LOD_undo_btn", label = "Undo")),
+                      br(),
+                      br(),
+                      br(),
                       br()
                       
                ),
@@ -222,37 +225,35 @@ ui <- navbarPage(
                              h2("Compounds filtering (step 3/7)"),
                              h3("next: Completing")
                       )
-                ),
-                column(8,
-                       tabsetPanel(
-                         tabPanel("Ratios of missing values",
-                                  column(10, offset = 1,
-                                         br(),
-                                         br(),
-                                         table_with_button_UI("NA_ratios_tbl"))
-                         ),
-                         tabPanel("Ratios visualization",
-                                  column(1,
-                                         br(),
-                                         br(),
-                                         radioButtons("NA_percent_plt_type", 
-                                                      "Choose plot type",
-                                                      choiceValues = c("joint", "NA_type"),
-                                                      selected = "joint",
-                                                      choiceNames = c("Joint ratios", "Show NA type"))),
-                                  column(11,
-                                         br(),
-                                         br(),
-                                         plot_with_button_UI("NA_ratios_plt"))
-                         ),
-                         tabPanel("Venn diagram",
-                                  br(),
-                                  h4("Provide a group with up to 5 levels to see Venn diagram."),
-                                  br(),
-                                  plot_with_button_UI("venn_diagram")
-                         )
-                       )
-                )
+               ),
+               column(8,
+                      tabsetPanel(
+                        tabPanel("Ratios of missing values",
+                                 column(10, offset = 1,
+                                        br(),
+                                        br(),
+                                        table_with_button_UI("NA_ratios_tbl"))
+                        ),
+                        tabPanel("Ratios visualization",
+                                 br(),
+                                 br(),
+                                 radioButtons("NA_percent_plt_type", 
+                                              "Choose plot type",
+                                              choiceValues = c("joint", "NA_type"),
+                                              selected = "joint",
+                                              choiceNames = c("Joint ratios", "Show NA type"),
+                                              inline = TRUE),
+                                 column(12,
+                                        plot_with_button_UI("NA_ratios_plt"))
+                        ),
+                        tabPanel("Venn diagram",
+                                 br(),
+                                 h4("Provide a group with up to 5 levels to see Venn diagram."),
+                                 br(),
+                                 plot_with_button_UI("venn_diagram")
+                        )
+                      )
+               )
                
       ),
       #################
@@ -410,45 +411,47 @@ ui <- navbarPage(
       #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
-               column(12, align = "right", 
+               column(8, 
+                      fluidRow(
+                        column(5, offset = 1,
+                               h3("Metabolites removed based on the")
+                        ),
+                        column(4, offset = 2,
+                               h3("Analysis summary")
+                        )
+                      ),
+                      fluidRow(
+                        column(3, offset = 1,
+                               h4("Limit of detection"),
+                               tags$div(
+                                 style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
+                                 border: 1px solid #ccc; padding: 11px;",
+                                 htmlOutput("summary_LOD_removed_txt")
+                               ),
+                               htmlOutput("LOD_threshold_txt"),
+                               htmlOutput("LOD_count_txt")
+                        ),
+                        column(3,
+                               h4("Coefficient of Variation"),
+                               tags$div(
+                                 style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
+                                 border: 1px solid #ccc; padding: 11px;",
+                                 htmlOutput("summary_CV_removed_txt")
+                               ),
+                               htmlOutput("CV_threshold_txt"),
+                               htmlOutput("CV_count_txt")
+                        ),
+                        column(1, offset = 1,
+                               tags$div(style = "border-left: 2px solid black; height: 450px;")
+                        ),
+                        column(3,
+                               htmlOutput("summary_txt")
+                        )
+                      )
+               ),
+               column(4, align = "right", 
                       h2("Summary (step 6/7)"),
                       h3("next: Download")
-               ),
-               fluidRow(
-                column(4, offset = 1,
-                       h3("Metabolites removed based on the")
-                ),
-                column(5, offset = 2,
-                       h3("Analysis summary")
-                )
-               ),
-               fluidRow(
-                 column(2, offset = 1,
-                        h4("Limit of detection"),
-                        tags$div(
-                          style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
-                                 border: 1px solid #ccc; padding: 11px;",
-                          htmlOutput("summary_LOD_removed_txt")
-                        ),
-                        htmlOutput("LOD_threshold_txt"),
-                        htmlOutput("LOD_count_txt")
-                 ),
-                 column(2,
-                        h4("Coefficient of Variation"),
-                        tags$div(
-                          style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
-                                 border: 1px solid #ccc; padding: 11px;",
-                          htmlOutput("summary_CV_removed_txt")
-                        ),
-                        htmlOutput("CV_threshold_txt"),
-                        htmlOutput("CV_count_txt")
-                 ),
-                 column(1, offset = 1,
-                        tags$div(style = "border-left: 2px solid black; height: 450px;")
-                 ),
-                 column(5,
-                        htmlOutput("summary_txt")
-                 )
                )
       )
     )
@@ -860,7 +863,7 @@ server <- function(input, output, session) {
   
   completed_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
-
+    
     metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                            attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
     
@@ -1004,7 +1007,6 @@ server <- function(input, output, session) {
   
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_comp"]])
-    
     create_PCA_plot(dat[["metabocrates_dat_comp"]], type = "sample_type")
   })
   
@@ -1059,7 +1061,7 @@ server <- function(input, output, session) {
       "none",
       paste0(input[["cv_threshold"]], "%")
     )
-      
+    
     HTML(paste0("<b>Threshold: ", threshold, "</b>"))
   })
   
