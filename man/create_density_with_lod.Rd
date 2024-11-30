@@ -24,6 +24,6 @@ value is derived from the \code{LOD_table} attribute of the \code{dat} object.
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_histogram_with_lod(dat, "C0")
+create_density_with_lod(dat, "C0")
 
 }

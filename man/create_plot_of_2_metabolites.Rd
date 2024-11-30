@@ -9,3 +9,10 @@ create_plot_of_2_metabolites(dat, metabolite1, metabolite2)
 \description{
 Plot of two metabolites
 }
+\examples{
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+dat <- complete_data(dat, "limit", "limit", "limit")
+create_plot_of_2_metabolites(dat, "C0", "C2")
+
+}

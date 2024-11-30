@@ -42,8 +42,7 @@ plot_groups <- function(dat){
     summarise(Count = n()) %>%
     ggplot(aes(x = Groups, y = Count)) +
     geom_bar(stat = "identity") +
-    ggtitle("Groups counts") +
-    xlab("Levels") +
+    labs(x = "Level", y = "Count") +
     geom_label(aes(label = Count)) +
     metabocrates_theme()
 }
@@ -75,6 +74,7 @@ plot_mv_types <- function(dat) {
     ggplot(aes(x = type, y = count)) +
     geom_col(fill = "#2A528A") +
     geom_label(aes(x = type, y = count, label = count)) +
+    labs(x = "Missing value type", y = "Count") +
     metabocrates_theme()
 }
 
@@ -133,6 +133,7 @@ plot_NA_percent <- function(dat, type = "joint"){
   ggplot_obj +
     geom_col(width = 0.5) +
     geom_text(size = 2.6, position = position_stack(vjust = 0.5)) +
+    labs(x = "% Missing in metabolite", y = "Metabolite") +
     metabocrates_theme()
 }
 
@@ -259,7 +260,7 @@ create_correlations_heatmap <- function(dat){
     geom_tile() +
     scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
     scale_y_discrete(labels = function(x) str_trunc(x, 10)) +
-    labs(x = "Metabolites", y = "Metabolites") +
+    labs(x = "Metabolite", y = "Metabolite") +
     metabocrates_theme() +
     theme(axis.text.x = element_text(angle = 90))
 }
@@ -281,7 +282,7 @@ create_correlations_heatmap <- function(dat){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_histogram_with_lod(dat, "C0")
+#' create_density_with_lod(dat, "C0")
 #'
 #' @export
 create_density_with_lod <- function(dat, metabolite_name) {
@@ -311,6 +312,12 @@ create_density_with_lod <- function(dat, metabolite_name) {
 
 
 #' Plot of two metabolites
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_plot_of_2_metabolites(dat, "C0", "C2")
 #' 
 #' @export
 create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
@@ -396,9 +403,7 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
     geom_line(aes(y = Cumulative_Variance), group = 1, color = "red") +
     geom_point(aes(y = Cumulative_Variance), color = "red") +
     coord_cartesian(xlim = c(1, rel_comp_num)) +
-    labs(title = "Variance Explained by Principal Components",
-         x = "Principal Component",
-         y = "Variance Explained") +
+    labs(x = "Principal Component", y = "Variance Explained") +
     metabocrates_theme()
 }
 
@@ -488,6 +493,7 @@ create_beeswarm_plot <- function(dat, metabolite) {
                         color = `plate bar code`)) +
     geom_beeswarm(cex = 2) +
     labs(title = paste("Beeswarm Plot of", metabolite),
+         x = "Plate bar code",
          y = metabolite) +
     metabocrates_theme()
 }
