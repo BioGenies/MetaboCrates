@@ -119,7 +119,9 @@ plot_NA_percent <- function(dat, type = "joint"){
              attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
                filter(NA_frac > 0) %>% 
                mutate(labels = paste0(round(NA_frac * 100, 1), " %")) %>% 
-               ggplot(aes(x = NA_frac, y = metabolite, fill = type, label = labels))
+               ggplot(aes(x = NA_frac, y = metabolite,
+                          fill = type, label = labels)) +
+               labs(fill = "Missing values types")
            },
            "group" = {
              attr(dat, "NA_info")[["NA_ratios_group"]] %>% 
@@ -127,13 +129,16 @@ plot_NA_percent <- function(dat, type = "joint"){
                mutate(labels = paste0(round(NA_frac * 100, 1), " %"),
                       grouping_column = as.character(grouping_column),
                       NA_frac = NA_frac/length(unique(grouping_column))) %>% 
-               ggplot(aes(x = NA_frac, y = metabolite, fill = grouping_column, label = labels))
+               ggplot(aes(x = NA_frac, y = metabolite,
+                          fill = grouping_column, label = labels)) +
+               labs(fill = "Group levels")
            })
   
   ggplot_obj +
     geom_col(width = 0.5) +
     geom_text(size = 2.6, position = position_stack(vjust = 0.5)) +
     labs(x = "% Missing in metabolite", y = "Metabolite") +
+    scale_x_continuous(labels = scales::percent) +
     metabocrates_theme()
 }
 
@@ -403,7 +408,8 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
     geom_line(aes(y = Cumulative_Variance), group = 1, color = "red") +
     geom_point(aes(y = Cumulative_Variance), color = "red") +
     coord_cartesian(xlim = c(1, rel_comp_num)) +
-    labs(x = "Principal Component", y = "Variance Explained") +
+    labs(x = "Principal component", y = "% Variance explained") +
+    scale_y_continuous(labels = scales::percent) +
     metabocrates_theme()
 }
 
@@ -411,7 +417,6 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' 
 #' @import ggfortify
 #' @importFrom tidyr drop_na
-#' @importFrom stringr str_to_title
 #' 
 #' @param type a character denoting which type of PCA plot should be created.
 #' Default is "sample_type", which makes a plot for quality control. Type
@@ -424,6 +429,7 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat)
 #' dat <- add_group(dat, "group")
+#' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat, type = "group")
 #' 
 #' @export
@@ -455,8 +461,12 @@ create_PCA_plot <- function(dat, type = "sample_type"){
   prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit) %>%
     autoplot(data = mod_dat, color = type,
              frame = TRUE, frame.type = "norm") +
-    scale_color_discrete(name = str_to_title(gsub("_", " ", type))) +
-    scale_fill_discrete(name = str_to_title(gsub("_", " ", type))) +
+    scale_color_discrete(
+      name = ifelse(type == "sample_type", "Sample types", "Group levels")
+      ) +
+    scale_fill_discrete(
+      name = ifelse(type == "sample_type", "Sample types", "Group levels")
+      ) +
     metabocrates_theme()
 }
 
