@@ -456,6 +456,9 @@ create_PCA_plot <- function(dat, type = "sample_type"){
     select(all_of(attr(dat, "metabolites"))) %>%
     select(where(~ n_distinct(.) > 1))
   
+  if(ncol(metabo_dat) == 0)
+    stop("No samples without missing values found.")
+  
   colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
   
   prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit) %>%
