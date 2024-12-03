@@ -936,9 +936,7 @@ server <- function(input, output, session) {
                        input[["cv_threshold"]]/100),
       c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
         attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
-    ) %>% 
-      c(input[["CV_to_remove"]]) %>% 
-      unique()
+    )
     
     updateMultiInput(session, "CV_to_remove", selected = to_remove)
     
@@ -946,10 +944,14 @@ server <- function(input, output, session) {
   })
   
   output[["CV_to_remove_txt"]] <- renderUI({
-    if(length(to_remove_CV()) == 0)
+    to_remove_CV_display <- unique(c(intersect(to_remove_CV(),
+                                               input[["CV_to_remove"]]),
+                                     input[["CV_to_remove"]]))
+    
+    if(length(to_remove_CV_display) == 0)
       HTML("None.")
     else {
-      HTML(paste0(to_remove_CV(), collapse = ", "))
+      HTML(paste0(to_remove_CV_display, collapse = ", "))
     }
   })
   
