@@ -867,13 +867,13 @@ server <- function(input, output, session) {
     metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                            attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
     
-    if(is.null(dat[["metabocrates_dat_comp"]])) {
-      dat_to_display <- dat[["metabocrates_dat"]] %>% 
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
+      dat_to_display <- dat[["metabocrates_dat_group"]] %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.character) %>% 
         mutate_all(display_short)
     } else {
-      dat_to_display <- attr(dat[["metabocrates_dat_comp"]], "completed") %>% 
+      dat_to_display <- attr(dat[["metabocrates_dat_group"]], "completed") %>% 
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
         mutate_all(round, 5) 
@@ -888,47 +888,54 @@ server <- function(input, output, session) {
   observeEvent(input[["complete_btn"]], {
     req(dat[["metabocrates_dat_group"]])
     
-    dat[["metabocrates_dat_comp"]] <- dat[["metabocrates_dat_group"]]
-    
     imp_method <- function(method){
       if(method == "none") NULL
       else method
     }
     
-    dat[["metabocrates_dat_comp"]] <-
-      complete_data(dat[["metabocrates_dat_comp"]],
+    dat[["metabocrates_dat_group"]] <-
+      complete_data(dat[["metabocrates_dat_group"]],
                     LOD_method = imp_method(input[["LOD_method"]]),
                     LLOQ_method = imp_method(input[["LLOQ_method"]]),
                     ULOQ_method = imp_method(input[["ULOQ_method"]]),
                     LOD_type = input[["LOD_type"]])
-    
-    dat[["metabocrates_dat_comp"]] <-
-      calculate_CV(dat[["metabocrates_dat_comp"]])
-    
-    updateMultiInput(session, "CV_to_remove", 
-                     choices = setdiff(
-                       attr(dat[["metabocrates_dat_comp"]], "metabolites"),
-                       attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]
-                     ))
   })
   
   observeEvent(input[["complete_undo_btn"]], {
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    dat[["metabocrates_dat_comp"]] <- NULL
+    attr(dat[["metabocrates_dat_group"]], "completed") <- NULL
   })
   
   ######## Quality control
   
+  observeEvent(input[["run"]], {
+    if(input[["run"]] == "Quality control"){
+      if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
+        dat[["metabocrates_dat_group"]] <-
+          calculate_CV(dat[["metabocrates_dat_group"]])
+        
+        updateMultiInput(session, "CV_to_remove", 
+                         choices = setdiff(
+                           attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
+                         ))
+      }else{
+        attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
+        attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]] <- NULL
+      }
+    }
+  })
+  
   to_remove_CV <- reactive({
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     req(input[["cv_threshold"]])
     
     to_remove <- setdiff(
-      get_CV_to_remove(dat[["metabocrates_dat_comp"]],
+      get_CV_to_remove(dat[["metabocrates_dat_group"]],
                        input[["cv_threshold"]]/100),
-      c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
-        attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]])
+      c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+        attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
     ) %>% 
       c(input[["CV_to_remove"]]) %>% 
       unique()
@@ -947,9 +954,9 @@ server <- function(input, output, session) {
   })
   
   output[["CV_removed_txt"]] <- renderUI({
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    removed <- attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]]
+    removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]
     
     if(length(removed) == 0)
       HTML("None.")
@@ -960,17 +967,17 @@ server <- function(input, output, session) {
   
   
   observeEvent(input[["CV_remove_btn"]], {
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     req(input[["CV_to_remove"]])
     
-    dat[["metabocrates_dat_comp"]] <- remove_metabolites(
-      dat[["metabocrates_dat_comp"]],
+    dat[["metabocrates_dat_group"]] <- remove_metabolites(
+      dat[["metabocrates_dat_group"]],
       metabolites_to_remove = input[["CV_to_remove"]],
       type = "QC"
     )
-    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_comp"]], "metabolites"), 
-                               c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
-                                 attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))
+    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                               c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                 attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))
     
     updateMultiInput(session, "CV_to_remove", 
                      choices = metabolites_vec)
@@ -978,36 +985,34 @@ server <- function(input, output, session) {
   
   
   observeEvent(input[["CV_undo_btn"]], {
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    dat[["metabocrates_dat_comp"]] <- unremove_all(dat[["metabocrates_dat_comp"]],
+    dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]],
                                                    type = "QC")
     
     updateMultiInput(session, "CV_to_remove", 
-                     choices = attr(dat[["metabocrates_dat_comp"]], "metabolites"))
+                     choices = attr(dat[["metabocrates_dat_group"]], "metabolites"))
   })
   
   
   CV_tbl <- reactive({
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    attr(dat[["metabocrates_dat_comp"]], "cv") %>% 
+    attr(dat[["metabocrates_dat_group"]], "cv") %>% 
       filter(!(metabolite %in%
-                 c(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
-                   attr(dat[["metabocrates_dat_comp"]], "removed")[["LOD"]]))) %>% 
+                 c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                   attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))) %>% 
       arrange(-CV) %>% 
       mutate(`CV [%]` = round(CV*100, 3)) %>%
       select(!CV) %>%
       custom_datatable(scrollY = 300, paging = TRUE)
-    
   })
-  
   
   table_with_button_SERVER("CV_tbl", CV_tbl)
   
   PCA_plt <- reactive({
-    req(dat[["metabocrates_dat_comp"]])
-    create_PCA_plot(dat[["metabocrates_dat_comp"]], type = "sample_type")
+    req(dat[["metabocrates_dat_group"]])
+    create_PCA_plot(dat[["metabocrates_dat_group"]], type = "sample_type")
   })
   
   
@@ -1043,21 +1048,21 @@ server <- function(input, output, session) {
   })
   
   output[["summary_CV_removed_txt"]] <- renderUI({
-    req(dat[["metabocrates_dat_comp"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    HTML(paste(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]],
+    HTML(paste(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
                collapse = "<br>"))
   })
   
   output[["CV_threshold_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
-    if(is.null(dat[["metabocrates_dat_comp"]])){
+    if(is.null(dat[["metabocrates_dat_group"]])){
       HTML("<b>Treshold: none</b>")
     }
     
     threshold <- ifelse(
-      is.null(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]]),
+      is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]),
       "none",
       paste0(input[["cv_threshold"]], "%")
     )
@@ -1068,12 +1073,12 @@ server <- function(input, output, session) {
   output[["CV_count_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
-    if(is.null(dat[["metabocrates_dat_comp"]])){
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])){
       HTML("<b>Count: 0</b>")
     }
     
     HTML(paste0("<b>Count: ",
-                length(attr(dat[["metabocrates_dat_comp"]], "removed")[["QC"]]),
+                length(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]),
                 "</b>"))
   })
   
@@ -1088,7 +1093,7 @@ server <- function(input, output, session) {
              attr(dat[["metabocrates_dat_group"]], "group")),
       "<br><br>",
       "<b>Imputation:</b><br>",
-      ifelse(is.null(dat[["metabocrates_dat_comp"]]),
+      ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "completed")),
              "<span style='margin-left: 2em;'>Skipped</span>",
              paste0(
                "<span style='margin-left: 1em;'><b>LOD method: </b></span>",
