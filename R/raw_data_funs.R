@@ -294,7 +294,7 @@ calculate_CV <- function(dat){
 #'
 get_CV_to_remove <- function(dat, threshold){
   if(is.null(attr(dat, "cv"))){
-    stop("First calculate the coefficient of variation using calculate_CV().")
+    stop("First, calculate the coefficient of variation using calculate_CV().")
   }
   attr(dat, "cv") %>%
     filter(CV > threshold) %>%
