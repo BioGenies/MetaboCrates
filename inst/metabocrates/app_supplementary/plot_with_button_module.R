@@ -40,9 +40,17 @@ plot_with_button_UI <- function(id){
   )
 }
 
-plot_with_button_SERVER <- function(id, plot_reactive){
+plot_with_button_SERVER <- function(id, plot_reactive, height = "auto"){
   moduleServer(id, function(input, output, session){
-    output[["plot"]] <- renderPlot(plot_reactive(), res = 96)
+    height_val <- function(){
+      ifelse(is.reactive(height),
+             max(height() * 22, 400),
+             height) 
+    }
+      
+    output[["plot"]] <- renderPlot(plot_reactive(),
+                                   height = function() height_val(),
+                                   res = 96)
     
     output[["download_button"]] <- downloadHandler(
       filename = function(){
