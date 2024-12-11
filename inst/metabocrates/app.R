@@ -305,16 +305,38 @@ ui <- navbarPage(
                              tabsetPanel(id = "imputation_tabset",
                                          tabPanel("Metabolomic matrix",
                                                   br(),
-                                                  table_with_button_UI("completed_tbl")),
+                                                  table_with_button_UI("completed_tbl")
+                                         ),
                                          tabPanel("Table of limits",
                                                   br(),
-                                                  table_with_button_UI("LOD_tbl")),
-                                         tabPanel("Visualization",
+                                                  table_with_button_UI("LOD_tbl")
+                                         ),
+                                         tabPanel("Missing values heatmap",
                                                   br(),
-                                                  tabsetPanel(
-                                                    tabPanel("Missing values percents",
-                                                             plot_with_button_UI("..."))
-                                                  ))
+                                                  br(),
+                                                  plot_with_button_UI("missing_heatmap")
+                                         ),
+                                         tabPanel("Single metabolite distribution",
+                                                  br(),
+                                                  column(5,
+                                                         selectInput("sing_metabo_dist",
+                                                                     "Metabolite",
+                                                                     choices = character(0))
+                                                  ),
+                                                  column(5, offset = 1,
+                                                         radioButtons("dist_plt_type",
+                                                                      "Plot type",
+                                                                      choices = c("Histogram", "Density", "Boxplot", "Q-Q plot"),
+                                                                      inline = TRUE)),
+                                                  br(),
+                                                  column(10, offset = 1,
+                                                         plot_with_button_UI("dist_plt")
+                                                  )
+                                         ),
+                                         tabPanel("Correlations heatmap",
+                                                  br(),
+                                                  br(),
+                                                  plot_with_button_UI("corr_heatmap"))
                              ),
                       )
                )
@@ -828,9 +850,14 @@ server <- function(input, output, session) {
                     type = input[["NA_percent_plt_type"]])
   })
   
+  NA_ratios_plt_height <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+  })
   
-  plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt)
-  
+  plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt,
+                          NA_ratios_plt_height)
   
   venn_plt <- reactive({
     req(input[["filtering_threshold"]])
@@ -843,9 +870,21 @@ server <- function(input, output, session) {
     create_venn_diagram(dat[["metabocrates_dat_group"]], input[["filtering_threshold"]]/100)
   })
   
-  
   plot_with_button_SERVER("venn_diagram", venn_plt)
   
+  corr_heatmap_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    create_correlations_heatmap(dat[["metabocrates_dat_group"]])
+  })
+  
+  corr_heatmap_height <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+  })
+  
+  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, corr_heatmap_height)
   
   ######### imputation
   
@@ -899,13 +938,55 @@ server <- function(input, output, session) {
                     LLOQ_method = imp_method(input[["LLOQ_method"]]),
                     ULOQ_method = imp_method(input[["ULOQ_method"]]),
                     LOD_type = input[["LOD_type"]])
+    
+    updateSelectInput(session, inputId = "sing_metabo_dist",
+                       choices =
+                         attr(dat[["metabocrates_dat_group"]], "metabolites"))
   })
   
   observeEvent(input[["complete_undo_btn"]], {
     req(dat[["metabocrates_dat_group"]])
     
     attr(dat[["metabocrates_dat_group"]], "completed") <- NULL
+    
+    updateSelectInput(session, inputId = "sing_metabo_dist",
+                       choices = c("None"))
   })
+  
+  missing_heatmap <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    plot_heatmap(dat[["metabocrates_dat_group"]])
+  })
+  
+  missing_heatmap_height <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+  })
+  
+  plot_with_button_SERVER("missing_heatmap", missing_heatmap,
+                          missing_heatmap_height)
+  
+  
+  dist_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    req(input[["sing_metabo_dist"]])
+    
+    switch(input[["dist_plt_type"]],
+           "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                  input[["sing_metabo_dist"]]),
+           "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                input[["sing_metabo_dist"]],
+                                                type = "density"),
+           "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
+                                      input[["sing_metabo_dist"]]),
+           "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
+                                      input[["sing_metabo_dist"]]))
+  })
+  
+  plot_with_button_SERVER("dist_plt", dist_plt)
   
   ######## Quality control
   
