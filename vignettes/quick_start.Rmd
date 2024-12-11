@@ -203,7 +203,7 @@ create_correlations_heatmap(comp_dat) +
 Aside from plots corresponding to the all metabolites, *MetaboCrates* package provides also tools for visualisations related to the specific metabolite. Next three functions create histogram, boxplot and qqplot, based on the values measured for one metabolite.
 
 ```{r}
-create_histogram(comp_dat, "C0")
+create_distribution_plot(comp_dat, "C0")
 
 create_boxplot(comp_dat, "C0")
  
