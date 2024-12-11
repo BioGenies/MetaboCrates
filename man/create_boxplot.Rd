@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_funs.R
 \name{create_boxplot}
 \alias{create_boxplot}
-\title{Boxplot of individual metabolite values}
+\title{Boxplots of individual metabolite values before and after imputation}
 \usage{
 create_boxplot(dat, metabolite)
 }
@@ -10,7 +10,7 @@ create_boxplot(dat, metabolite)
 \item{metabolite}{The name of metabolite of interest.}
 }
 \description{
-Boxplot of individual metabolite values
+Boxplots of individual metabolite values before and after imputation
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
