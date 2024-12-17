@@ -659,10 +659,10 @@ server <- function(input, output, session) {
     
     dat[["group_candidates"]] <- dat[["metabocrates_dat"]] %>% 
       select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
-      select(-`plate bar code`, - `sample bar code`, -`collection date`,
-             -`sample identification`, -`op`, -`org. info`, -`plate note`,
-             -`plate production no.`, -`well position`, -`sample volume`, 
-             -`run number`, -`injection number`, -`measurement time`) %>% 
+      select(-any_of(c("plate bar code", "sample bar code", "collection date",
+                       "sample identification", "op", "org. info", "plate note",
+                       "plate production no.", "well position", "sample volume", 
+                       "run number", "injection number", "measurement time"))) %>% 
       filter(`sample type` == "Sample") %>% 
       select(-`sample type`, -`species`)
     
@@ -723,7 +723,8 @@ server <- function(input, output, session) {
       
       updateRadioButtons(session, inputId = "NA_percent_plt_type",
                          choiceValues = c("joint", "NA_type", "group"),
-                         choiceNames = c("Joint ratios", "Show NA type", "Show groups"))
+                         choiceNames = c("Joint ratios", "Show NA type", "Show groups"),
+                         inline = TRUE)
       
       group_name <- HTML(
         paste0(group_name, ", <br/> 
