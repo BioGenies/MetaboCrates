@@ -1,10 +1,13 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
+  if(id == "NA_ratios_plt") plt <- plotly::plotlyOutput(ns("plot"))
+  else plt <- plotOutput(ns("plot"))
+  
   fluidRow(
     column(11,
            helper(
-             withSpinner(plotOutput(ns("plot"))),
+             withSpinner(plt),
              type = "markdown",
              content = id)
            ),
@@ -45,12 +48,16 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto"){
     height_val <- function(){
       ifelse(is.reactive(height),
              max(height() * 22, 400),
-             height) 
+             height)
     }
-      
-    output[["plot"]] <- renderPlot(plot_reactive(),
-                                   height = function() height_val(),
-                                   res = 96)
+    
+    if(id == "NA_ratios_plt"){
+      output[["plot"]] <- plotly::renderPlotly(plot_reactive())
+    }else{
+      output[["plot"]] <- renderPlot(plot_reactive(),
+                                     height = function() height_val(),
+                                     res = 96)
+    }
     
     output[["download_button"]] <- downloadHandler(
       filename = function(){
