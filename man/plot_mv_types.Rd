@@ -7,7 +7,7 @@
 plot_mv_types(dat)
 }
 \arguments{
-\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
+\item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
 }
 \description{
 Barplot of metabolomics numbers

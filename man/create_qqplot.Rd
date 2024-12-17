@@ -7,7 +7,7 @@
 create_qqplot(dat, metabolite)
 }
 \arguments{
-\item{metabolite}{The name of metabolite of interest.}
+\item{metabolite}{A name of metabolite of interest.}
 }
 \description{
 Qqplots of individual metabolite values before and after imputation

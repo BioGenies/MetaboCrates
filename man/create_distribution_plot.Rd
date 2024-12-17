@@ -7,11 +7,11 @@
 create_distribution_plot(dat, metabolite, type = "histogram", bins = 30)
 }
 \arguments{
-\item{metabolite}{The name of metabolite of interest.}
+\item{metabolite}{A name of metabolite of interest.}
 
-\item{type}{Type of the plot. Can be "histogram" (default) or "density".}
+\item{type}{A type of the plot. Can be "histogram" (default) or "density".}
 
-\item{bins}{Number of bins for the histogram plot, 30 if not specified.}
+\item{bins}{The number of bins for the histogram plot, 30 if not specified.}
 }
 \description{
 This function creates histograms of metabolite values before and after

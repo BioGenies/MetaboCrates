@@ -7,7 +7,7 @@
 create_PCA_plot(dat, type = "sample_type", threshold = NULL)
 }
 \arguments{
-\item{type}{a character denoting which type of PCA plot should be created.
+\item{type}{A character denoting which type of PCA plot should be created.
 Default is "sample_type", which makes a plot for quality control. Type
 "group" creates a PCA plot with respect to the groups of samples with type
 'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.}

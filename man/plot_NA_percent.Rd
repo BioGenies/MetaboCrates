@@ -7,9 +7,9 @@
 plot_NA_percent(dat, type = "joint")
 }
 \arguments{
-\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
+\item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
 
-\item{type}{a character denoting which type of plot should be made. This
+\item{type}{A character denoting which type of plot should be made. This
 function accepts either "joint", "NA_type" or "group".
 Default type is "joint", which creates plot of missing values percents
 in each metabolite. Types "NA_type" and "group" add the division into
