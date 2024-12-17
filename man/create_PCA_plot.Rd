@@ -4,13 +4,17 @@
 \alias{create_PCA_plot}
 \title{PCA plot}
 \usage{
-create_PCA_plot(dat, type = "sample_type")
+create_PCA_plot(dat, type = "sample_type", threshold = NULL)
 }
 \arguments{
 \item{type}{a character denoting which type of PCA plot should be created.
 Default is "sample_type", which makes a plot for quality control. Type
 "group" creates a PCA plot with respect to the groups of samples with type
-'Sample'.}
+'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.}
+
+\item{threshold}{A value indicating the minimum correlation between
+a variable and any component, required for this  variable to be included
+on the PCA biplot.}
 }
 \description{
 PCA plot
@@ -20,6 +24,7 @@ path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
 create_PCA_plot(dat)
+create_PCA_plot(dat, type = "biplot", 0)
 dat <- add_group(dat, "group")
 dat <- complete_data(dat, "limit", "limit", "limit")
 create_PCA_plot(dat, type = "group")
