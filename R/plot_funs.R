@@ -21,8 +21,8 @@ metabocrates_theme <- function(){
 #' @keywords internal
 
 metabocrates_palette <- function(n){
-  colors <- c("#54F3D3", "#2B2A29", "#25695B", "#BBBBBB", "#676767", "#A49166",
-              "#766847", "#C2B687", "#FFEA8F", "#95C7BB", "#ADC795", "#BA7B28")
+  colors <- c("#54F3D3", "#2B2A29", "#0997fd", "#DCFFDB", "#FFEA8F", "#BA7B28",
+              "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
   
   colorRampPalette(colors)(n)
 }
@@ -48,9 +48,9 @@ scale_fill_metabocrates_discrete <- function(n = 12, ...){
 #' @keywords internal
 
 scale_color_metabocrates_continuous <- function(){
-  scale_color_gradient2(low = "#54F3D3", 
-                       mid = "#25695B",
-                       high = "#2B2A29")
+  scale_color_gradient2(low = "#c2fff3",
+                        mid = "#54F3D3",
+                        high = "#2B2A29")
 }
 
 #' Metabocrates scale fill continuous
@@ -58,9 +58,9 @@ scale_color_metabocrates_continuous <- function(){
 #' @keywords internal
 
 scale_fill_metabocrates_continuous <- function(){
-  scale_fill_gradient2(low = "#54F3D3", 
-                        mid = "#25695B",
-                        high = "#2B2A29")
+  scale_fill_gradient2(low = "#c2fff3",
+                       mid = "#54F3D3",
+                       high = "#2B2A29")
 }
 
 #' Barplot of groups sizes
@@ -129,6 +129,8 @@ plot_mv_types <- function(dat) {
 #' Barplot of missing values percents
 #' 
 #' @importFrom scales percent
+#' @importFrom plotly ggplotly
+#' @importFrom plotly style
 #' 
 #' @inheritParams plot_mv_types
 #' 
@@ -158,40 +160,75 @@ plot_NA_percent <- function(dat, type = "joint"){
              attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
                filter(NA_frac > 0) %>% 
                group_by(metabolite) %>% 
-               summarise(NA_frac = sum(NA_frac)) %>% 
-               mutate(labels = paste0(round(NA_frac * 100, 1), " %")) %>% 
-               ggplot(aes(x = NA_frac, y = metabolite, label = labels)) +
-               geom_col(width = 0.5, alpha = 0.7, fill = "#2B2A29")
+               summarise(total_NA_frac = sum(NA_frac)) %>% 
+               mutate(labels = paste0(round(total_NA_frac * 100, 1), " %")) %>% 
+               ggplot(aes(x = total_NA_frac,
+                          y = reorder(metabolite, total_NA_frac))) +
+               geom_col(width = 0.5, fill = "#2B2A29") +
+               geom_text(aes(label = labels, x = total_NA_frac + 0.01), 
+                         size = 3, hjust = 0, color = "black")
            },
            "NA_type" = {
-             attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
-               filter(NA_frac > 0) %>% 
-               mutate(labels = paste0(round(NA_frac * 100, 1), " %")) %>% 
-               ggplot(aes(x = NA_frac, y = metabolite,
-                          fill = type, color = type, label = labels)) +
-               geom_col(width = 0.5, alpha = 0.7) +
+             dat_NA_type <- attr(dat, "NA_info")[["NA_ratios_type"]] %>%
+               filter(NA_frac > 0) %>%
+               group_by(metabolite) %>%
+               mutate(total_NA_frac = sum(NA_frac),
+                      labels = paste0(round(total_NA_frac * 100, 1), " %")) %>%
+               group_by(metabolite, type) %>%
+               mutate(tooltip = paste0("Type: ", type, "<br>NA Fraction: ",
+                                       round(NA_frac * 100, 1), "%"))
+             
+             ggplot(dat_NA_type,
+                    aes(x = NA_frac, y = reorder(metabolite, total_NA_frac),
+                        fill = type, text = tooltip)) +
+               geom_col(width = 0.5) +
+               geom_text(data = distinct(dat_NA_type, metabolite,
+                                         total_NA_frac, labels, tooltip), 
+                         aes(label = labels, x = total_NA_frac + 0.01), 
+                         size = 3, color = "black") +
                labs(fill = "Missing values types")
            },
            "group" = {
-             attr(dat, "NA_info")[["NA_ratios_group"]] %>% 
-               filter(NA_frac > 0) %>% 
-               mutate(labels = paste0(round(NA_frac * 100, 1), " %"),
+             total_NA_dat <- attr(dat, "NA_info")[["NA_ratios_type"]] %>%
+               filter(NA_frac > 0) %>% select(metabolite, NA_frac) %>%
+               group_by(metabolite) %>%
+               mutate(total_NA_frac = sum(NA_frac),
+                      labels = paste0(round(total_NA_frac * 100, 1), " %")) %>%
+               distinct(metabolite, total_NA_frac, labels)
+             
+             dat_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>% 
+               filter(NA_frac > 0) %>%
+               left_join(total_NA_dat, by = "metabolite") %>%
+               mutate(tooltip = paste0("Group level: ", grouping_column,
+                                       "<br>NA Fraction: ",
+                                       round(NA_frac * 100, 1), " %"),
                       grouping_column = as.character(grouping_column),
-                      NA_frac = NA_frac/length(unique(grouping_column))) %>% 
-               ggplot(aes(x = NA_frac, y = metabolite, fill = grouping_column,
-                          color = grouping_column, label = labels)) +
-               geom_col(width = 0.5, alpha = 0.7) +
+                      NA_frac = NA_frac/length(unique(grouping_column)))
+             
+             ggplot(dat_group,
+                    aes(x = NA_frac, y = reorder(metabolite, total_NA_frac),
+                          fill = grouping_column, text = tooltip)) +
+               geom_col(width = 0.5) +
+               geom_text(data = distinct(dat_group, metabolite, total_NA_frac,
+                                         labels, grouping_column, tooltip), 
+                         aes(label = labels, x = total_NA_frac + 0.01), 
+                         size = 3, hjust = 0, color = "black") +
                labs(fill = "Group levels")
            })
   
-  ggplot_obj +
-    geom_text(size = 2.6, position = position_stack(vjust = 0.5),
-              color = "black") +
+  plt <- ggplot_obj +
     labs(x = "% Missing in metabolite", y = "Metabolite") +
-    scale_x_continuous(labels = scales::percent) +
+    scale_x_continuous(labels = scales::percent, expand = c(0, 0.18)) +
     scale_fill_metabocrates_discrete() +
-    scale_color_metabocrates_discrete(guide = "none") +
     metabocrates_theme()
+  
+  if(type == "joint"){
+    ggplotly(plt, tooltip = NULL) %>%
+      style(textposition = "right")
+  }else{
+    ggplotly(plt, tooltip = "text") %>%
+    style(textposition = "right", hoverinfo = "none", traces = c(4:6))
+  }
 }
 
 #' Heatmap of missing metabolites values
@@ -222,9 +259,9 @@ plot_heatmap <- function(dat){
 #' This function creates histograms of metabolite values before and after
 #' imputation or density plots with the sample limit of detection.
 #' 
-#' @param metabolite The name of metabolite of interest.
-#' @param bins Number of bins for the histogram plot, 30 if not specified.
-#' @param type Type of the plot. Can be "histogram" (default) or "density".
+#' @param metabolite a name of metabolite of interest.
+#' @param bins a number of bins for the histogram plot, 30 if not specified.
+#' @param type a type of the plot. Can be "histogram" (default) or "density".
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -291,7 +328,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
 
 #' Boxplots of individual metabolite values before and after imputation
 #' 
-#' @param metabolite The name of metabolite of interest.
+#' @param metabolite a name of metabolite of interest.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -335,7 +372,7 @@ create_boxplot <- function(dat, metabolite){
 
 #' Qqplots of individual metabolite values before and after imputation
 #' 
-#' @param metabolite The name of metabolite of interest.
+#' @param metabolite a name of metabolite of interest.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -413,9 +450,9 @@ create_correlations_heatmap <- function(dat){
 #' vertical dashed line indicating the Limit of Detection (LOD) cutoff. The LOD 
 #' value is derived from the `LOD_table` attribute of the `dat` object.
 #'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. The 
+#' @param dat a `raw_data` object, the output of the [read_data()] function. The 
 #' data should contain the metabolite values and LOD information.
-#' @param metabolite_name A character string specifying the name of the 
+#' @param metabolite_name a character string specifying the name of the 
 #' metabolite for which the histogram should be created.
 #'
 #'
@@ -506,12 +543,12 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #' 
 #' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
 #'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. 
+#' @param dat a `raw_data` object, the output of the [read_data()] function. 
 #' The data should be completed and filtered to include only samples of type 
 #' "Sample".
-#' @param threshold A value indicating the maximum cumulative variance
+#' @param threshold a value indicating the maximum cumulative variance
 #' of components to display.
-#' #' @param max_num An optional parameter indicating the maximum number
+#' #' @param max_num an optional parameter indicating the maximum number
 #' of components to display.
 #' 
 #' @examples
@@ -561,22 +598,29 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' @param type a character denoting which type of PCA plot should be created.
 #' Default is "sample_type", which makes a plot for quality control. Type
 #' "group" creates a PCA plot with respect to the groups of samples with type
-#' 'Sample'.
+#' 'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.
+#' @param threshold A value indicating the minimum correlation between
+#' a variable and any component, required for this  variable to be included
+#' on the PCA biplot.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat)
+#' create_PCA_plot(dat, type = "biplot", 0)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat, type = "group")
 #' 
 #' @export
 
-create_PCA_plot <- function(dat, type = "sample_type"){
+create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
   if(type == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
+  
+  if(type == "biplot" & is.null(threshold))
+    stop("Provide a threshold.")
   
   if(is.null(attr(dat, "completed")))
     stop("Complete the missing values in data first.")
@@ -584,33 +628,63 @@ create_PCA_plot <- function(dat, type = "sample_type"){
   mod_dat <- attr(dat, "completed") %>%
     drop_na(all_of(attr(dat, "metabolites")))
   
-  mod_dat <- switch(type,
-                    "sample_type" = rename(mod_dat,
-                                           sample_type = `sample type`),
-                    "group" = mod_dat %>%
-                      filter(`sample type` == "Sample") %>%
-                      mutate(group = as.factor(get(attr(dat, "group")))))
+  if(type == "group"){
+    mod_dat <- mod_dat %>%
+      filter(`sample type` == "Sample") %>%
+      mutate(group = as.factor(get(attr(dat, "group"))))
+  }else{
+    mod_dat <- rename(mod_dat, sample_type = `sample type`)
+  }
+  
+  col_type <- ifelse(type == "biplot", "sample_type", type)
   
   metabo_dat <- mod_dat %>%
-    mutate(across(all_of(type), ~ factor(., ordered = TRUE))) %>%
+    mutate(across(all_of(col_type), ~ factor(., ordered = TRUE))) %>%
     select(all_of(attr(dat, "metabolites"))) %>%
     select(where(~ n_distinct(.) > 1))
   
   if(ncol(metabo_dat) == 0)
     stop("No samples without missing values found.")
   
+  pca_metabolites <- colnames(metabo_dat)
+  
   colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
   
-  prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit) %>%
-    autoplot(data = mod_dat, color = type,
-             frame = TRUE, frame.type = "norm") +
-    scale_color_metabocrates_discrete(
+  pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
+                  "#2980B9", "#27AE60", "#D35400")
+  
+  
+  pca_res <- prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit)
+  
+  pca_plot <- pca_res %>%
+    autoplot(data = mod_dat, color = col_type,
+             frame = TRUE, frame.type = "norm", loadings = TRUE,
+             loadings.label = TRUE) +
+    scale_color_manual(values = pca_colors,
       name = ifelse(type == "sample_type", "Sample types", "Group levels")
       ) +
-    scale_fill_metabocrates_discrete(
+    scale_fill_manual(values = pca_colors,
       name = ifelse(type == "sample_type", "Sample types", "Group levels")
       ) +
     metabocrates_theme()
+  
+  if(type == "biplot"){
+    loadings <- as.data.frame(pca_res[["rotation"]]) %>%
+      select(PC1, PC2) %>%
+      mutate(Variable = pca_metabolites,
+             `Variance explained` = pca_res[["sdev"]]) %>%
+      filter(if_any(PC1:PC2, ~ abs(.) >= threshold))
+#    %>%
+#      mutate(across(PC1:PC2, ~ . * `Variance explained`))
+    
+    pca_plot +
+      geom_segment(data = loadings, aes(x = 0, y = 0, xend = PC1, yend = PC2), 
+                   arrow = arrow(length = unit(0.1, "cm")),
+                   colour = "black", inherit.aes = FALSE) +
+      geom_text(data = loadings,
+                aes(x = PC1 * 1.1, y = PC2 * 1.1, label = Variable),
+                colour = "black", size = 4, inherit.aes = FALSE)
+  }
 }
 
 #' Beeswarm Plot of Metabolite Values
