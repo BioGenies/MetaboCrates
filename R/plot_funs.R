@@ -99,7 +99,7 @@ plot_groups <- function(dat){
 #' 
 #' @import ggplot2
 #' 
-#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function
+#' @param dat A \code{\link{raw_data}} object. Output of [read_data()] function
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -134,7 +134,7 @@ plot_mv_types <- function(dat) {
 #' 
 #' @inheritParams plot_mv_types
 #' 
-#' @param type a character denoting which type of plot should be made. This 
+#' @param type A character denoting which type of plot should be made. This 
 #' function accepts either "joint", "NA_type" or "group".
 #' Default type is "joint", which creates plot of missing values percents
 #' in each metabolite. Types "NA_type" and "group" add the division into
@@ -259,9 +259,9 @@ plot_heatmap <- function(dat){
 #' This function creates histograms of metabolite values before and after
 #' imputation or density plots with the sample limit of detection.
 #' 
-#' @param metabolite a name of metabolite of interest.
-#' @param bins a number of bins for the histogram plot, 30 if not specified.
-#' @param type a type of the plot. Can be "histogram" (default) or "density".
+#' @param metabolite A name of metabolite of interest.
+#' @param bins The number of bins for the histogram plot, 30 if not specified.
+#' @param type A type of the plot. Can be "histogram" (default) or "density".
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -328,7 +328,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
 
 #' Boxplots of individual metabolite values before and after imputation
 #' 
-#' @param metabolite a name of metabolite of interest.
+#' @param metabolite A name of metabolite of interest.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -372,7 +372,7 @@ create_boxplot <- function(dat, metabolite){
 
 #' Qqplots of individual metabolite values before and after imputation
 #' 
-#' @param metabolite a name of metabolite of interest.
+#' @param metabolite A name of metabolite of interest.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -450,9 +450,9 @@ create_correlations_heatmap <- function(dat){
 #' vertical dashed line indicating the Limit of Detection (LOD) cutoff. The LOD 
 #' value is derived from the `LOD_table` attribute of the `dat` object.
 #'
-#' @param dat a `raw_data` object, the output of the [read_data()] function. The 
+#' @param dat A `raw_data` object, the output of the [read_data()] function. The 
 #' data should contain the metabolite values and LOD information.
-#' @param metabolite_name a character string specifying the name of the 
+#' @param metabolite_name A character string specifying the name of the 
 #' metabolite for which the histogram should be created.
 #'
 #'
@@ -543,12 +543,12 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 #' 
 #' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
 #'
-#' @param dat a `raw_data` object, the output of the [read_data()] function. 
+#' @param dat A `raw_data` object, the output of the [read_data()] function. 
 #' The data should be completed and filtered to include only samples of type 
 #' "Sample".
-#' @param threshold a value indicating the maximum cumulative variance
+#' @param threshold A value indicating the maximum cumulative variance
 #' of components to display.
-#' #' @param max_num an optional parameter indicating the maximum number
+#' #' @param max_num An optional parameter indicating the maximum number
 #' of components to display.
 #' 
 #' @examples
@@ -595,7 +595,7 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' @import ggfortify
 #' @importFrom tidyr drop_na
 #' 
-#' @param type a character denoting which type of PCA plot should be created.
+#' @param type A character denoting which type of PCA plot should be created.
 #' Default is "sample_type", which makes a plot for quality control. Type
 #' "group" creates a PCA plot with respect to the groups of samples with type
 #' 'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.
