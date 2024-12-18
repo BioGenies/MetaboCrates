@@ -475,6 +475,7 @@ create_correlations_heatmap <- function(dat){
   attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(attr(dat, "metabolites"))) %>%
+    select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0)) %>%
     cor(use = "na.or.complete") %>%
     melt() %>%
     ggplot(aes(x = Var1, y = Var2, fill = value)) +
