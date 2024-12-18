@@ -21,7 +21,7 @@ metabocrates_theme <- function(){
 #' @keywords internal
 
 metabocrates_palette <- function(n){
-  colors <- c("#54F3D3", "#2B2A29", "#0997fd", "#DCFFDB", "#FFEA8F", "#BA7B28",
+  colors <- c("#54F3D3", "#2B2A29", "#09edfd", "#DCFFDB", "#FFEA8F", "#BA7B28",
               "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
   
   colorRampPalette(colors)(n)
@@ -48,8 +48,8 @@ scale_fill_metabocrates_discrete <- function(n = 12, ...){
 #' @keywords internal
 
 scale_color_metabocrates_continuous <- function(){
-  scale_color_gradient2(low = "#c2fff3",
-                        mid = "#54F3D3",
+  scale_color_gradient2(low = "#eafffd",
+                        mid = "#54f3d3",
                         high = "#2B2A29")
 }
 
@@ -58,8 +58,8 @@ scale_color_metabocrates_continuous <- function(){
 #' @keywords internal
 
 scale_fill_metabocrates_continuous <- function(){
-  scale_fill_gradient2(low = "#c2fff3",
-                       mid = "#54F3D3",
+  scale_fill_gradient2(low = "#eafffd",
+                       mid = "#54f3d3",
                        high = "#2B2A29")
 }
 
@@ -256,8 +256,11 @@ plot_heatmap <- function(dat){
 
 #' Histograms or density plots of individual metabolite values before and after imputation
 #' 
-#' This function creates histograms of metabolite values before and after
-#' imputation or density plots with the sample limit of detection.
+#' This function creates density plots of metabolite values before and after
+#' imputation, with the sample limit of detection, or histogram of all values
+#' after imputation against the histogram of only imputed ones.
+#' 
+#' @importFrom patchwork inset_element
 #' 
 #' @param metabolite A name of metabolite of interest.
 #' @param bins The number of bins for the histogram plot, 30 if not specified.
@@ -281,7 +284,6 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
     select(all_of(metabolite)) %>%
     unlist() %>%
     as.numeric() %>%
-    na.omit() %>%
     as.data.frame()
   
   colnames(uncomp_metabo_vals) <- metabolite
@@ -292,38 +294,77 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
   
   switch(type,
          "histogram" = {
-           plt <- ggplot(uncomp_metabo_vals) +
+           comp_metabo_vals %>%
+             bind_cols("Uncompleted" = uncomp_metabo_vals[[metabolite]]) %>%
+             filter(!is.numeric(Uncompleted) | is.na(Uncompleted)) %>%
+             ggplot() +
              geom_histogram(aes(x = get(metabolite), y = -after_stat(count),
-                                fill = "Uncompleted"), bins = bins,
+                                fill = "Only imputed values"), bins = bins,
                             color = "#2B2A29", alpha = 0.8) +
              geom_histogram(data = comp_metabo_vals,
                             aes(x = get(metabolite), y = after_stat(count),
-                              fill = "Completed"), bins = bins,
-                            color = "#54F3D3", alpha = 0.8) +
-             labs(y = "Count")
+                                fill = "All values after imputation"),
+                            bins = bins, color = "#54F3D3", alpha = 0.8) +
+             labs(y = "Count") +
+             scale_fill_manual(name = NULL,
+                               values = c("Only imputed values" = "#2B2A29",
+                                     "All values after imputation" = "#54F3D3"))+
+             labs(x = metabolite) +
+             metabocrates_theme()
          },
          "density" = {
-           samp_LOD <- min(uncomp_metabo_vals)
+           vline_data <- data.frame(
+             xintercept = min(na.omit(uncomp_metabo_vals)),
+             linetype = "sample LOD"
+           )
            
-           plt <- ggplot(uncomp_metabo_vals) +
-             geom_density(
-               aes(x = get(metabolite), y = after_stat(-density),
-                              fill = "Uncompleted"),
-                            color = "#2B2A29", alpha = 0.8) +
-             geom_density(aes(x = get(metabolite), y = after_stat(density),
+           max_comp_density <- comp_metabo_vals %>%
+             na.omit() %>%
+             summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
+             pull(max_density)
+           
+           plt_comp <- ggplot(comp_metabo_vals) +
+             geom_density(dat = comp_metabo_vals,
+                          aes(x = get(metabolite), y = after_stat(density),
                                 fill = "Completed"),
                             color = "#54F3D3", alpha = 0.8) +
-             geom_vline(xintercept = samp_LOD, color = "#676767",
-                        linetype = "dashed") +
-             labs(y = "Density")
+             geom_vline(data = vline_data,
+                        aes(xintercept = xintercept, linetype = linetype),
+                        color = "#676767") +
+             labs(y = "Density") +
+             scale_fill_manual(name = NULL,
+                               values = c("Uncompleted" = "#2B2A29",
+                                          "Completed" = "#54F3D3")) +
+             scale_linetype_manual(name = NULL,
+                                   values = c("sample LOD" = "dashed")) +
+             coord_cartesian(ylim = c(-max_comp_density, max_comp_density)) +
+             labs(x = metabolite) +
+             metabocrates_theme()
+           
+           plt_uncomp <- ggplot(uncomp_metabo_vals) +
+             geom_density(
+               aes(x = get(metabolite), y = after_stat(-density),
+                   fill = "Uncompleted"),
+               color = "#2B2A29", alpha = 0.8) +
+             geom_vline(data = vline_data,
+                        aes(xintercept = xintercept),
+                        color = "#676767", linetype = "dashed") +
+             scale_fill_manual(name = NULL,
+                               values = c("Uncompleted" = "#2B2A29",
+                                          "Completed" = "#54F3D3")) +
+             metabocrates_theme() +
+             coord_cartesian(xlim = c(min(na.omit(comp_metabo_vals)),
+                                      max(na.omit(comp_metabo_vals)))) +
+             scale_y_continuous(expand = c(0, 0)) +
+             labs(x = metabolite , y = NULL) +
+             theme(plot.margin = margin(t = 0))
+           
+           plt_comp +
+             inset_element(plt_uncomp,
+                           left = 0, right = 1,
+                           top = 0.5, bottom = 0)
          }
   )
-  
-   plt +
-    labs(x = metabolite) +
-    scale_fill_manual(values = c("Uncompleted" = "#2B2A29",
-                                 "Completed" = "#54F3D3")) +
-    metabocrates_theme()
 }
 
 #' Boxplots of individual metabolite values before and after imputation

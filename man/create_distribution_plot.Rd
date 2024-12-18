@@ -14,8 +14,9 @@ create_distribution_plot(dat, metabolite, type = "histogram", bins = 30)
 \item{bins}{The number of bins for the histogram plot, 30 if not specified.}
 }
 \description{
-This function creates histograms of metabolite values before and after
-imputation or density plots with the sample limit of detection.
+This function creates density plots of metabolite values before and after
+imputation, with the sample limit of detection, or histogram of all values
+after imputation against the histogram of only imputed ones.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
