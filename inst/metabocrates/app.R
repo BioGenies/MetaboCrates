@@ -426,6 +426,30 @@ ui <- navbarPage(
                                         br(),
                                         plot_with_button_UI("PCA_plt")  
                                  )
+                        ),
+                        tabPanel("Variance explained",
+                                 column(10, offset = 1,
+                                        br(),
+                                        br(),
+                                        plot_with_button_UI("PCA_variance")
+                                 )
+                        ),
+                        tabPanel("Two metabolites plot",
+                                 column(10, offset = 1,
+                                        br(),
+                                        column(5,
+                                               selectInput("2_metabo_plt_1",
+                                                           "First metabolite",
+                                                           choices = character(0))
+                                        ),
+                                        column(5,
+                                               selectInput("2_metabo_plt_2",
+                                                           "Second metabolite",
+                                                           choices = character(0))
+                                        ),
+                                        br(),
+                                        plot_with_button_UI("2_metabo_plt")
+                                 )
                         )
                       )
                )
@@ -943,6 +967,15 @@ server <- function(input, output, session) {
     updateSelectInput(session, inputId = "sing_metabo_dist",
                        choices =
                          attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_1",
+                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                                        attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_2",
+                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                                        attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))
   })
   
   observeEvent(input[["complete_undo_btn"]], {
@@ -952,6 +985,13 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, inputId = "sing_metabo_dist",
                        choices = c("None"))
+    
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_1",
+                      choices = c("None"))
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_2",
+                      choices = c("None"))
   })
   
   missing_heatmap <- reactive({
@@ -1049,7 +1089,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
   observeEvent(input[["CV_remove_btn"]], {
     req(dat[["metabocrates_dat_group"]])
     req(input[["CV_to_remove"]])
@@ -1059,12 +1098,22 @@ server <- function(input, output, session) {
       metabolites_to_remove = input[["CV_to_remove"]],
       type = "QC"
     )
-    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                               c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                 attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))
     
     updateMultiInput(session, "CV_to_remove", 
-                     choices = metabolites_vec)
+                     choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                       c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                         attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
+    
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_1",
+                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_2",
+                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
   })
   
   
@@ -1076,6 +1125,17 @@ server <- function(input, output, session) {
     
     updateMultiInput(session, "CV_to_remove", 
                      choices = attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_1",
+                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
+    
+    updateSelectInput(session, inputId = "2_metabo_plt_2",
+                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
   })
   
   
@@ -1083,9 +1143,8 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     attr(dat[["metabocrates_dat_group"]], "cv") %>% 
-      filter(!(metabolite %in%
-                 c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                   attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))) %>% 
+      filter(!(metabolite %in% c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                       attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))) %>% 
       arrange(-CV) %>% 
       mutate(`CV [%]` = round(CV*100, 3)) %>%
       select(!CV) %>%
@@ -1096,11 +1155,29 @@ server <- function(input, output, session) {
   
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    
     create_PCA_plot(dat[["metabocrates_dat_group"]], type = "sample_type")
   })
   
-  
   plot_with_button_SERVER("PCA_plt", PCA_plt)
+  
+  PCA_variance <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    pca_variance(dat[["metabocrates_dat_group"]], 0.3, 5)
+  })
+  
+  plot_with_button_SERVER("PCA_variance", PCA_variance)
+  
+  two_metabo_plt <- reactive({
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    
+    create_plot_of_2_metabolites(dat[["metabocrates_dat_group"]],
+                                 input[["2_metabo_plt_1"]],
+                                 input[["2_metabo_plt_2"]])
+  })
+  
+  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt)
   
   ######## Summary
   
