@@ -292,8 +292,19 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
     filter(`sample type` == "Sample") %>%
     select(all_of(metabolite))
   
+  if(all(is.na(uncomp_metabo_vals)) & all(is.na(comp_metabo_vals))) stop()
+  
   switch(type,
          "histogram" = {
+           if(all(is.na(uncomp_metabo_vals)))
+             fill_vals <- c("Only imputed values" = "#54F3D3")
+           
+           else if(all(is.na(comp_metabo_vals)))
+             fill_vals <- c("Uncompleted" = "#2B2A29")
+           
+           else fill_vals <- c("Only imputed values" = "#54F3D3",
+                               "Uncompleted" = "#2B2A29")
+             
            comp_metabo_vals %>%
              bind_cols("Uncompleted" = uncomp_metabo_vals[[metabolite]]) %>%
              filter(!is.numeric(Uncompleted) | is.na(Uncompleted)) %>%
@@ -307,46 +318,34 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
                             bins = bins, color = "#2B2A29", alpha = 0.6) +
              labs(y = "Count") +
              scale_fill_manual(name = NULL,
-                               values = c("Only imputed values" = "#54F3D3",
-                                     "Uncompleted" = "#2B2A29")) +
+                               values = fill_vals) +
              labs(x = metabolite) +
              metabocrates_theme()
          },
          "density" = {
+           if(all(is.na(uncomp_metabo_vals)))
+             fill_vals <- c("Only imputed values" = "#54F3D3")
+           
+           else if(all(is.na(comp_metabo_vals)))
+             fill_vals <- c("Uncompleted" = "#2B2A29")
+           
+           else fill_vals <- c("Only imputed values" = "#54F3D3",
+                               "Uncompleted" = "#2B2A29")
+           
            vline_data <- data.frame(
              xintercept = min(na.omit(uncomp_metabo_vals)),
              linetype = "sample LOD"
            )
-           
-           max_uncomp_density <- uncomp_metabo_vals %>%
-             na.omit() %>%
-             summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
-             pull(max_density)
-           
-           max_comp_density <- comp_metabo_vals %>%
-             na.omit() %>%
-             summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
-             pull(max_density)
            
            plt_comp <- ggplot(comp_metabo_vals) +
              geom_density(dat = comp_metabo_vals,
                           aes(x = get(metabolite), y = after_stat(density),
                                 fill = "Completed"),
                             color = "#54F3D3", alpha = 0.6) +
-             geom_vline(data = vline_data,
-                        aes(xintercept = xintercept, linetype = linetype),
-                        color = "red") +
-             labs(y = "Density") +
              scale_fill_manual(name = NULL,
-                               values = c("Uncompleted" = "#2B2A29",
-                                          "Completed" = "#54F3D3")) +
-             scale_linetype_manual(name = NULL,
-                                   values = c("sample LOD" = "dashed")) +
-             labs(x = metabolite) +
-             coord_cartesian(ylim = c(0, max_comp_density*1.05),
-                             expand = FALSE) +
-             metabocrates_theme() +
-             theme(plot.margin=margin(b=-1,unit="cm"))
+                               values = c("Completed" = "#54F3D3")) +
+             labs(x = metabolite, y = "Density") +
+             metabocrates_theme()
            
            plt_uncomp <- ggplot(uncomp_metabo_vals) +
              geom_density(
@@ -357,22 +356,61 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
                         aes(xintercept = xintercept),
                         color = "red", linetype = "dashed") +
              scale_fill_manual(name = NULL,
-                               values = c("Uncompleted" = "#2B2A29",
-                                          "Completed" = "#54F3D3")) +
+                               values = c("Uncompleted" = "#2B2A29")) +
+             scale_linetype_manual(name = NULL,
+                                   values = c("sample LOD" = "dashed")) +
              metabocrates_theme() +
-             coord_cartesian(xlim = c(min(na.omit(comp_metabo_vals)),
-                                      max(na.omit(comp_metabo_vals))),
-                             ylim = c(max_uncomp_density*-1.05, 0),
-                             expand = FALSE) +
-             labs(x = metabolite , y = "Density") +
-             theme(plot.margin=margin(t=-0.001,unit="cm"))
+             labs(x = metabolite , y = "Density")
+           
+           if(!is.infinite(vline_data[["xintercept"]])){
+             vline <- geom_vline(data = vline_data,
+                                 aes(xintercept = xintercept, linetype = linetype),
+                                 color = "red") +
+               scale_linetype_manual(name = NULL,
+                                     values = c("sample LOD" = "dashed"))
+             
+             plt_comp <- plt_comp + vline
+             
+             plt_uncomp <- plt_uncomp + vline
+           }
            
            custom_layout <- c(area(1, 1), area(2, 1))
            
-           (plt_comp + plt_uncomp) + plot_layout(design = custom_layout,
-                                               axes = "collect",
-                                               axis_titles ="collect",
-                                               guides = "collect")
+           if(all(is.na(uncomp_metabo_vals)))
+             plt_comp
+           
+           else if(all(is.na(comp_metabo_vals)))
+             plt_uncomp
+           
+           else{
+             max_uncomp_density <- uncomp_metabo_vals %>%
+              na.omit() %>%
+              summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
+               pull(max_density)
+           
+             max_comp_density <- comp_metabo_vals %>%
+              na.omit() %>%
+              summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
+              pull(max_density)
+            
+             plt_comp <- plt_comp +
+               coord_cartesian(ylim = c(0, max_comp_density*1.05),
+                               expand = FALSE) +
+               theme(plot.margin=margin(b=-1,unit="cm"))
+             
+             plt_uncomp <- plt_uncomp +
+               coord_cartesian(xlim = c(min(na.omit(comp_metabo_vals)),
+                                        max(na.omit(comp_metabo_vals))),
+                               ylim = c(max_uncomp_density*-1.05, 0),
+                               expand = FALSE) +
+               theme(plot.margin=margin(t=-0.001,unit="cm"))
+               
+               
+             (plt_comp + plt_uncomp) + plot_layout(design = custom_layout,
+                                                      axes = "collect",
+                                                      axis_titles ="collect",
+                                                      guides = "collect")
+           }
          }
   )
 }
