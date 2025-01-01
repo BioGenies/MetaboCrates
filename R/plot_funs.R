@@ -300,15 +300,15 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
              ggplot() +
              geom_histogram(aes(x = get(metabolite), y = -after_stat(count),
                                 fill = "Only imputed values"), bins = bins,
-                            color = "#2B2A29", alpha = 0.8) +
-             geom_histogram(data = comp_metabo_vals,
+                            color = "#2B2A29", alpha = 0.6) +
+             geom_histogram(data = uncomp_metabo_vals,
                             aes(x = get(metabolite), y = after_stat(count),
-                                fill = "All values after imputation"),
-                            bins = bins, color = "#54F3D3", alpha = 0.8) +
+                                fill = "Uncompleted"),
+                            bins = bins, color = "#54F3D3", alpha = 0.6) +
              labs(y = "Count") +
              scale_fill_manual(name = NULL,
                                values = c("Only imputed values" = "#2B2A29",
-                                     "All values after imputation" = "#54F3D3"))+
+                                     "Uncompleted" = "#54F3D3")) +
              labs(x = metabolite) +
              metabocrates_theme()
          },
@@ -327,7 +327,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
              geom_density(dat = comp_metabo_vals,
                           aes(x = get(metabolite), y = after_stat(density),
                                 fill = "Completed"),
-                            color = "#54F3D3", alpha = 0.8) +
+                            color = "#54F3D3", alpha = 0.6) +
              geom_vline(data = vline_data,
                         aes(xintercept = xintercept, linetype = linetype),
                         color = "#676767") +
@@ -345,7 +345,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
              geom_density(
                aes(x = get(metabolite), y = after_stat(-density),
                    fill = "Uncompleted"),
-               color = "#2B2A29", alpha = 0.8) +
+               color = "#2B2A29", alpha = 0.6) +
              geom_vline(data = vline_data,
                         aes(xintercept = xintercept),
                         color = "#676767", linetype = "dashed") +
@@ -491,15 +491,15 @@ create_correlations_heatmap <- function(dat){
 #' This function creates a density plot for a specified metabolite, overlaying a 
 #' vertical dashed line indicating the Limit of Detection (LOD) cutoff. The LOD 
 #' value is derived from the `LOD_table` attribute of the `dat` object.
+#' 
+#' @importFrom ggplot2 ggplot geom_density geom_vline labs aes
+#' @importFrom dplyr filter select mutate
+#'
 #'
 #' @param dat A `raw_data` object, the output of the [read_data()] function. The 
 #' data should contain the metabolite values and LOD information.
 #' @param metabolite_name A character string specifying the name of the 
 #' metabolite for which the histogram should be created.
-#'
-#'
-#' @importFrom ggplot2 ggplot geom_density geom_vline labs aes
-#' @importFrom dplyr filter select mutate
 #'
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -618,15 +618,13 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
     Component = paste0("PC", 1:length(variance_explained)),
     Variance_Explained = variance_explained,
     Cumulative_Variance = cumulative_variance
-  )
-  
-  rel_comp_num <- max(which(variance_df[["Cumulative_Variance"]] <= threshold))
+  ) %>%
+    filter(Component %in% Component[1:(max(which(Cumulative_Variance <= threshold))+1)])
   
   ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
     geom_line(aes(y = Cumulative_Variance), group = 1, color = "#54F3D3") +
     geom_point(aes(y = Cumulative_Variance), color = "#54F3D3") +
-    coord_cartesian(xlim = c(1, rel_comp_num)) +
     labs(x = "Principal component", y = "% Variance explained") +
     scale_y_continuous(labels = scales::percent) +
     metabocrates_theme()
