@@ -871,14 +871,13 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["NA_percent_plt_type"]])
     
-    plot_NA_percent(dat[["metabocrates_dat_group"]], 
-                    type = input[["NA_percent_plt_type"]])
-  })
-  
-  NA_ratios_plt_height <- reactive({
-    req(dat[["metabocrates_dat_group"]])
+    metabo_num <- length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
     
-    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    plot_NA_percent(dat[["metabocrates_dat_group"]], 
+                    type = input[["NA_percent_plt_type"]],
+                    height_svg = max(metabo_num * 22, 400)/96,
+                    width_svg = 11)
+    
   })
   
   plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt,
@@ -900,16 +899,22 @@ server <- function(input, output, session) {
   corr_heatmap_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    create_correlations_heatmap(dat[["metabocrates_dat_group"]])
+    if(length(attr(dat[["metabocrates_dat_group"]], "metabolites")) > 10)
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]], num = 10,
+                                  width_svg = 10, height_svg = 7)
+    else
+      create_correlations_heatmap(corr_dat, width_svg = 10, height_svg = 7)
   })
   
-  corr_heatmap_height <- reactive({
+  full_corr_heatmap_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    if(length(attr(dat[["metabocrates_dat_group"]], "metabolites")) > 10)
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]])
+    else corr_heatmap_plt()
   })
   
-  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, corr_heatmap_height)
+  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
   
   ######### imputation
   
