@@ -48,7 +48,7 @@ scale_fill_metabocrates_discrete <- function(n = 12, ...){
 #' @keywords internal
 
 scale_color_metabocrates_continuous <- function(){
-  scale_color_gradient2(low = "#eafffd",
+  scale_color_gradient2(low = "white",
                         mid = "#54f3d3",
                         high = "#2B2A29")
 }
@@ -58,9 +58,10 @@ scale_color_metabocrates_continuous <- function(){
 #' @keywords internal
 
 scale_fill_metabocrates_continuous <- function(){
-  scale_fill_gradient2(low = "#eafffd",
-                       mid = "#54f3d3",
-                       high = "#2B2A29")
+  scale_fill_gradientn(
+    colours = c("#685009", "#c0a948", "white", "#54f3d3", "#2B2A29"),
+    limits = c(-1,1)
+  )
 }
 
 #' Barplot of groups sizes
@@ -129,8 +130,7 @@ plot_mv_types <- function(dat) {
 #' Barplot of missing values percents
 #' 
 #' @importFrom scales percent
-#' @importFrom plotly ggplotly
-#' @importFrom plotly style
+#' @importFrom ggiraph girafe geom_col_interactive opts_tooltip opts_toolbar opts_sizing
 #' 
 #' @inheritParams plot_mv_types
 #' 
@@ -143,14 +143,14 @@ plot_mv_types <- function(dat) {
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' plot_NA_percent(dat)
-#' plot_NA_percent(dat, "NA_type")
+#' print(plot_NA_percent(dat))
+#' print(plot_NA_percent(dat, "NA_type"))
 #' dat <- add_group(dat, "group")
-#' plot_NA_percent(dat, "group")
+#' print(plot_NA_percent(dat, "group"))
 #' 
 #' @export
 
-plot_NA_percent <- function(dat, type = "joint"){
+plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
   if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
   
@@ -180,12 +180,10 @@ plot_NA_percent <- function(dat, type = "joint"){
              
              ggplot(dat_NA_type,
                     aes(x = NA_frac, y = reorder(metabolite, total_NA_frac),
-                        fill = type, text = tooltip)) +
-               geom_col(width = 0.5) +
-               geom_text(data = distinct(dat_NA_type, metabolite,
-                                         total_NA_frac, labels, tooltip), 
-                         aes(label = labels, x = total_NA_frac + 0.01), 
-                         size = 3, color = "black") +
+                        fill = type, tooltip = tooltip)) +
+               geom_col_interactive(width = 0.5) +
+               geom_text(aes(label = labels, x = total_NA_frac + 0.01),
+                         hjust = 0, size = 3, color = "black") +
                labs(fill = "Missing values types")
            },
            "group" = {
@@ -207,11 +205,9 @@ plot_NA_percent <- function(dat, type = "joint"){
              
              ggplot(dat_group,
                     aes(x = NA_frac, y = reorder(metabolite, total_NA_frac),
-                          fill = grouping_column, text = tooltip)) +
-               geom_col(width = 0.5) +
-               geom_text(data = distinct(dat_group, metabolite, total_NA_frac,
-                                         labels, grouping_column, tooltip), 
-                         aes(label = labels, x = total_NA_frac + 0.01), 
+                          fill = grouping_column, tooltip = tooltip)) +
+               geom_col_interactive(width = 0.5) +
+               geom_text(aes(label = labels, x = total_NA_frac + 0.01), 
                          size = 3, hjust = 0, color = "black") +
                labs(fill = "Group levels")
            })
@@ -222,13 +218,14 @@ plot_NA_percent <- function(dat, type = "joint"){
     scale_fill_metabocrates_discrete() +
     metabocrates_theme()
   
-  if(type == "joint"){
-    ggplotly(plt, tooltip = NULL) %>%
-      style(textposition = "right")
-  }else{
-    ggplotly(plt, tooltip = "text") %>%
-    style(textposition = "right", hoverinfo = "none", traces = c(4:6))
-  }
+  girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+              options = list(
+              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                           opacity = 0.9,
+                           use_fill = TRUE),
+              opts_toolbar(saveaspng = FALSE),
+              opts_sizing(rescale = FALSE)
+              ))
 }
 
 #' Heatmap of missing metabolites values
@@ -507,33 +504,54 @@ create_qqplot <- function(dat, metabolite){
 #' 
 #' @importFrom stringr str_trunc
 #' @importFrom reshape2 melt
+#' @importFrom ggiraph geom_tile_interactive
+#' 
+#' @param num number of metabolites to display
+#' @param width_svg width of plot in inches
+#' @param height_svg height of plot in inches
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_correlations_heatmap(dat)
+#' print(create_correlations_heatmap(dat))
 #' 
 #' @export
 
-create_correlations_heatmap <- function(dat){
+create_correlations_heatmap <- function(dat, num = "all", width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
-  attr(dat, "completed") %>%
+  filtered_dat <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(attr(dat, "metabolites"))) %>%
-    select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0)) %>%
+    select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
+  
+  plt <- filtered_dat %>%
+    select(all_of(colnames(filtered_dat)[1:ifelse(num == "all",
+                                                length(colnames(filtered_dat)),
+                                                num)])) %>%
     cor(use = "na.or.complete") %>%
     melt() %>%
-    ggplot(aes(x = Var1, y = Var2, fill = value)) +
-    geom_tile() +
+    mutate(tooltip = paste0("Metabolite 1: ", Var1,
+                            "<br>Metabolite 2: ", Var2,
+                            "<br>Correlation coefficient:", round(value, 3))) %>%
+    ggplot(aes(x = Var1, y = Var2, fill = value, tooltip = tooltip)) +
+    geom_tile_interactive() +
     scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
     scale_y_discrete(labels = function(x) str_trunc(x, 10)) +
     labs(x = "Metabolite", y = "Metabolite") +
     metabocrates_theme() +
     theme(axis.text.x = element_text(angle = 90)) +
     scale_fill_metabocrates_continuous()
+  
+  girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+         options = list(
+           opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                        opacity = 0.9),
+           opts_toolbar(saveaspng = FALSE),
+           opts_sizing(rescale = FALSE)
+         ))
 }
 
 #' This function creates a density plot for a specified metabolite, overlaying a 

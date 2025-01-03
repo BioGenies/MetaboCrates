@@ -4,7 +4,14 @@
 \alias{create_correlations_heatmap}
 \title{Heatmap of correlations between metabolites}
 \usage{
-create_correlations_heatmap(dat)
+create_correlations_heatmap(dat, num = "all", width_svg = 6, height_svg = 5)
+}
+\arguments{
+\item{num}{number of metabolites to display}
+
+\item{width_svg}{width of plot in inches}
+
+\item{height_svg}{height of plot in inches}
 }
 \description{
 Heatmap of correlations between metabolites
@@ -13,6 +20,6 @@ Heatmap of correlations between metabolites
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_correlations_heatmap(dat)
+print(create_correlations_heatmap(dat))
 
 }

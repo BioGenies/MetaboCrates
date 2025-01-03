@@ -41,7 +41,7 @@ Imports: dplyr,
          stringr,
          tidyr,
          tools,
-         plotly
+         ggiraph
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3

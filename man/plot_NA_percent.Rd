@@ -4,7 +4,7 @@
 \alias{plot_NA_percent}
 \title{Barplot of missing values percents}
 \usage{
-plot_NA_percent(dat, type = "joint")
+plot_NA_percent(dat, type = "joint", width_svg = 6, height_svg = 5)
 }
 \arguments{
 \item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
@@ -21,9 +21,9 @@ Barplot of missing values percents
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-plot_NA_percent(dat)
-plot_NA_percent(dat, "NA_type")
+print(plot_NA_percent(dat))
+print(plot_NA_percent(dat, "NA_type"))
 dat <- add_group(dat, "group")
-plot_NA_percent(dat, "group")
+print(plot_NA_percent(dat, "group"))
 
 }
