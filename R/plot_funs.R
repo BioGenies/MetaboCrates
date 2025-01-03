@@ -689,10 +689,16 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
   
   ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
-    geom_line(aes(y = Cumulative_Variance), group = 1, color = "#54F3D3") +
-    geom_point(aes(y = Cumulative_Variance), color = "#54F3D3") +
+    geom_line(aes(y = Cumulative_Variance, color = "cumulative variance"),
+              group = 1) +
+    geom_point(aes(y = Cumulative_Variance, color = "cumulative variance")) +
+    geom_hline(aes(yintercept = threshold, color = "threshold"),
+               linetype = "dashed") +
     labs(x = "Principal component", y = "% Variance explained") +
     scale_y_continuous(labels = scales::percent) +
+    scale_color_manual(name = NULL,
+                       values = c("cumulative variance" = "#54F3D3",
+                                  "threshold" = "red")) +
     metabocrates_theme()
 }
 
