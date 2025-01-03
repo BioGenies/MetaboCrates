@@ -714,7 +714,7 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat)
-#' create_PCA_plot(dat, type = "biplot", 0)
+#' create_PCA_plot(dat, type = "biplot", 0.3)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat, type = "group")
@@ -764,8 +764,7 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
   
   pca_plot <- pca_res %>%
     autoplot(data = mod_dat, color = col_type,
-             frame = TRUE, frame.type = "norm", loadings = TRUE,
-             loadings.label = TRUE) +
+             frame = TRUE, frame.type = "norm") +
     scale_color_manual(values = pca_colors,
       name = ifelse(type == "sample_type", "Sample types", "Group levels")
       ) +
@@ -775,22 +774,21 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
     metabocrates_theme()
   
   if(type == "biplot"){
-    loadings <- as.data.frame(pca_res[["rotation"]]) %>%
+    as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites,
              `Variance explained` = pca_res[["sdev"]]) %>%
-      filter(if_any(PC1:PC2, ~ abs(.) >= threshold))
-#    %>%
-#      mutate(across(PC1:PC2, ~ . * `Variance explained`))
-    
-    pca_plot +
-      geom_segment(data = loadings, aes(x = 0, y = 0, xend = PC1, yend = PC2), 
+      filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
+      ggplot() +
+      geom_segment(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                    arrow = arrow(length = unit(0.1, "cm")),
-                   colour = "black", inherit.aes = FALSE) +
-      geom_text(data = loadings,
-                aes(x = PC1 * 1.1, y = PC2 * 1.1, label = Variable),
-                colour = "black", size = 4, inherit.aes = FALSE)
-  }
+                   colour = "black") +
+      geom_text(aes(x = PC1 + 0.04*ifelse(PC1 < 0, -1, 1),
+                    y = PC2 + 0.04*ifelse(PC2 < 0, -1, 1), label = Variable),
+                colour = "black", size = 4) +
+      labs(x = "PC1", y = "PC2") +
+      metabocrates_theme()
+  }else pca_plot
 }
 
 #' Beeswarm Plot of Metabolite Values
