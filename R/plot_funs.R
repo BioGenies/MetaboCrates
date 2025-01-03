@@ -674,7 +674,7 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
   data <- data[complete.cases(data),
                sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
   
-  pca_result <- prcomp(data, scale. = TRUE, center = TRUE, rank. = max_num)
+  pca_result <- prcomp(data, scale. = TRUE, center = TRUE)
   
   variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
   
@@ -686,6 +686,11 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
     Cumulative_Variance = cumulative_variance
   ) %>%
     filter(Component %in% Component[1:(max(which(Cumulative_Variance <= threshold))+1)])
+  
+  if(!is.null(max_num)){
+    variance_df <- variance_df %>%
+      filter(row_number() <= max_num)
+  }
   
   ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
