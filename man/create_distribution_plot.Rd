@@ -23,6 +23,6 @@ path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
 create_distribution_plot(dat, "C0")
-create_distribution_plot(dat, "C0", type = "density")
+create_distribution_plot(dat, "C3", type = "density")
 
 }

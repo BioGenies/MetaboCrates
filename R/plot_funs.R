@@ -335,8 +335,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
            )
            
            plt_comp <- ggplot(comp_metabo_vals) +
-             geom_density(dat = comp_metabo_vals,
-                          aes(x = get(metabolite), y = after_stat(density),
+             geom_density(aes(x = get(metabolite), y = after_stat(density),
                                 fill = "Completed"),
                             color = "#54F3D3", alpha = 0.6) +
              scale_fill_manual(name = NULL,
@@ -354,24 +353,24 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
                         color = "red", linetype = "dashed") +
              scale_fill_manual(name = NULL,
                                values = c("Uncompleted" = "#2B2A29")) +
-             scale_linetype_manual(name = NULL,
-                                   values = c("sample LOD" = "dashed")) +
-             metabocrates_theme() +
-             labs(x = metabolite , y = "Density")
+             labs(x = metabolite , y = "Density") +
+             metabocrates_theme()
            
            if(!is.infinite(vline_data[["xintercept"]])){
-             vline <- geom_vline(data = vline_data,
-                                 aes(xintercept = xintercept, linetype = linetype),
-                                 color = "red") +
+             plt_comp <- plt_comp +
+               geom_vline(data = vline_data,
+                          aes(xintercept = xintercept, linetype = linetype),
+                          color = "red") +
                scale_linetype_manual(name = NULL,
                                      values = c("sample LOD" = "dashed"))
              
-             plt_comp <- plt_comp + vline
-             
-             plt_uncomp <- plt_uncomp + vline
+             plt_uncomp <- plt_uncomp +
+               geom_vline(data = vline_data,
+                          aes(xintercept = xintercept, linetype = linetype),
+                          color = "red") +
+               scale_linetype_manual(name = NULL,
+                                     values = c("sample LOD" = "dashed"))
            }
-           
-           custom_layout <- c(area(1, 1), area(2, 1))
            
            if(all(is.na(uncomp_metabo_vals)))
              plt_comp
@@ -401,7 +400,8 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
                                ylim = c(max_uncomp_density*-1.05, 0),
                                expand = FALSE) +
                theme(plot.margin=margin(t=-0.001,unit="cm"))
-               
+             
+             custom_layout <- c(area(1, 1), area(2, 1))
                
              (plt_comp + plt_uncomp) + plot_layout(design = custom_layout,
                                                       axes = "collect",
