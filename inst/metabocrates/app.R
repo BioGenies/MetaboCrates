@@ -421,21 +421,25 @@ ui <- navbarPage(
                                         table_with_button_UI("CV_tbl"))
                         ),
                         tabPanel("PCA",
-                                 column(4, offset = 1,
+                                 column(5, offset = 0.5,
                                         br(),
                                         radioButtons("PCA_type",
                                                      label = "Select PCA plot type:",
                                                      choices = c("sample type",
-                                                                 "group", "biplot"))
+                                                                 "group", "biplot"),
+                                                     inline = TRUE)
                                  ),
-                                 column(4, offset = 1,
+                                 column(4, offset = 0.5,
                                         br(),
-                                        numericInput(
-                                          inputId = "PCA_threshold",
-                                          label = "Threshold for biplot [%]:",
-                                          value = 30,
-                                          min = 0,
-                                          max = 100)
+                                        conditionalPanel(
+                                          condition = "input.PCA_type == `biplot`",
+                                          numericInput(
+                                            inputId = "PCA_threshold",
+                                            label = "threshold [%]",
+                                            value = 30,
+                                            min = 0,
+                                            max = 100)
+                                        )
                                  ),
                                  column(10, offset = 1,
                                         br(),
@@ -443,8 +447,22 @@ ui <- navbarPage(
                                  )
                         ),
                         tabPanel("Variance explained",
-                                 column(10, offset = 1,
+                                 column(3, offset = 0.5,
                                         br(),
+                                        numericInput("PCA_variance_threshold",
+                                                     label = "threshold [%]",
+                                                     value = 80,
+                                                     min = 0,
+                                                     max = 100)
+                                 ),
+                                 column(6, offset = 0.5,
+                                        br(),
+                                        numericInput("PCA_variance_max_num",
+                                                    label = "maximum number of principal components",
+                                                    value = 5,
+                                                    min = 1)
+                                 ),
+                                 column(10, offset = 1,
                                         br(),
                                         plot_with_button_UI("PCA_variance")
                                  )
@@ -918,7 +936,8 @@ server <- function(input, output, session) {
       create_correlations_heatmap(dat[["metabocrates_dat_group"]], num = 10,
                                   width_svg = 10, height_svg = 7)
     else
-      create_correlations_heatmap(corr_dat, width_svg = 10, height_svg = 7)
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  width_svg = 10, height_svg = 7)
   })
   
   full_corr_heatmap_plt <- reactive({
@@ -1156,6 +1175,14 @@ server <- function(input, output, session) {
                       choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
                                         c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
                                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
+    
+    updateNumericInput(session, inputId = "PCA_variance_max_num",
+                       max = length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                            c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                              attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))),
+                       value = min(c(5, length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
+                                                       c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                                         attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))))))
   })
   
   
@@ -1188,8 +1215,12 @@ server <- function(input, output, session) {
   
   PCA_variance <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["PCA_variance_threshold"]])
+    req(input[["PCA_variance_max_num"]])
     
-    pca_variance(dat[["metabocrates_dat_group"]], 0.3, 5)
+    pca_variance(dat[["metabocrates_dat_group"]],
+                 threshold = input[["PCA_variance_threshold"]]/100,
+                 max_num = input[["PCA_variance_max_num"]])
   })
   
   plot_with_button_SERVER("PCA_variance", PCA_variance)
