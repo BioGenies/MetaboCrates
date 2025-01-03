@@ -118,7 +118,7 @@ ui <- navbarPage(
       tabPanel("Group selection",
                nav_btns_UI("Group selection"),
                column(8,
-                      style = "background-color:#f8f5f0; border-right: 1px solid",
+                      div(style = "background-color:#f8f5f0; border-right: 1px solid"),
                       column(2,
                              h2("(optional)"),
                       ),
@@ -137,12 +137,14 @@ ui <- navbarPage(
                              h3("next: Filtering"),
                              br()),
                ),
-               br(),
-               
-               h3("Selected:"),
-               htmlOutput("selected_group"),
-               
-               column(6,
+               column(3,
+                      style = "background-color:#f8f5f0; border-right: 1px solid; height: 400px",
+                      br(),
+                      br(),
+                      h4("Selected group:"),
+                      div(htmlOutput("selected_group"))
+               ),
+               column(4,
                       br(),
                       table_with_button_UI("group_columns")
                ),
@@ -784,8 +786,8 @@ server <- function(input, output, session) {
                          inline = TRUE)
       
       group_name <- HTML(
-        paste0(group_name, ", <br/> 
-               Levels: ", paste0(sort(unique(group_col_samples)), collapse = ", "))
+        paste0(group_name, "<br/><br/>
+               <span style = `font-size:18px`>Levels:<span><br/>", paste0(sort(unique(group_col_samples)), collapse = "</br>"))
       )
     } else {
       req(NULL)
