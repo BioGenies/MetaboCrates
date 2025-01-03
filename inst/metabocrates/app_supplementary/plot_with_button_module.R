@@ -1,7 +1,7 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  if(id == "NA_ratios_plt") plt <- plotly::plotlyOutput(ns("plot"))
+  if(id %in% c("NA_ratios_plt", "corr_heatmap")) plt <- ggiraph::girafeOutput(ns("plot"))
   else plt <- plotOutput(ns("plot"))
   
   fluidRow(
@@ -43,7 +43,7 @@ plot_with_button_UI <- function(id){
   )
 }
 
-plot_with_button_SERVER <- function(id, plot_reactive, height = "auto"){
+plot_with_button_SERVER <- function(id, plot_reactive, height = "auto", full_plt = NULL){
   moduleServer(id, function(input, output, session){
     height_val <- function(){
       ifelse(is.reactive(height),
@@ -51,8 +51,9 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto"){
              height)
     }
     
-    if(id == "NA_ratios_plt"){
-      output[["plot"]] <- plotly::renderPlotly(plot_reactive())
+    if(id %in% c("NA_ratios_plt", "corr_heatmap")){
+      output[["plot"]] <-
+        ggiraph::renderGirafe(plot_reactive())
     }else{
       output[["plot"]] <- renderPlot(plot_reactive(),
                                      height = function() height_val(),
@@ -67,7 +68,7 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto"){
       },
       content = function(file){
         pdf(file, width = input[["plot_w"]], height = input[["plot_h"]])
-        plot(plot_reactive())
+        plot(ifelse(is.null(full_plt), plot_reactive(), full_plt()))
         dev.off()
       }
     )
