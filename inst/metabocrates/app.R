@@ -421,8 +421,23 @@ ui <- navbarPage(
                                         table_with_button_UI("CV_tbl"))
                         ),
                         tabPanel("PCA",
-                                 column(10, offset = 1,
+                                 column(4, offset = 1,
                                         br(),
+                                        radioButtons("PCA_type",
+                                                     label = "Select PCA plot type:",
+                                                     choices = c("sample type",
+                                                                 "group", "biplot"))
+                                 ),
+                                 column(4, offset = 1,
+                                        br(),
+                                        numericInput(
+                                          inputId = "PCA_threshold",
+                                          label = "Threshold for biplot [%]:",
+                                          value = 30,
+                                          min = 0,
+                                          max = 100)
+                                 ),
+                                 column(10, offset = 1,
                                         br(),
                                         plot_with_button_UI("PCA_plt")  
                                  )
@@ -1160,8 +1175,13 @@ server <- function(input, output, session) {
   
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["PCA_type"]])
+    if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
     
-    create_PCA_plot(dat[["metabocrates_dat_group"]], type = "sample_type")
+    create_PCA_plot(dat[["metabocrates_dat_group"]],
+                    type = ifelse(input[["PCA_type"]] == "sample type",
+                                  "sample_type", input[["PCA_type"]]),
+                    threshold = input[["PCA_threshold"]]/100)
   })
   
   plot_with_button_SERVER("PCA_plt", PCA_plt)
