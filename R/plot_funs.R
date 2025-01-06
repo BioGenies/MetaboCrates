@@ -268,7 +268,7 @@ plot_heatmap <- function(dat){
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_distribution_plot(dat, "C0")
-#' create_distribution_plot(dat, "C0", type = "density")
+#' create_distribution_plot(dat, "C3", type = "density")
 #' 
 #' @export
 
