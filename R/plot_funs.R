@@ -154,11 +154,13 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
   if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
   
+  filtered_dat <- attr(dat, "NA_info")[["NA_ratios_type"]] %>%
+    filter(NA_frac > 0, !(metabolite %in% c(unlist(attr(dat, "removed")))))
+  
   ggplot_obj <- 
     switch(type,
            "joint" = {
-             attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
-               filter(NA_frac > 0) %>% 
+             filtered_dat %>% 
                group_by(metabolite) %>% 
                summarise(total_NA_frac = sum(NA_frac)) %>% 
                mutate(labels = paste0(round(total_NA_frac * 100, 1), " %")) %>% 
@@ -169,8 +171,7 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
                          size = 3, hjust = 0, color = "black")
            },
            "NA_type" = {
-             dat_NA_type <- attr(dat, "NA_info")[["NA_ratios_type"]] %>%
-               filter(NA_frac > 0) %>%
+             dat_NA_type <- filtered_dat %>%
                group_by(metabolite) %>%
                mutate(total_NA_frac = sum(NA_frac),
                       labels = paste0(round(total_NA_frac * 100, 1), " %")) %>%
@@ -187,8 +188,8 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
                labs(fill = "Missing values types")
            },
            "group" = {
-             total_NA_dat <- attr(dat, "NA_info")[["NA_ratios_type"]] %>%
-               filter(NA_frac > 0) %>% select(metabolite, NA_frac) %>%
+             total_NA_dat <- filtered_dat %>%
+               select(metabolite, NA_frac) %>%
                group_by(metabolite) %>%
                mutate(total_NA_frac = sum(NA_frac),
                       labels = paste0(round(total_NA_frac * 100, 1), " %")) %>%
@@ -196,6 +197,8 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
              
              dat_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>% 
                filter(NA_frac > 0) %>%
+               filter(NA_frac > 0,
+                      !(metabolite %in% c(unlist(attr(dat, "removed"))))) %>%
                left_join(total_NA_dat, by = "metabolite") %>%
                mutate(tooltip = paste0("Group level: ", grouping_column,
                                        "<br>NA Fraction: ",
@@ -239,7 +242,8 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
 
 plot_heatmap <- function(dat){
   dat %>%
-    select(all_of(attr(dat, "metabolites"))) %>%
+    select(all_of(setdiff(attr(dat, "metabolites"),
+                          unlist(attr(dat, "removed"))))) %>%
     mutate(Sample = 1:n()) %>%
     pivot_longer(!Sample, names_to = "Metabolite", values_to = "Value") %>%
     mutate(Metabolite = factor(Metabolite, ordered = TRUE),
@@ -248,6 +252,7 @@ plot_heatmap <- function(dat){
     ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
     geom_tile(color = "white") +
     scale_fill_manual(values = c(`FALSE` = "#BBBBBB", `TRUE` = "#2B2A29")) +
+    scale_y_discrete(limits = rev) +
     metabocrates_theme()
 }
 
@@ -518,13 +523,15 @@ create_qqplot <- function(dat, metabolite){
 #' 
 #' @export
 
-create_correlations_heatmap <- function(dat, num = "all", width_svg = 6, height_svg = 5){
+create_correlations_heatmap <- function(dat, num = "all",
+                                        width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
   filtered_dat <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(attr(dat, "metabolites"))) %>%
+    select(all_of(setdiff(attr(dat, "metabolites"),
+                          unlist(attr(dat, "removed"))))) %>%
     select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
   
   plt <- filtered_dat %>%
@@ -533,8 +540,8 @@ create_correlations_heatmap <- function(dat, num = "all", width_svg = 6, height_
                                                 num)])) %>%
     cor(use = "na.or.complete") %>%
     melt() %>%
-    mutate(tooltip = paste0("Metabolite 1: ", Var1,
-                            "<br>Metabolite 2: ", Var2,
+    mutate(tooltip = paste0("Metabolite 1: ", Var2,
+                            "<br>Metabolite 2: ", Var1,
                             "<br>Correlation coefficient:", round(value, 3))) %>%
     ggplot(aes(x = Var1, y = Var2, fill = value, tooltip = tooltip)) +
     geom_tile_interactive() +
@@ -609,35 +616,49 @@ create_density_with_lod <- function(dat, metabolite_name) {
 #' create_plot_of_2_metabolites(dat, "C0", "C2")
 #' 
 #' @export
-create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
-  plot_data <- attr(dat, "completed") %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(c("plate bar code", metabolite1, metabolite2)))
-  
+create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
   LOD <- attr(dat, "LOD_table") %>%
     filter(type == "LOD (calc.)") %>%
     select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
-    filter(if_all(everything(), ~ . != 0))
+    filter(if_all(everything(), ~ . != 0)) %>%
+    mutate(`LOD plate bar code` = gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1",
+                                   gsub("/", "-", `plate bar code`)))
   
-  LOD["plate bar code"] <- sapply(
-    LOD["plate bar code"], 
-    function(x) gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1", x)
+  plot_data <- attr(dat, "completed") %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
+    rowwise() %>%
+    mutate(`LOD plate bar code` = unique(LOD[["LOD plate bar code"]])
+           [grep(unique(LOD[["LOD plate bar code"]]), `plate bar code`)])
+  
+  combined_data <- bind_rows(LOD, plot_data) %>%
+    group_by(`LOD plate bar code`) %>%
+    reframe(`plate bar code` = unique(`plate bar code`)) %>%
+    group_by(`LOD plate bar code`) %>%
+    mutate(counts = n())
+  
+  unique_counts <- combined_data %>%
+    group_by(counts) %>%
+    summarise(`LOD plate bar code` = unique(`LOD plate bar code`)) %>%
+    select(counts) %>%
+    unlist()
+  
+  values <- rep(
+    metabocrates_palette(1:length(unique(combined_data[["LOD plate bar code"]]))),
+    unique_counts
   )
   
-  grouped_data <- plot_data %>%
-    group_by(`plate bar code`)
-  
-  
-  ggplot(grouped_data, aes(x = get(metabolite1), y = get(metabolite2), 
+  ggplot(plot_data, aes(x = get(metabolite1), y = get(metabolite2),
                            color = `plate bar code`)) +
     geom_point() +
-    geom_hline(data = LOD, aes(yintercept = .data[[paste0(metabolite2)]], 
+    geom_hline(data = LOD, aes(yintercept = get(metabolite2), 
                                color = `plate bar code`), linetype = "dashed") +
-    geom_vline(data = LOD, aes(xintercept = .data[[paste0(metabolite1)]], 
+    geom_vline(data = LOD, aes(xintercept = get(metabolite1), 
                                color = `plate bar code`), linetype = "dashed") +
     labs(x = paste(metabolite1), y = paste(metabolite2)) +
     metabocrates_theme() +
-    scale_color_metabocrates_discrete()
+    scale_color_manual(values = values,
+                       labels = combined_data[["plate bar code"]])
 }
 
 
@@ -669,7 +690,8 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2) {
 pca_variance <- function(dat, threshold, max_num = NULL) {
   data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(attr(dat, "metabolites")))
+    select(all_of(setdiff(attr(dat, "metabolites"),
+                          unlist(attr(dat, "removed")))))
   
   data <- data[complete.cases(data),
                sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
@@ -757,7 +779,8 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
   
   metabo_dat <- mod_dat %>%
     mutate(across(all_of(col_type), ~ factor(., ordered = TRUE))) %>%
-    select(all_of(attr(dat, "metabolites"))) %>%
+    select(all_of(setdiff(attr(dat, "metabolites"),
+                          unlist(attr(dat, "removed"))))) %>%
     select(where(~ n_distinct(.) > 1))
   
   if(ncol(metabo_dat) == 0)
@@ -876,7 +899,7 @@ create_venn_diagram <- function(dat, threshold){
   }
   
   NA_metabo_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
-    filter(!(metabolite %in% attr(dat, "removed")[["LOD"]])) %>% 
+    filter(!(metabolite %in% unlist(attr(dat, "removed")))) %>% 
     pivot_wider(names_from = "grouping_column", values_from = "NA_frac") %>%
     mutate(across(!metabolite, ~ .x >= threshold)) %>%
     select(!metabolite)
