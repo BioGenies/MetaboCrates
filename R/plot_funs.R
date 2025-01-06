@@ -297,21 +297,21 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
              fill_vals <- c("Only imputed values" = "#54F3D3")
            
            else if(all(is.na(comp_metabo_vals)))
-             fill_vals <- c("Uncompleted" = "#2B2A29")
+             fill_vals <- c("Observed" = "#2B2A29")
            
            else fill_vals <- c("Only imputed values" = "#54F3D3",
-                               "Uncompleted" = "#2B2A29")
+                               "Observed" = "#2B2A29")
              
            comp_metabo_vals %>%
-             bind_cols("Uncompleted" = uncomp_metabo_vals[[metabolite]]) %>%
-             filter(!is.numeric(Uncompleted) | is.na(Uncompleted)) %>%
+             bind_cols("Observed" = uncomp_metabo_vals[[metabolite]]) %>%
+             filter(!is.numeric(Observed) | is.na(Observed)) %>%
              ggplot() +
              geom_histogram(aes(x = get(metabolite), y = after_stat(count),
                                 fill = "Only imputed values"), bins = bins,
                             color = "#54F3D3", alpha = 0.6) +
              geom_histogram(data = uncomp_metabo_vals,
                             aes(x = get(metabolite), y = -after_stat(count),
-                                fill = "Uncompleted"),
+                                fill = "Observed"),
                             bins = bins, color = "#2B2A29", alpha = 0.6) +
              labs(y = "Count") +
              scale_fill_manual(name = NULL,
@@ -324,10 +324,10 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
              fill_vals <- c("Only imputed values" = "#54F3D3")
            
            else if(all(is.na(comp_metabo_vals)))
-             fill_vals <- c("Uncompleted" = "#2B2A29")
+             fill_vals <- c("Observed" = "#2B2A29")
            
            else fill_vals <- c("Only imputed values" = "#54F3D3",
-                               "Uncompleted" = "#2B2A29")
+                               "Observed" = "#2B2A29")
            
            vline_data <- data.frame(
              xintercept = min(na.omit(uncomp_metabo_vals)),
@@ -346,13 +346,13 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
            plt_uncomp <- ggplot(uncomp_metabo_vals) +
              geom_density(
                aes(x = get(metabolite), y = after_stat(-density),
-                   fill = "Uncompleted"),
+                   fill = "Observed"),
                color = "#2B2A29", alpha = 0.6) +
              geom_vline(data = vline_data,
                         aes(xintercept = xintercept),
                         color = "red", linetype = "dashed") +
              scale_fill_manual(name = NULL,
-                               values = c("Uncompleted" = "#2B2A29")) +
+                               values = c("Observed" = "#2B2A29")) +
              labs(x = metabolite , y = "Density") +
              metabocrates_theme()
            
@@ -444,7 +444,7 @@ create_boxplot <- function(dat, metabolite){
   
   uncomp_metabo_vals %>%
     bind_rows(comp_metabo_vals) %>%
-    mutate(Type = rep(c("Uncompleted", "Completed"),
+    mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
                              nrow(comp_metabo_vals)))) %>%
     ggplot(aes(x = Type, y = get(metabolite),
@@ -488,7 +488,7 @@ create_qqplot <- function(dat, metabolite){
   
   uncomp_metabo_vals %>%
     bind_rows(comp_metabo_vals) %>%
-    mutate(Type = rep(c("Uncompleted", "Completed"),
+    mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
                              nrow(comp_metabo_vals)))) %>%
     ggplot(aes(sample = get(metabolite), color = Type)) +
