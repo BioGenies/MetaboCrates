@@ -539,7 +539,7 @@ create_correlations_heatmap <- function(dat, num = "all", width_svg = 6, height_
     ggplot(aes(x = Var1, y = Var2, fill = value, tooltip = tooltip)) +
     geom_tile_interactive() +
     scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
-    scale_y_discrete(labels = function(x) str_trunc(x, 10)) +
+    scale_y_discrete(limits = rev, labels = function(x) str_trunc(x, 10)) +
     labs(x = "Metabolite", y = "Metabolite") +
     metabocrates_theme() +
     theme(axis.text.x = element_text(angle = 90)) +
@@ -794,6 +794,8 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
       geom_segment(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                    arrow = arrow(length = unit(0.1, "cm")),
                    colour = "black") +
+      geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
+      geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_text(aes(x = PC1 + 0.04*ifelse(PC1 < 0, -1, 1),
                     y = PC2 + 0.04*ifelse(PC2 < 0, -1, 1), label = Variable),
                 colour = "black", size = 4) +
