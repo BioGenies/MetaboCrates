@@ -137,20 +137,21 @@ ui <- navbarPage(
                              h3("next: Filtering"),
                              br()),
                ),
-               column(3,
+               column(2,
                       style = "background-color:#f8f5f0; border-right: 1px solid; height: 400px",
                       br(),
                       br(),
-                      h4("Selected group:"),
                       div(htmlOutput("selected_group"))
                ),
-               column(4,
-                      br(),
-                      table_with_button_UI("group_columns")
-               ),
-               column(4, offset = 1,
-                      br(),
-                      plot_with_button_UI("groups_plt")
+               column(10,
+                      column(6,
+                             br(),
+                             table_with_button_UI("group_columns")
+                      ),
+                      column(6,
+                             br(),
+                             plot_with_button_UI("groups_plt")
+                      )
                )
       ),
       ####################
@@ -786,8 +787,11 @@ server <- function(input, output, session) {
                          inline = TRUE)
       
       group_name <- HTML(
-        paste0(group_name, "<br/><br/>
-               <span style = `font-size:18px`>Levels:<span><br/>", paste0(sort(unique(group_col_samples)), collapse = "</br>"))
+        paste0("<span style = 'font-size:18px'>Selected group:</span><br/><span style='font-size:14px'>",
+               group_name,
+               "</span><br/><br/> <span style = 'font-size:18px'>Levels:</span><br/><span style='font-size:14px'>",
+               paste0(sort(unique(group_col_samples)), collapse = "</br>"),
+               "</span>")
       )
     } else {
       req(NULL)
@@ -1016,7 +1020,8 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, inputId = "2_metabo_plt_2",
                       choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                        attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))
+                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                                          input[["2_metabo_plt_1"]])))
   })
   
   observeEvent(input[["complete_undo_btn"]], {
