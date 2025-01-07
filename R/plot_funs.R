@@ -609,6 +609,8 @@ create_density_with_lod <- function(dat, metabolite_name) {
 
 #' Plot of two metabolites
 #' 
+#' @importFrom stringr string_extract
+#' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
@@ -628,8 +630,11 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
     filter(`sample type` == "Sample") %>%
     select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
     rowwise() %>%
-    mutate(`LOD plate bar code` = unique(LOD[["LOD plate bar code"]])
-           [grep(unique(LOD[["LOD plate bar code"]]), `plate bar code`)])
+    mutate(`LOD plate bar code` = {
+      vec <- sapply(unique(LOD[["LOD plate bar code"]]),
+             function(LODcode) str_extract(`plate bar code`, LODcode))
+      vec[!is.na(vec)]
+    })
   
   combined_data <- bind_rows(LOD, plot_data) %>%
     group_by(`LOD plate bar code`) %>%
@@ -639,14 +644,17 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
   
   unique_counts <- combined_data %>%
     group_by(counts) %>%
-    summarise(`LOD plate bar code` = unique(`LOD plate bar code`)) %>%
+    reframe(`LOD plate bar code` = unique(`LOD plate bar code`)) %>%
     select(counts) %>%
     unlist()
   
-  values <- rep(
-    metabocrates_palette(1:length(unique(combined_data[["LOD plate bar code"]]))),
+  palette <- c("#54F3D3", "#2B2A29", "#09edfd", "#DCFFDB", "#FFEA8F", "#BA7B28",
+               "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
+  
+  values <- setNames(rep(
+    palette[1:length(unique(combined_data[["LOD plate bar code"]]))],
     unique_counts
-  )
+  ), combined_data[["plate bar code"]])
   
   ggplot(plot_data, aes(x = get(metabolite1), y = get(metabolite2),
                            color = `plate bar code`)) +
@@ -657,8 +665,7 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
                                color = `plate bar code`), linetype = "dashed") +
     labs(x = paste(metabolite1), y = paste(metabolite2)) +
     metabocrates_theme() +
-    scale_color_manual(values = values,
-                       labels = combined_data[["plate bar code"]])
+    scale_color_manual(values = values)
 }
 
 
