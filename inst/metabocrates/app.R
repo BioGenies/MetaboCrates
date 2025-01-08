@@ -250,10 +250,12 @@ ui <- navbarPage(
                                         plot_with_button_UI("NA_ratios_plt"))
                         ),
                         tabPanel("Venn diagram",
-                                 br(),
-                                 h4("Provide a group with up to 5 levels to see Venn diagram."),
-                                 br(),
-                                 plot_with_button_UI("venn_diagram")
+                                 column(12,
+                                        br(),
+                                        h4("Provide a group with up to 5 levels to see Venn diagram."),
+                                        br(),
+                                        plot_with_button_UI("venn_diagram")
+                                  )
                         )
                       )
                )
@@ -338,8 +340,11 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Correlations heatmap",
                                                   br(),
-                                                  br(),
-                                                  plot_with_button_UI("corr_heatmap"))
+                                                  h4("Only up to 10 metabolites are visible. Download the plot to see all metabolites."),
+                                                  column(11,
+                                                    plot_with_button_UI("corr_heatmap")
+                                                  )
+                                         )
                              ),
                       )
                )
@@ -893,13 +898,18 @@ server <- function(input, output, session) {
              "NA_ratios_type",
              "NA_ratios_group")
     
-    attr(dat[["metabocrates_dat_group"]], "NA_info")[[NA_table_type]] %>% 
+    dt<- attr(dat[["metabocrates_dat_group"]], "NA_info")[[NA_table_type]] %>% 
       filter(!(metabolite %in% attr(dat[["metabocrates_dat_group"]], 
                                     "removed")[["LOD"]])) %>% 
       arrange(-NA_frac) %>% 
       mutate(`NA fraction [%]` = round(NA_frac*100, 3)) %>%
-      select(!NA_frac) %>%
-      custom_datatable(scrollY = 300, paging = TRUE)
+      select(!NA_frac)
+    
+    if(NA_table_type == "NA_ratios_group")
+      dt <- rename(dt,
+                   all_of(setNames("grouping_column", attr(dat[["metabocrates_dat_group"]], "group"))))
+      
+      dt %>% custom_datatable(scrollY = 300, paging = TRUE)
     
   })
   
@@ -1314,7 +1324,12 @@ server <- function(input, output, session) {
       "<br><br><b>Grouping column: </b>",
       ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "group")),
              "none",
-             attr(dat[["metabocrates_dat_group"]], "group")),
+             paste0(attr(dat[["metabocrates_dat_group"]], "group"),
+                    "<br><b>Levels:</b><br>",
+                    paste0(sort(unique(attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios_group"]][["grouping_column"]])),
+                           collapse = "<br>")
+                    )
+             ),
       "<br><br>",
       "<b>Imputation:</b><br>",
       ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "completed")),
