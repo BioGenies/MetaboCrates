@@ -57,9 +57,9 @@ ui <- navbarPage(
                h4("... or load your previous project"),
                fileInput(
                  inputId = 'project_path',
-                 label = "Upload Excel sheet downloaded from MetaboCrates.",
+                 label = "Upload RDS file downloaded from MetaboCrates.",
                  multiple = FALSE,
-                 accept = c(".xlsx", ".xls")
+                 accept = c(".rds", ".RDS")
                ),
                br(),
                h4("Click below to upload example data!",
@@ -550,7 +550,7 @@ ui <- navbarPage(
                   h2("Here you can download your results at any step of your work!"),
                   br(),
                   h3("Click the button below to download results."),
-                  downloadButton("download_excel", "Download", style = "width:20%;"),
+                  downloadButton("download_rmd", "Download", style = "width:20%;"),
                   br(),
                   br(),
                   fluidRow(column(4,
@@ -636,6 +636,29 @@ server <- function(input, output, session) {
   
   ## previous project
   
+  observeEvent(input[["project_path"]], {
+    req(input[["project_path"]])
+    
+    project <- input[["project_path"]]
+    req(project)
+    project_path <- project[["datapath"]]
+    
+    validate(need(tools::file_ext(project_path) %in% c("RDS", "rds"),
+                  paste("Please upload an RDS file!")))
+    
+    uploaded_project <- try({readRDS(project_path)})
+    
+    if(inherits(uploaded_project, "try-error")) {
+      sendSweetAlert(session, "Error!", "Check validity of your file!", 
+                     type = "error")
+      dat[["metabocrates_dat"]] <- NULL
+      req(NULL)
+    }
+    
+    dat[["metabocrates_dat"]] <- uploaded_project
+    dat[["metbocrates_dat_group"]] <- uploaded_project
+    
+  })
   
   ## example data
   
@@ -746,7 +769,26 @@ server <- function(input, output, session) {
     
     dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
     
-    if(!is.null(input[["group_columns-table_columns_selected"]])) {
+    if (is.null(input[["group_columns-table_columns_selected"]]) &&
+        !is.null(attr(dat[["metabocrates_dat"]], "group"))) {
+      
+      group_name <- attr(dat[["metabocrates_dat"]], "group")
+      group_col_samples <- dat[["metabocrates_dat"]] %>%  
+        filter(`sample type` == "Sample") %>% 
+        pull(group_name)
+      
+      group_name <- HTML(
+        paste0("<span style = 'font-size:18px'>Selected group:</span><br/><span style='font-size:14px'>",
+               group_name,
+               "</span><br/><br/> <span style = 'font-size:18px'>Levels:</span><br/><span style='font-size:14px'>",
+               paste0(sort(unique(group_col_samples)), collapse = "</br>"),
+               "</span>")
+      )
+      
+      group_index <- which(colnames(dat[["group_candidates"]]) == group_name)
+      input[["group_columns-table_columns_selected"]] <- group_index - 1
+      
+    } else if(!is.null(input[["group_columns-table_columns_selected"]])) {
       
       group_candidates <- dat[["group_candidates"]]
       
@@ -1353,6 +1395,14 @@ server <- function(input, output, session) {
     ))
   })
   
+  ###### Downloading
+  
+  output[["download_rmd"]] <- downloadHandler(
+    filename = function() {
+      paste("project-", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"), ".rds", sep = "")
+    },
+    content = function(file) saveRDS(dat[["metabocrates_dat_group"]], file)
+  )
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
