@@ -511,9 +511,11 @@ create_qqplot <- function(dat, metabolite){
 #' @importFrom reshape2 melt
 #' @importFrom ggiraph geom_tile_interactive
 #' 
-#' @param num number of metabolites to display
-#' @param width_svg width of plot in inches
-#' @param height_svg height of plot in inches
+#' @param metabolites_to_display A vector of names or number of metabolites to
+#' display. If a number is provided, the first metabolites are selected.
+#' Defaults to "all".
+#' @param width_svg Width of plot in inches.
+#' @param height_svg Height of plot in inches.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -523,7 +525,7 @@ create_qqplot <- function(dat, metabolite){
 #' 
 #' @export
 
-create_correlations_heatmap <- function(dat, num = "all",
+create_correlations_heatmap <- function(dat, metabolites_to_display = "all",
                                         width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
@@ -534,10 +536,14 @@ create_correlations_heatmap <- function(dat, num = "all",
                           unlist(attr(dat, "removed"))))) %>%
     select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
   
+  if(all(is.numeric(metabolites_to_display)))
+    metabolites_to_display <- colnames(filtered_dat)[1:metabolites_to_display]
+  
+  if(all(metabolites_to_display == "all"))
+    metabolites_to_display <- colnames(filtered_dat)
+  
   plt <- filtered_dat %>%
-    select(all_of(colnames(filtered_dat)[1:ifelse(num == "all",
-                                                length(colnames(filtered_dat)),
-                                                num)])) %>%
+    select(all_of(metabolites_to_display)) %>%
     cor(use = "na.or.complete") %>%
     melt() %>%
     mutate(tooltip = paste0("Metabolite 1: ", Var2,
@@ -609,7 +615,7 @@ create_density_with_lod <- function(dat, metabolite_name) {
 
 #' Plot of two metabolites
 #' 
-#' @importFrom stringr string_extract
+#' @importFrom stringr str_extract
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
