@@ -4,14 +4,21 @@
 \alias{create_correlations_heatmap}
 \title{Heatmap of correlations between metabolites}
 \usage{
-create_correlations_heatmap(dat, num = "all", width_svg = 6, height_svg = 5)
+create_correlations_heatmap(
+  dat,
+  metabolites_to_display = "all",
+  width_svg = 6,
+  height_svg = 5
+)
 }
 \arguments{
-\item{num}{number of metabolites to display}
+\item{metabolites_to_display}{A vector of names or number of metabolites to
+display. If a number is provided, the first metabolites are selected.
+Defaults to "all".}
 
-\item{width_svg}{width of plot in inches}
+\item{width_svg}{Width of plot in inches.}
 
-\item{height_svg}{height of plot in inches}
+\item{height_svg}{Height of plot in inches.}
 }
 \description{
 Heatmap of correlations between metabolites
