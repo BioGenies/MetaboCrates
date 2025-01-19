@@ -340,8 +340,21 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Correlations heatmap",
                                                   br(),
-                                                  h4("Only up to 10 metabolites are visible. Download the plot to see all metabolites."),
+                                                  h4("Only up to 10 metabolites are visible. Download the plot to see all chosen metabolites."),
+                                                  column(1,
+                                                         h5(" Select metabolites:")
+                                                  ),
                                                   column(11,
+                                                         pickerInput("corr_heatmap_metabolites",
+                                                                     choices = character(0),
+                                                                     options = pickerOptions(
+                                                                       actionsBox = TRUE,
+                                                                       selectedTextFormat = "count > 3",
+                                                                       liveSearch = TRUE
+                                                                     ),
+                                                                     multiple = TRUE),
+                                                  ),
+                                                  column(10,
                                                     plot_with_button_UI("corr_heatmap")
                                                   )
                                          )
@@ -989,20 +1002,30 @@ server <- function(input, output, session) {
   
   corr_heatmap_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites"]])
     
-    if(length(attr(dat[["metabocrates_dat_group"]], "metabolites")) > 10)
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]], num = 10,
-                                  width_svg = 10, height_svg = 7)
+    if(is.null(input[["corr_heatmap_metabolites"]]))
+      NULL
+    else if(length(input[["corr_heatmap_metabolites"]]) > 10)
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites"]][1:10],
+                                  width_svg = 10, height_svg = 6)
     else
       create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  width_svg = 10, height_svg = 7)
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites"]],
+                                  width_svg = 10, height_svg = 6)
   })
   
   full_corr_heatmap_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites"]])
     
     if(length(attr(dat[["metabocrates_dat_group"]], "metabolites")) > 10)
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]])
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites"]])
     else corr_heatmap_plt()
   })
   
@@ -1061,19 +1084,36 @@ server <- function(input, output, session) {
                     ULOQ_method = imp_method(input[["ULOQ_method"]]),
                     LOD_type = input[["LOD_type"]])
     
+    metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+    
     updateSelectInput(session, inputId = "sing_metabo_dist",
-                       choices =
-                         attr(dat[["metabocrates_dat_group"]], "metabolites"))
+                       choices = metabolites)
     
     
     updateSelectInput(session, inputId = "2_metabo_plt_1",
-                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                        attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))
+                      choices = metabolites)
     
     updateSelectInput(session, inputId = "2_metabo_plt_2",
                       choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                                         c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
                                           input[["2_metabo_plt_1"]])))
+    
+    uncomplete_metabolites <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+      filter(`sample type` == "Sample") %>%
+      select(all_of(metabolites)) %>%
+      select(where(~ is.na(sd(., na.rm = TRUE)) | sd(., na.rm = TRUE) == 0))
+    
+    print(uncomplete_metabolites)
+    
+    updatePickerInput(session, inputId = "corr_heatmap_metabolites",
+                      choices = setdiff(metabolites,
+                                        names(uncomplete_metabolites)),
+                      selected = setdiff(metabolites,
+                                         names(uncomplete_metabolites)),
+                      choicesOpt = list(
+                        style = rep("color: black;", length(metabolites))
+                      ))
   })
   
   observeEvent(input[["complete_undo_btn"]], {
@@ -1386,10 +1426,9 @@ server <- function(input, output, session) {
                "<span style='margin-left: 1em;'><b>LLOQ method: </b></span>",
                input[["LLOQ_method"]],
                "<br>",
-               "<span style='margin-left: 1em;'><b>ULOQ method: </b></span>",
-               input[["ULOQ_method"]],
-               "<br><br>"
-             )
+               "<span style='margin-left: 1em;'><b>ULOQ method: </b>",
+               gsub("\\s+", "&nbsp;", input[["ULOQ_method"]]),
+               "</span>")
       ),
       "</div>"
     ))
