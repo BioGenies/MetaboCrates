@@ -704,16 +704,24 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, "LOD_type", choices = aval_LOD_types)
     
-    HTML(paste0(
-      "<h4> Data summary:</h4><br/> <br/> ",
+    info_txt <- paste0(
+      "<h4> Data summary:</h4><br/>",
       "<b>Compounds:</b> ", n_cmp, ", <br/>  <br/> ",
       "<b>Samples:</b> ", n_smp, ", <br/> <br/>  ",
       "<b>Sample Types:</b> ",  paste0(sample_types, collapse = ", "), ", <br/>  <br/> ",
       "<b>Material: </b>", paste0(unique(pull(uploaded_dat, "material")), collapse = ", "), ", <br/> <br/>  ",
       "<b>OP: </b>", paste0(unique(pull(uploaded_dat, "op")), collapse = ", "), ", <br/>  <br/> ",
-      "<b>Plate Bar Code: </b>", paste0(unique(pull(uploaded_dat, "plate bar code")), collapse = ", "),
-      "."
-    ))
+      "<b>Plate Bar Code: </b>", paste0(unique(pull(uploaded_dat, "plate bar code")), collapse = ", ")
+    )
+    
+    removed_metabolites <- c(attr(dat[["metabocrates_dat"]], "removed")[["QC"]],
+                             attr(dat[["metabocrates_dat"]], "removed")[["LOD"]])
+    
+    info_txt_removed <- ifelse(is.null(removed_metabolites), ".",
+                               paste0(", <br/> <br/> <b>Removed metabolites: </b>",
+                                 paste0(removed_metabolites, collapse = ", "), "."))
+    
+    HTML(paste0(info_txt, info_txt_removed))
   })
   
   
