@@ -19,6 +19,6 @@ than the given threshold.
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-get_LOD_to_remove(raw_data, 0.1)
+get_LOD_to_remove(dat, 0.1)
 
 }
