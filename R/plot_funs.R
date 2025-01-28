@@ -224,8 +224,7 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
   girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
               options = list(
               opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
-                           opacity = 0.9,
-                           use_fill = TRUE),
+                           opacity = 0.9),
               opts_toolbar(saveaspng = FALSE),
               opts_sizing(rescale = FALSE)
               ))
