@@ -14,6 +14,7 @@ source("app_supplementary/custom_dt.R")
 source("app_supplementary/ui_supp.R")
 source("app_supplementary/plot_with_button_module.R")
 source("app_supplementary/table_with_button_module.R")
+source("app_supplementary/update_inputs_module.R")
 
 panels_vec <- c("About", "Uploading data", "Group selection",
                 "Filtering", "Completing",  "Quality control", "Summary", 
@@ -669,8 +670,6 @@ server <- function(input, output, session) {
     }
     
     dat[["metabocrates_dat"]] <- uploaded_project
-    dat[["metbocrates_dat_group"]] <- uploaded_project
-    
   })
   
   ## example data
@@ -694,9 +693,6 @@ server <- function(input, output, session) {
     
     sample_types <- pull(attr(uploaded_dat, "samples"), `sample type`)
     
-    updateMultiInput(session, "LOD_to_remove", 
-                     choices = attr(dat[["metabocrates_dat"]], "metabolites"))
-    
     dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
     
     aval_LOD_types <- c("calc", "OP")[c(any(grepl("calc.", dat_LOD_type)),
@@ -714,12 +710,12 @@ server <- function(input, output, session) {
       "<b>Plate Bar Code: </b>", paste0(unique(pull(uploaded_dat, "plate bar code")), collapse = ", ")
     )
     
-    removed_metabolites <- c(attr(dat[["metabocrates_dat"]], "removed")[["QC"]],
-                             attr(dat[["metabocrates_dat"]], "removed")[["LOD"]])
+    removed_metabolites <- c(attr(dat[["metabocrates_dat"]], "removed")[["LOD"]],
+                             attr(dat[["metabocrates_dat"]], "removed")[["QC"]])
     
     info_txt_removed <- ifelse(is.null(removed_metabolites), ".",
                                paste0(", <br/> <br/> <b>Removed metabolites: </b>",
-                                 paste0(removed_metabolites, collapse = ", "), "."))
+                                      paste0(removed_metabolites, collapse = ", "), "."))
     
     HTML(paste0(info_txt, info_txt_removed))
   })
@@ -731,7 +727,9 @@ server <- function(input, output, session) {
     metabolites <- attr(dat[["metabocrates_dat"]], "metabolites")
     
     dat[["metabocrates_dat"]] %>% 
-      select(`sample type`, all_of(metabolites)) %>% 
+      select(`sample type`, all_of(setdiff(metabolites,
+                                           c(attr(dat[["metabocrates_dat"]], "removed")[["LOD"]],
+                                             attr(dat[["metabocrates_dat"]], "removed")[["QC"]])))) %>%
       mutate_all(as.character) %>% 
       mutate_all(display_short) %>% 
       custom_datatable(scrollY = 400,
@@ -766,6 +764,8 @@ server <- function(input, output, session) {
   group_columns_DT <- reactive({
     req(dat[["metabocrates_dat"]])
     
+    dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
+    
     dat[["group_candidates"]] <- dat[["metabocrates_dat"]] %>% 
       select(!all_of(attr(dat[["metabocrates_dat"]], "metabolites"))) %>% 
       select(-any_of(c("plate bar code", "sample bar code", "collection date",
@@ -775,98 +775,108 @@ server <- function(input, output, session) {
       filter(`sample type` == "Sample") %>% 
       select(-`sample type`, -`species`)
     
-    dat[["group_candidates"]] %>% 
+    if(!is.null(attr(dat[["metabocrates_dat"]], "group"))){
+      group_ind <- which(names(dat[["group_candidates"]]) == attr(dat[["metabocrates_dat"]], "group"))
+      
+      dat[["group_candidates"]] %>% 
       custom_datatable(scrollY = 300,
                        paging = TRUE,
-                       selection = list(mode = "single", target = "column"))
+                       selection = list(mode = "single",
+                                        target = "column",
+                                        selected = group_ind-1))
+    }else{
+      dat[["group_candidates"]] %>% 
+        custom_datatable(scrollY = 300,
+                         paging = TRUE,
+                         selection = list(mode = "single",
+                                          target = "column"))
+    }
   })
-  
   
   table_with_button_SERVER("group_columns", group_columns_DT)
   
+  last_selected_group <- reactiveVal(NULL)
   
-  output[["selected_group"]] <- renderUI({
+  observeEvent(input[["group_columns-table_columns_selected"]], {
     req(dat[["metabocrates_dat"]])
+    req(dat[["metabocrates_dat_group"]])
     
-    dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
+    if(!is.null(attr(dat[["metabocrates_dat"]], "group")) &&
+       is.null(last_selected_group()))
+      last_selected_group(attr(dat[["metabocrates_dat"]], "group"))
     
-    if (is.null(input[["group_columns-table_columns_selected"]]) &&
-        !is.null(attr(dat[["metabocrates_dat"]], "group"))) {
-      
-      group_name <- attr(dat[["metabocrates_dat"]], "group")
-      group_col_samples <- dat[["metabocrates_dat"]] %>%  
-        filter(`sample type` == "Sample") %>% 
-        pull(group_name)
-      
-      group_name <- HTML(
-        paste0("<span style = 'font-size:18px'>Selected group:</span><br/><span style='font-size:14px'>",
-               group_name,
-               "</span><br/><br/> <span style = 'font-size:18px'>Levels:</span><br/><span style='font-size:14px'>",
-               paste0(sort(unique(group_col_samples)), collapse = "</br>"),
-               "</span>")
-      )
-      
-      group_index <- which(colnames(dat[["group_candidates"]]) == group_name)
-      input[["group_columns-table_columns_selected"]] <- group_index - 1
-      
-    } else if(!is.null(input[["group_columns-table_columns_selected"]])) {
-      
-      group_candidates <- dat[["group_candidates"]]
-      
-      group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
-      
-      group_col_samples <- dat[["metabocrates_dat"]] %>%  
-        filter(`sample type` == "Sample") %>% 
-        pull(group_name)
-      
-      if(group_col_samples %>%  is.na() %>%  any()) {
-        sendSweetAlert(session = session,
-                       title = "Invalid group: missing group labels",
-                       text = "Make sure that all samples have non-missing group name!",
-                       type = "error")
-        req(NULL)
-      }
-      if(any(table(group_col_samples) < 2)) {
-        sendSweetAlert(session = session,
-                       title = "Invalid group: too many groups",
-                       text = "We require at least 2 obsevations per group.",
-                       type = "error")
-        req(NULL)
-      }
-      
-      if(length(unique(group_col_samples)) == 1) {
-        sendSweetAlert(session = session,
-                       title = "Single group",
-                       text = "Provided column contains only one unique label.",
-                       type = "warning")
-      } else {
-        sendSweetAlert(session = session,
-                       title = "Great!",
-                       text = paste0("Group ", group_name, " selected!"),
-                       type = "success")
-      }
-      
-      dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat"]], 
-                                                   group_name)
-      
-      updateRadioButtons(session, inputId = "NA_percent_plt_type",
-                         choiceValues = c("joint", "NA_type", "group"),
-                         choiceNames = c("Joint ratios", "Show NA type", "Show groups"),
-                         inline = TRUE)
-      
-      group_name <- HTML(
-        paste0("<span style = 'font-size:18px'>Selected group:</span><br/><span style='font-size:14px'>",
-               group_name,
-               "</span><br/><br/> <span style = 'font-size:18px'>Levels:</span><br/><span style='font-size:14px'>",
-               paste0(sort(unique(group_col_samples)), collapse = "</br>"),
-               "</span>")
-      )
-    } else {
+    group_candidates <- dat[["group_candidates"]]
+    group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
+    
+    group_col_samples <- dat[["metabocrates_dat"]] %>% 
+      filter(`sample type` == "Sample") %>% 
+      pull(group_name)
+    
+    if (!is.null(last_selected_group()) && 
+        group_name == last_selected_group()) {
       req(NULL)
     }
     
-    HTML(group_name)
+    if (group_col_samples %>% is.na() %>% any()) {
+      sendSweetAlert(session = session,
+                     title = "Invalid group: missing group labels",
+                     text = "Make sure that all samples have non-missing group name!",
+                     type = "error")
+    }
+    
+    if (any(table(group_col_samples) < 2)) {
+      sendSweetAlert(session = session,
+                     title = "Invalid group: too many groups",
+                     text = "We require at least 2 observations per group.",
+                     type = "error")
+    }
+    
+    if (length(unique(group_col_samples)) == 1) {
+      sendSweetAlert(session = session,
+                     title = "Single group",
+                     text = "Provided column contains only one unique label.",
+                     type = "warning")
+    } else {
+      sendSweetAlert(session = session,
+                     title = "Great!",
+                     text = paste0("Group ", group_name, " selected!"),
+                     type = "success")
+    }
+    
+    dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat_group"]], group_name)
+    
+    last_selected_group(group_name)
+    
+    updateRadioButtons(session, inputId = "NA_percent_plt_type",
+                       choiceValues = c("joint", "NA_type", "group"),
+                       choiceNames = c("Joint ratios", "Show NA type", "Show groups"),
+                       inline = TRUE)
   })
+  
+  output[["selected_group"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    update_inputs_SERVER("group_update", session, dat)
+    
+    group_name <- attr(dat[["metabocrates_dat_group"]], "group")
+    
+    if (is.null(group_name)){
+      req(NULL)
+    }
+    
+    group_col_samples <- dat[["metabocrates_dat"]] %>% 
+      filter(`sample type` == "Sample") %>% 
+      pull(group_name)
+    
+    HTML(
+      paste0("<span style = 'font-size:18px'>Selected group:</span><br/><span style='font-size:14px'>",
+             group_name,
+             "</span><br/><br/> <span style = 'font-size:18px'>Levels:</span><br/><span style='font-size:14px'>",
+             paste0(sort(unique(group_col_samples)), collapse = "</br>"),
+             "</span>")
+    )
+  })
+  
   
   
   groups_plt_reactive <- reactive({
@@ -883,15 +893,11 @@ server <- function(input, output, session) {
   ######### filtering
   
   to_remove <- reactive({
-    
     req(dat[["metabocrates_dat_group"]])
     req(input[["filtering_threshold"]])
     
-    to_remove_tmp <- setdiff(
-      get_LOD_to_remove(dat[["metabocrates_dat_group"]], 
-                        input[["filtering_threshold"]]/100), 
-      attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
-    )
+    to_remove_tmp <- get_LOD_to_remove(dat[["metabocrates_dat_group"]],
+                                       input[["filtering_threshold"]]/100)
     
     updateMultiInput(session, "LOD_to_remove", selected = to_remove_tmp)
     
@@ -900,7 +906,6 @@ server <- function(input, output, session) {
   
   
   output[["LOD_to_remove_txt"]] <- renderUI({
-    
     ro_remove_display <- unique(c(intersect(to_remove(), input[["LOD_to_remove"]]),
                                   input[["LOD_to_remove"]]))
     
@@ -934,11 +939,8 @@ server <- function(input, output, session) {
       metabolites_to_remove = input[["LOD_to_remove"]],
       type = "LOD"
     )
-    metabolites_vec <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                               attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
     
-    updateMultiInput(session, "LOD_to_remove", 
-                     choices = metabolites_vec)
+    update_inputs_SERVER("LOD_remove_update", session, dat)
   })
   
   
@@ -948,8 +950,7 @@ server <- function(input, output, session) {
     dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]],
                                                     type = "LOD")
     
-    updateMultiInput(session, "LOD_to_remove", 
-                     choices = attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    update_inputs_SERVER("LOD_undo_update", session, dat)
   })
   
   
@@ -961,9 +962,9 @@ server <- function(input, output, session) {
              "NA_ratios_type",
              "NA_ratios_group")
     
-    dt<- attr(dat[["metabocrates_dat_group"]], "NA_info")[[NA_table_type]] %>% 
-      filter(!(metabolite %in% attr(dat[["metabocrates_dat_group"]], 
-                                    "removed")[["LOD"]])) %>% 
+    dt <- attr(dat[["metabocrates_dat_group"]], "NA_info")[[NA_table_type]] %>% 
+      filter(!(metabolite %in% c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                                 attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))) %>% 
       arrange(-NA_frac) %>% 
       mutate(`NA fraction [%]` = round(NA_frac*100, 3)) %>%
       select(!NA_frac)
@@ -983,7 +984,9 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["NA_percent_plt_type"]])
     
-    metabo_num <- length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    metabo_num <- length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                                 c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                                   attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])))
     
     plot_NA_percent(dat[["metabocrates_dat_group"]], 
                     type = input[["NA_percent_plt_type"]],
@@ -1030,11 +1033,8 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["corr_heatmap_metabolites"]])
     
-    if(length(attr(dat[["metabocrates_dat_group"]], "metabolites")) > 10)
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]])
-    else corr_heatmap_plt()
+    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                metabolites_to_display = input[["corr_heatmap_metabolites"]])
   })
   
   plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
@@ -1044,8 +1044,10 @@ server <- function(input, output, session) {
   LOD_tbl_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    attr(dat[["metabocrates_dat_group"]], "LOD_table") %>% 
-      select(-type) %>% 
+    attr(dat[["metabocrates_dat_group"]], "LOD_table") %>%
+      select(-c(type,
+                attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])) %>% 
       custom_datatable(scrollY = 300,
                        paging = TRUE,
                        selection = list(mode = "single", target = "column"))
@@ -1057,7 +1059,8 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+                           c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                             attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
       dat_to_display <- dat[["metabocrates_dat_group"]] %>% 
@@ -1092,36 +1095,7 @@ server <- function(input, output, session) {
                     ULOQ_method = imp_method(input[["ULOQ_method"]]),
                     LOD_type = input[["LOD_type"]])
     
-    metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
-    
-    updateSelectInput(session, inputId = "sing_metabo_dist",
-                       choices = metabolites)
-    
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_1",
-                      choices = metabolites)
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_2",
-                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                                          input[["2_metabo_plt_1"]])))
-    
-    uncomplete_metabolites <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-      filter(`sample type` == "Sample") %>%
-      select(all_of(metabolites)) %>%
-      select(where(~ is.na(sd(., na.rm = TRUE)) | sd(., na.rm = TRUE) == 0))
-    
-    print(uncomplete_metabolites)
-    
-    updatePickerInput(session, inputId = "corr_heatmap_metabolites",
-                      choices = setdiff(metabolites,
-                                        names(uncomplete_metabolites)),
-                      selected = setdiff(metabolites,
-                                         names(uncomplete_metabolites)),
-                      choicesOpt = list(
-                        style = rep("color: black;", length(metabolites))
-                      ))
+    update_inputs_SERVER("complete_update", session, dat)
   })
   
   observeEvent(input[["complete_undo_btn"]], {
@@ -1129,15 +1103,7 @@ server <- function(input, output, session) {
     
     attr(dat[["metabocrates_dat_group"]], "completed") <- NULL
     
-    updateSelectInput(session, inputId = "sing_metabo_dist",
-                       choices = c("None"))
-    
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_1",
-                      choices = c("None"))
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_2",
-                      choices = c("None"))
+    update_inputs_SERVER("complete_undo_update", session, dat)
   })
   
   missing_heatmap <- reactive({
@@ -1183,11 +1149,7 @@ server <- function(input, output, session) {
         dat[["metabocrates_dat_group"]] <-
           calculate_CV(dat[["metabocrates_dat_group"]])
         
-        updateMultiInput(session, "CV_to_remove", 
-                         choices = setdiff(
-                           attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
-                         ))
+          update_inputs_SERVER("cv_update", session, dat)
       }else{
         attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
         attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]] <- NULL
@@ -1245,21 +1207,7 @@ server <- function(input, output, session) {
       type = "QC"
     )
     
-    updateMultiInput(session, "CV_to_remove", 
-                     choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                       c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                         attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
-    
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_1",
-                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_2",
-                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
+    update_inputs_SERVER("cv_remove_update", session, dat)
   })
   
   
@@ -1269,27 +1217,7 @@ server <- function(input, output, session) {
     dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]],
                                                    type = "QC")
     
-    updateMultiInput(session, "CV_to_remove", 
-                     choices = attr(dat[["metabocrates_dat_group"]], "metabolites"))
-    
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_1",
-                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
-    
-    updateSelectInput(session, inputId = "2_metabo_plt_2",
-                      choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])))
-    
-    updateNumericInput(session, inputId = "PCA_variance_max_num",
-                       max = length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                            c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                              attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))),
-                       value = min(c(5, length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"), 
-                                                       c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                                         attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]))))))
+    update_inputs_SERVER("cv_undo_update", session, dat)
   })
   
   
