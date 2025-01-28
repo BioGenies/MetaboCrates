@@ -91,7 +91,7 @@ get_info <- function(raw_data){
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' get_LOD_to_remove(raw_data, 0.1)
+#' get_LOD_to_remove(dat, 0.1)
 #' 
 #' @export
 #'
@@ -105,13 +105,15 @@ If you want to use group provide it with add_group function first.")
   }
 
   if(use_group) {
-    to_remove <- attr(raw_data, "NA_info")[["NA_ratios_group"]] %>% 
-      group_by(metabolite) %>% 
+    to_remove <- attr(raw_data, "NA_info")[["NA_ratios_group"]] %>%
+      filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
+      group_by(metabolite) %>%
       filter(all(NA_frac >= threshold)) %>%
       pull(metabolite) %>% 
       unique()
   } else {
     to_remove <- attr(raw_data, "NA_info")[["NA_ratios_type"]] %>% 
+      filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
       group_by(metabolite) %>% 
       reframe(NA_frac = sum(NA_frac)) %>% 
       filter(NA_frac >= threshold) %>% 
