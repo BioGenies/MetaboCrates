@@ -30,7 +30,7 @@ add_group <- function(raw_data, group_name) {
   
   raw_data(as.data.frame(raw_data), 
            LOD_table = attr(raw_data, "LOD_table"), 
-           metabolites = attr(raw_data, "metabolites"), 
+           metabolites = attr(raw_data, "metabolites"),
            group = group_name)
   
 }
