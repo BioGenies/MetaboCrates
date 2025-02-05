@@ -1,10 +1,4 @@
-update_inputs_UI <- function(id) {
-  ns <- NS(id)
-  tagList()
-}
-
-update_inputs_SERVER <- function(id, main_session, dat) {
-  moduleServer(id, function(input, output, session){
+update_inputs_SERVER <- function(id, main_session, main_input, dat){
     observe({
       req(dat[["metabocrates_dat_group"]])
       
@@ -48,7 +42,7 @@ update_inputs_SERVER <- function(id, main_session, dat) {
           
           updateSelectInput(main_session, inputId = "2_metabo_plt_2",
                             choices = setdiff(metabolites,
-                                              input[["2_metabo_plt_1"]]))
+                                              main_input[["2_metabo_plt_1"]]))
           
           uncomplete_metabolites <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
             filter(`sample type` == "Sample") %>%
@@ -66,5 +60,4 @@ update_inputs_SERVER <- function(id, main_session, dat) {
         }
       }
     })
-  })
 }
