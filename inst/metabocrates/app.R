@@ -1,6 +1,7 @@
 library(MetaboCrates)
 library(dplyr)
 library(stringr)
+library(openxlsx)
 
 library(shiny)
 library(shinythemes)
@@ -367,147 +368,148 @@ ui <- navbarPage(
       #################
       tabPanel("Quality control",
                nav_btns_UI("Quality control"),
-               column(4,
-                      style = "background-color:#f8f5f0; border-right: 1px solid",
-                      br(),
-                      h4("Provide threshold."),
-                      h5("All metabolites for which the coefficient of variation
-                         value is greater than provided threshold will be
-                         removed."),
-                      br(),
-                      numericInput(
-                        inputId = "cv_threshold",
-                        label = "threshold [%]",
-                        value = 80,
-                        min = 0,
-                        max = 100
-                      ),
-                      br(),
-                      
-                      column(8, 
-                             h4("The following metabolites will be removed:"),
-                      ),
-                      column(4,
-                             align = "right",
-                             dropdownButton(
-                               multiInput(
-                                 inputId = "CV_to_remove",
-                                 label = "Click metabolite name to select or unselect.",
-                                 choices = character(0),
-                                 width = "90%",
-                                 options = list(
-                                   enable_search = TRUE,
-                                   non_selected_header = "Metabolites:",
-                                   selected_header = "Metabolites to remove:"
-                                 )
-                               ),
-                               circle = TRUE, status = "default",
-                               icon = icon("gear"), width = "700px",
-                               
-                               tooltip = tooltipOptions(title = "Click to edit metabolites to remove!")
-                             ),
-                      ),
-                      br(),
-                      br(),
-                      br(),
-                      column(12, htmlOutput("CV_to_remove_txt")),
-                      br(),
-                      br(),
-                      br(),
-                      column(2, align = "center", offset = 2, 
-                             actionButton("CV_remove_btn", label = "Remove")),
-                      br(),
-                      br(),
-                      br(),
-                      column(12, h4("Metabolites removed based on the CV value:")),
-                      column(12, htmlOutput("CV_removed_txt")),
-                      br(),
-                      br(),
-                      column(2, align = "center", offset = 2,
-                             actionButton("CV_undo_btn", label = "Undo")),
-                      br()
-                      
-               ),
-               column(8,
-                      column(12, align = "right", 
-                             h2("Quality control (step 5/7)"),
-                             h3("next: Summary")
-                      )
-               ),
-               column(8,
-                      tabsetPanel(
-                        tabPanel("CV table",
-                                 column(10, offset = 1,
-                                        br(),
-                                        br(),
-                                        table_with_button_UI("CV_tbl"))
-                        ),
-                        tabPanel("PCA",
-                                 column(5, offset = 0.5,
-                                        br(),
-                                        radioButtons("PCA_type",
-                                                     label = "Select PCA plot type:",
+               tabsetPanel(
+                 tabPanel("Remove metabolites",
+                          column(4,
+                                 style = "background-color:#f8f5f0; border-right: 1px solid",
+                                 h4("Provide threshold."),
+                                 h5("All metabolites for which the coefficient of variation
+                                     value is greater than provided threshold will be
+                                     removed."),
+                                 numericInput(
+                                   inputId = "cv_threshold",
+                                   label = "threshold [%]",
+                                   value = 80,
+                                   min = 0,
+                                 ),
+                                 column(8, 
+                                 h4("The following metabolites will be removed:"),
+                                 ),
+                                 column(4,
+                                        align = "right",
+                                        dropdownButton(
+                                        multiInput(
+                                          inputId = "CV_to_remove",
+                                          label = "Click metabolite name to select or unselect.",
+                                          choices = character(0),
+                                          width = "90%",
+                                          options = list(
+                                            enable_search = TRUE,
+                                            non_selected_header = "Metabolites:",
+                                            selected_header = "Metabolites to remove:"
+                                          )
+                                        ),
+                                        circle = TRUE, status = "default",
+                                        icon = icon("gear"), width = "700px",
+                                        tooltip = tooltipOptions(title = "Click to edit metabolites to remove!")
+                                      ),
+                                  ),
+                          br(),
+                          br(),
+                          column(12, htmlOutput("CV_to_remove_txt")),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          column(2, align = "center", offset = 2, 
+                                 actionButton("CV_remove_btn", label = "Remove")),
+                          br(),
+                          br(),
+                          br(),
+                          column(12, h4("Metabolites removed based on the CV value:")),
+                          column(12, htmlOutput("CV_removed_txt")),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          column(2, align = "center", offset = 2,
+                                 actionButton("CV_undo_btn", label = "Undo")),
+                   ),
+                   column(8, align = "right",
+                          h2("Quality control (step 5/7)"),
+                          h3("next: Summary")
+                   ),
+                   column(6, offset = 1,
+                                            br(),
+                                            br(),
+                                            table_with_button_UI("CV_tbl"))
+                 ),
+                 tabPanel("PCA",
+                          column(12, align = "right",
+                                 h2("Quality control (step 5/7)"),
+                                 h3("next: Summary")
+                          ),
+                          column(5, offset = 3,
+                                 br(),
+                                 radioButtons("PCA_type",
+                                              label = "Select PCA plot type:",
                                                      choices = c("sample type",
-                                                                 "group", "biplot"),
-                                                     inline = TRUE)
-                                 ),
-                                 column(4, offset = 0.5,
-                                        br(),
-                                        conditionalPanel(
-                                          condition = "input.PCA_type == `biplot`",
-                                          numericInput(
-                                            inputId = "PCA_threshold",
-                                            label = "threshold [%]",
-                                            value = 30,
-                                            min = 0,
-                                            max = 100)
-                                        )
-                                 ),
-                                 column(10, offset = 1,
-                                        br(),
-                                        plot_with_button_UI("PCA_plt")  
-                                 )
+                                                                   "group", "biplot"),
+                                                       inline = TRUE)
+                                   ),
+                          column(4, offset = 0.5,
+                                          br(),
+                                          conditionalPanel(
+                                            condition = "input.PCA_type == `biplot`",
+                                            numericInput(
+                                              inputId = "PCA_threshold",
+                                              label = "threshold [%]",
+                                              value = 30,
+                                              min = 0,
+                                              max = 100)
+                                          )
+                                   ),
+                          column(6, offset = 3,
+                                          plot_with_button_UI("PCA_plt")  
+                                   )
+                          ),
+               tabPanel("Variance explained",
+                        column(12, align = "right",
+                               h2("Quality control (step 5/7)"),
+                               h3("next: Summary")
                         ),
-                        tabPanel("Variance explained",
-                                 column(3, offset = 0.5,
-                                        br(),
-                                        numericInput("PCA_variance_threshold",
-                                                     label = "threshold [%]",
-                                                     value = 80,
-                                                     min = 0,
-                                                     max = 100)
-                                 ),
-                                 column(6, offset = 0.5,
-                                        br(),
-                                        numericInput("PCA_variance_max_num",
-                                                    label = "maximum number of principal components",
-                                                    value = 5,
-                                                    min = 1)
-                                 ),
-                                 column(10, offset = 1,
-                                        br(),
-                                        plot_with_button_UI("PCA_variance")
-                                 )
+                        column(3, offset = 3,
+                                          br(),
+                                          numericInput("PCA_variance_threshold",
+                                                       label = "threshold [%]",
+                                                       value = 80,
+                                                       min = 0,
+                                                       max = 100)
+                                   ),
+                        column(3,
+                                          br(),
+                                          numericInput("PCA_variance_max_num",
+                                                       label = "maximum number of principal components",
+                                                       value = 5,
+                                                       min = 1)
+                                   ),
+                        column(6, offset = 3,
+                                          plot_with_button_UI("PCA_variance")
+                                   
+                            )
+                ),
+               tabPanel("Two metabolites plot",
+                        column(12, align = "right",
+                               h2("Quality control (step 5/7)"),
+                               h3("next: Summary")
                         ),
-                        tabPanel("Two metabolites plot",
-                                 column(10, offset = 1,
-                                        br(),
-                                        column(5,
-                                               selectInput("2_metabo_plt_1",
-                                                           "First metabolite",
-                                                           choices = character(0))
-                                        ),
-                                        column(5,
-                                               selectInput("2_metabo_plt_2",
-                                                           "Second metabolite",
-                                                           choices = character(0))
-                                        ),
-                                        br(),
-                                        plot_with_button_UI("2_metabo_plt")
-                                 )
+                        column(3, offset = 3,
+                               selectInput("2_metabo_plt_1",
+                                                  "First metabolite",
+                                                  choices = character(0))
+                        ),
+                        column(3,
+                                      selectInput("2_metabo_plt_2",
+                                                  "Second metabolite",
+                                                  choices = character(0))
+                        ),
+                        column(6, offset = 3,
+                               plot_with_button_UI("2_metabo_plt")
                         )
-                      )
-               )
+           )
+        )
+              
       ),
       #######
       tabPanel("Summary",
@@ -560,20 +562,36 @@ ui <- navbarPage(
   
   tabPanel("Download",
            nav_btns_UI("Download"),
-           column(8, 
-                  h2("Here you can download your results at any step of your work!"),
-                  br(),
-                  h3("Click the button below to download results."),
+           column(9,
+                  h2("Here you can download your results at any step of your work!")
+           ),
+           column(3, align = "right", h2("Download (step 7/7)")),
+           br(),
+           br(),
+           br(),
+           br(),
+           br(),
+           br(),
+           column(6,
+                  h3("Download project in rds file:"),
                   downloadButton("download_rmd", "Download", style = "width:20%;"),
                   br(),
                   br(),
-                  fluidRow(column(4,
-                                  h4("Removed metabolites:"),
-                                  br(),
-                                  htmlOutput("to_remove_total"),
-                  ))
+                  h3("Download metabolomics matrix in xlsx file:"),
+                  downloadButton("download_metabo", "Download", style = "width:20%;"),
+                  br(),
+                  br(),
+                  h3("Download project in xlsx file:"),
+                  downloadButton("download_tables", "Download", style = "width:20%;"),
            ),
-           column(4, align = "right", h2("Download (step 7/7)")),
+           column(6,
+                  h3("Download report:"),
+                  downloadButton("download_report", "Download", style = "width:20%;"),
+                  br(),
+                  br(),
+                  h3("Download all plots in zip file:"),
+                  downloadButton("download_zip", "Download", style = "width:20%;"),
+           )
            
   )
 )
@@ -608,7 +626,7 @@ server <- function(input, output, session) {
   
   callModule(nav_btns_SERVER, "Completing", 
              parent_session = session, panels_vec = panels_vec,
-             panel_id = "Completing")
+             panel_id = "Completing", dat)
   
   callModule(nav_btns_SERVER, id = "Quality control", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Quality control")
@@ -756,6 +774,7 @@ server <- function(input, output, session) {
     
     plot_mv_types(dat[["metabocrates_dat"]])
   })
+  
   plot_with_button_SERVER("mv_types_plt", mv_types_plt_reactive)
   
   
@@ -856,7 +875,7 @@ server <- function(input, output, session) {
   output[["selected_group"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
-    update_inputs_SERVER("group_update", session, dat)
+    update_inputs_SERVER("group_update", session, input, dat)
     
     group_name <- attr(dat[["metabocrates_dat_group"]], "group")
     
@@ -940,7 +959,7 @@ server <- function(input, output, session) {
       type = "LOD"
     )
     
-    update_inputs_SERVER("LOD_remove_update", session, dat)
+    update_inputs_SERVER("LOD_remove_update", session, input, dat)
   })
   
   
@@ -950,7 +969,7 @@ server <- function(input, output, session) {
     dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]],
                                                     type = "LOD")
     
-    update_inputs_SERVER("LOD_undo_update", session, dat)
+    update_inputs_SERVER("LOD_undo_update", session, input, dat)
   })
   
   
@@ -995,8 +1014,18 @@ server <- function(input, output, session) {
     
   })
   
+  NA_ratios_plt_full <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["NA_percent_plt_type"]])
+    
+    plot_NA_percent(dat[["metabocrates_dat_group"]], 
+                    type = input[["NA_percent_plt_type"]],
+                    interactive = FALSE)
+    
+  })
+  
   plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt,
-                          NA_ratios_plt_height)
+                          NA_ratios_plt_height, full_plt = NA_ratios_plt_full)
   
   venn_plt <- reactive({
     req(input[["filtering_threshold"]])
@@ -1034,7 +1063,8 @@ server <- function(input, output, session) {
     req(input[["corr_heatmap_metabolites"]])
     
     create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                metabolites_to_display = input[["corr_heatmap_metabolites"]])
+                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
+                                interactive = FALSE)
   })
   
   plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
@@ -1095,7 +1125,7 @@ server <- function(input, output, session) {
                     ULOQ_method = imp_method(input[["ULOQ_method"]]),
                     LOD_type = input[["LOD_type"]])
     
-    update_inputs_SERVER("complete_update", session, dat)
+    update_inputs_SERVER("complete_update", session, input, dat)
   })
   
   observeEvent(input[["complete_undo_btn"]], {
@@ -1103,7 +1133,7 @@ server <- function(input, output, session) {
     
     attr(dat[["metabocrates_dat_group"]], "completed") <- NULL
     
-    update_inputs_SERVER("complete_undo_update", session, dat)
+    update_inputs_SERVER("complete_undo_update", session, input, dat)
   })
   
   missing_heatmap <- reactive({
@@ -1145,15 +1175,10 @@ server <- function(input, output, session) {
   
   observeEvent(input[["run"]], {
     if(input[["run"]] == "Quality control"){
-      if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
-        dat[["metabocrates_dat_group"]] <-
-          calculate_CV(dat[["metabocrates_dat_group"]])
-        
-          update_inputs_SERVER("cv_update", session, dat)
-      }else{
-        attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
-        attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]] <- NULL
-      }
+      dat[["metabocrates_dat_group"]] <-
+        calculate_CV(dat[["metabocrates_dat_group"]])
+      
+      update_inputs_SERVER("cv_update", session, input, dat)
     }
   })
   
@@ -1207,7 +1232,7 @@ server <- function(input, output, session) {
       type = "QC"
     )
     
-    update_inputs_SERVER("cv_remove_update", session, dat)
+    update_inputs_SERVER("cv_remove_update", session, input, dat)
   })
   
   
@@ -1217,7 +1242,7 @@ server <- function(input, output, session) {
     dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]],
                                                    type = "QC")
     
-    update_inputs_SERVER("cv_undo_update", session, dat)
+    update_inputs_SERVER("cv_undo_update", session, input, dat)
   })
   
   
@@ -1373,13 +1398,148 @@ server <- function(input, output, session) {
   ###### Downloading
   
   output[["download_rmd"]] <- downloadHandler(
-    filename = function() {
-      paste("project-", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"), ".rds", sep = "")
-    },
+    filename = "project.rds",
     content = function(file) saveRDS(dat[["metabocrates_dat_group"]], file)
+  )
+  
+  output[["download_metabo"]] <- downloadHandler(
+    filename = "metabolomics_matrix.xlsx",
+    content = function(file){
+      wb_file <- createWorkbook()
+      
+      if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
+        metabo_tab <- dat[["metabocrates_dat_group"]] %>%
+        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+      else
+        metabo_tab <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+        
+      addWorksheet(wb_file, "metabolites")
+      writeData(wb_file, "metabolites", metabo_tab)
+      saveWorkbook(wb_file, file, overwrite = TRUE)
+    }
+  )
+  
+  output[["download_tables"]] <- downloadHandler(
+    filename = "project.xlsx",
+    content = function(file){
+      wb_file <- createWorkbook()
+      
+      metabo_tab <- dat[["metabocrates_dat_group"]] %>%
+        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+        
+      addWorksheet(wb_file, "metabolites_martix")
+      writeData(wb_file, "metabolites", metabo_tab)
+      
+      LOD_tab <- attr(dat[["metabocrates_dat_group"]], "LOD_table") %>%
+        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+      
+      addWorksheet(wb_file, "LOD_table")
+      writeData(wb_file, "LOD_table", LOD_tab)
+      
+      for(i in names(attr(dat[["metabocrates_dat_group"]], "NA_info"))){
+        addWorksheet(wb_file, i)
+        writeData(wb_file, i, attr(dat[["metabocrates_dat_group"]], "NA_info")[[i]])
+      }
+      
+      metabo_names <-
+        tibble(metabolites = attr(dat[["metabocrates_dat_group"]], "metabolites"))
+      
+      addWorksheet(wb_file, "metabolites_names")
+      writeData(wb_file, "metabolites_names", metabo_names)
+      
+      addWorksheet(wb_file, "samples")
+      writeData(wb_file, "samples",
+                attr(dat[["metabocrates_dat_group"]], "samples"))
+      
+      if(!is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])){
+        addWorksheet(wb_file, "removed_LOD")
+        writeData(wb_file, "samples",
+                attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+      }
+      
+      if(!is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])){
+        addWorksheet(wb_file, "removed_QC")
+        writeData(wb_file, "samples",
+                attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])
+      }
+      
+      if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
+        addWorksheet(wb_file, "group_name")
+        writeData(wb_file, "group_name",
+                attr(dat[["metabocrates_dat_group"]], "group"))
+      }
+      
+      if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
+        imp_tab <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+          select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+        
+        addWorksheet(wb_file, "imputed")
+        writeData(wb_file, "imputed", imp_tab)
+      }
+      
+      if(!is.null(attr(dat[["metabocrates_dat_group"]], "cv"))){
+        cv_tab <- attr(dat[["metabocrates_dat_group"]], "cv") %>%
+          select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+        
+        addWorksheet(wb_file, "cv")
+        writeData(wb_file, "cv", cv_tab)
+      }
+        
+      saveWorkbook(wb_file, file, overwrite = TRUE)
+    }
+  )
+  
+  output[["download_zip"]] <- downloadHandler(
+    filename = "all_plots.zip",
+    content = function(file){
+      plots_lst <- list(
+        "groups_sizes_barplot.pdf" = ifelse(exists("groups_plt_reactive"),
+                                            groups_plt_reactive(),
+                                            NA),
+        "missing_values_barplot.pdf" = ifelse(exists("mv_types_plt_reactive"),
+                                              mv_types_plt_reactive(),
+                                              NA),
+        "missing_values_counts.pdf" = ifelse(exists("NA_ratios_plt_full"),
+                                             NA_ratios_plt_full(),
+                                             NA),
+        "correlations_heatmap.pdf" = ifelse(exists("full_corr_heatmap_plt"),
+                                            full_corr_heatmap_plt(),
+                                            NA),
+        "venn_diagram.pdf" = ifelse(exists("venn_diagram"),
+                                    venn_diagram(),
+                                    NA),
+        "missing_values_heatmap.pdf" = ifelse(exists("missing_heatmap"),
+                                              missing_heatmap(),
+                                              NA),
+        "distribution_plot.pdf" = ifelse(exists("dist_plt"),
+                                         dist_plt(),
+                                         NA),
+        "PCA_plot.pdf" = ifelse(exists(PCA_plt),
+                                PCA_plt(),
+                                NA),
+        "variance_explained_plot.pdf" = ifelse(exists("PCA_variance"),
+                                               PCA_variance(),
+                                               NA),
+        "2_metabolites_plot.pdf" = ifelse(exists("2_metabo_plt"),
+                                          `2_metabo_plt`(),
+                                          NA)
+      )
+      
+      for(plt in 1:length(plots_lst)){
+        if(!is.na(plots_lst[[i]]))
+          ggsave(names(plots_lst)[i], plot = plots_lst[[i]], device = "pdf")
+      }
+      
+      zip(file, names(plots_lst)[which(!is.na(plots_lst))])
+    }
   )
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
-
-
