@@ -43,7 +43,8 @@ plot_with_button_UI <- function(id){
   )
 }
 
-plot_with_button_SERVER <- function(id, plot_reactive, height = "auto", full_plt = NULL){
+plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
+                                    full_plt = NULL){
   moduleServer(id, function(input, output, session){
     height_val <- function(){
       ifelse(is.reactive(height),
@@ -63,13 +64,24 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto", full_plt
     output[["download_button"]] <- downloadHandler(
       filename = function(){
         paste0(switch(id,
-                      plot_groups = "groups_sizes_barplot",
-                      plot_mv_types = "missing_values_barplot"), ".pdf")
+                      groups_plt = "groups_sizes_barplot",
+                      mv_types_plt = "missing_values_barplot",
+                      NA_ratios_plt = "missing_values_counts",
+                      corr_heatmap = "correlations_heatmap",
+                      venn_diagram = "venn_diagram",
+                      missing_heatmap = "missing_values_heatmap",
+                      dist_plt = "distribution_plot",
+                      PCA_plt = "PCA_plot",
+                      PCA_variance = "variance_explained_plot",
+                      `2_metabo_plt` = "2_metabolites_plot"),
+               ".pdf")
       },
       content = function(file){
-        pdf(file, width = input[["plot_w"]], height = input[["plot_h"]])
-        plot(ifelse(is.null(full_plt), plot_reactive(), full_plt()))
-        dev.off()
+        ggplot2::ggsave(filename = file,
+                        plot = ifelse(is.null(full_plt), plot_reactive(),
+                                      full_plt()),
+                        device = "pdf",
+                        width = input[["plot_w"]], height = input[["plot_h"]])
       }
     )
   })
