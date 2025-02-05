@@ -8,7 +8,8 @@ create_correlations_heatmap(
   dat,
   metabolites_to_display = "all",
   width_svg = 6,
-  height_svg = 5
+  height_svg = 5,
+  interactive = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ Defaults to "all".}
 \item{width_svg}{Width of plot in inches.}
 
 \item{height_svg}{Height of plot in inches.}
+
+\item{interactive}{If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 Heatmap of correlations between metabolites
