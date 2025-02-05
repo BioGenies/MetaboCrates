@@ -139,6 +139,7 @@ plot_mv_types <- function(dat) {
 #' Default type is "joint", which creates plot of missing values percents
 #' in each metabolite. Types "NA_type" and "group" add the division into
 #' all missing values types and levels in grouping column respectively.
+#' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -150,7 +151,8 @@ plot_mv_types <- function(dat) {
 #' 
 #' @export
 
-plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
+plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
+                            interactive = TRUE){
   if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
   
@@ -221,13 +223,15 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5){
     scale_fill_metabocrates_discrete() +
     metabocrates_theme()
   
-  girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+  if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
               options = list(
               opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                            opacity = 0.9),
               opts_toolbar(saveaspng = FALSE),
               opts_sizing(rescale = FALSE)
               ))
+  else plt
 }
 
 #' Heatmap of missing metabolites values
@@ -515,6 +519,7 @@ create_qqplot <- function(dat, metabolite){
 #' Defaults to "all".
 #' @param width_svg Width of plot in inches.
 #' @param height_svg Height of plot in inches.
+#' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -525,7 +530,8 @@ create_qqplot <- function(dat, metabolite){
 #' @export
 
 create_correlations_heatmap <- function(dat, metabolites_to_display = "all",
-                                        width_svg = 6, height_svg = 5){
+                                        width_svg = 6, height_svg = 5,
+                                        interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -557,13 +563,15 @@ create_correlations_heatmap <- function(dat, metabolites_to_display = "all",
     theme(axis.text.x = element_text(angle = 90)) +
     scale_fill_metabocrates_continuous()
   
-  girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+  if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
          options = list(
            opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                         opacity = 0.9),
            opts_toolbar(saveaspng = FALSE),
            opts_sizing(rescale = FALSE)
          ))
+  else plt
 }
 
 #' This function creates a density plot for a specified metabolite, overlaying a 
