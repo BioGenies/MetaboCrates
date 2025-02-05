@@ -4,7 +4,13 @@
 \alias{plot_NA_percent}
 \title{Barplot of missing values percents}
 \usage{
-plot_NA_percent(dat, type = "joint", width_svg = 6, height_svg = 5)
+plot_NA_percent(
+  dat,
+  type = "joint",
+  width_svg = 6,
+  height_svg = 5,
+  interactive = TRUE
+)
 }
 \arguments{
 \item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
@@ -14,6 +20,8 @@ function accepts either "joint", "NA_type" or "group".
 Default type is "joint", which creates plot of missing values percents
 in each metabolite. Types "NA_type" and "group" add the division into
 all missing values types and levels in grouping column respectively.}
+
+\item{interactive}{If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 Barplot of missing values percents
