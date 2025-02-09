@@ -785,11 +785,16 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
     stop("Complete the missing values in data first.")
   
   mod_dat <- attr(dat, "completed") %>%
-    drop_na(all_of(attr(dat, "metabolites")))
+    select(all_of(c(attr(dat, "metabolites"), "tmp_id"))) %>%
+    select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+    na.omit() %>%
+    select(where(~ n_distinct(.) > 1)) %>%
+    left_join(select(attr(dat, "completed"), -all_of(attr(dat, "metabolites"))))
   
   if(type == "group"){
     mod_dat <- mod_dat %>%
       filter(`sample type` == "Sample") %>%
+      select(where(~ n_distinct(.) > 1)) %>%
       mutate(group = as.factor(get(attr(dat, "group"))))
   }else{
     mod_dat <- rename(mod_dat, sample_type = `sample type`)
@@ -797,11 +802,12 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
   
   col_type <- ifelse(type == "biplot", "sample_type", type)
   
+  metabolites <- setdiff(attr(dat, "metabolites"),
+                         c(unlist(attr(dat, "removed"))))
+  
   metabo_dat <- mod_dat %>%
     mutate(across(all_of(col_type), ~ factor(., ordered = TRUE))) %>%
-    select(all_of(setdiff(attr(dat, "metabolites"),
-                          unlist(attr(dat, "removed"))))) %>%
-    select(where(~ n_distinct(.) > 1))
+    select(any_of(metabolites))
   
   if(ncol(metabo_dat) == 0)
     stop("No samples without missing values found.")
