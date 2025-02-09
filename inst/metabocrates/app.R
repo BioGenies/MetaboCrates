@@ -16,6 +16,7 @@ source("app_supplementary/ui_supp.R")
 source("app_supplementary/plot_with_button_module.R")
 source("app_supplementary/table_with_button_module.R")
 source("app_supplementary/update_inputs_module.R")
+source("app_supplementary/download_module.R")
 
 panels_vec <- c("About", "Uploading data", "Group selection",
                 "Filtering", "Completing",  "Quality control", "Summary", 
@@ -572,27 +573,12 @@ ui <- navbarPage(
            br(),
            br(),
            br(),
-           column(6,
-                  h3("Download project in rds file:"),
-                  downloadButton("download_rmd", "Download", style = "width:20%;"),
-                  br(),
-                  br(),
-                  h3("Download metabolomics matrix in xlsx file:"),
-                  downloadButton("download_metabo", "Download", style = "width:20%;"),
-                  br(),
-                  br(),
-                  h3("Download project in xlsx file:"),
-                  downloadButton("download_tables", "Download", style = "width:20%;"),
-           ),
-           column(6,
-                  h3("Download report:"),
-                  downloadButton("download_report", "Download", style = "width:20%;"),
-                  br(),
-                  br(),
-                  h3("Download all plots in zip file:"),
-                  downloadButton("download_zip", "Download", style = "width:20%;"),
-           )
-           
+           br(),
+           download_UI("download_rds"),
+           download_UI("download_matrix"),
+           download_UI("download_tables"),
+           download_UI("download_zip"),
+           download_UI("download_pdf")
   )
 )
 
@@ -1397,149 +1383,11 @@ server <- function(input, output, session) {
   
   ###### Downloading
   
-  output[["download_rmd"]] <- downloadHandler(
-    filename = "project.rds",
-    content = function(file) saveRDS(dat[["metabocrates_dat_group"]], file)
-  )
-  
-  output[["download_metabo"]] <- downloadHandler(
-    filename = "metabolomics_matrix.xlsx",
-    content = function(file){
-      wb_file <- createWorkbook()
-      
-      if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
-        metabo_tab <- dat[["metabocrates_dat_group"]] %>%
-        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
-      else
-        metabo_tab <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
-        
-      addWorksheet(wb_file, "metabolites")
-      writeData(wb_file, "metabolites", metabo_tab)
-      saveWorkbook(wb_file, file, overwrite = TRUE)
-    }
-  )
-  
-  output[["download_tables"]] <- downloadHandler(
-    filename = "project.xlsx",
-    content = function(file){
-      wb_file <- createWorkbook()
-      
-      metabo_tab <- dat[["metabocrates_dat_group"]] %>%
-        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
-        
-      addWorksheet(wb_file, "metabolites_martix")
-      writeData(wb_file, "metabolites", metabo_tab)
-      
-      LOD_tab <- attr(dat[["metabocrates_dat_group"]], "LOD_table") %>%
-        select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                  attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
-      
-      addWorksheet(wb_file, "LOD_table")
-      writeData(wb_file, "LOD_table", LOD_tab)
-      
-      for(i in names(attr(dat[["metabocrates_dat_group"]], "NA_info"))){
-        addWorksheet(wb_file, i)
-        writeData(wb_file, i, attr(dat[["metabocrates_dat_group"]], "NA_info")[[i]])
-      }
-      
-      metabo_names <-
-        tibble(metabolites = attr(dat[["metabocrates_dat_group"]], "metabolites"))
-      
-      addWorksheet(wb_file, "metabolites_names")
-      writeData(wb_file, "metabolites_names", metabo_names)
-      
-      addWorksheet(wb_file, "samples")
-      writeData(wb_file, "samples",
-                attr(dat[["metabocrates_dat_group"]], "samples"))
-      
-      if(!is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])){
-        addWorksheet(wb_file, "removed_LOD")
-        writeData(wb_file, "samples",
-                attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
-      }
-      
-      if(!is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])){
-        addWorksheet(wb_file, "removed_QC")
-        writeData(wb_file, "samples",
-                attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])
-      }
-      
-      if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
-        addWorksheet(wb_file, "group_name")
-        writeData(wb_file, "group_name",
-                attr(dat[["metabocrates_dat_group"]], "group"))
-      }
-      
-      if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
-        imp_tab <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-          select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
-        
-        addWorksheet(wb_file, "imputed")
-        writeData(wb_file, "imputed", imp_tab)
-      }
-      
-      if(!is.null(attr(dat[["metabocrates_dat_group"]], "cv"))){
-        cv_tab <- attr(dat[["metabocrates_dat_group"]], "cv") %>%
-          select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
-        
-        addWorksheet(wb_file, "cv")
-        writeData(wb_file, "cv", cv_tab)
-      }
-        
-      saveWorkbook(wb_file, file, overwrite = TRUE)
-    }
-  )
-  
-  output[["download_zip"]] <- downloadHandler(
-    filename = "all_plots.zip",
-    content = function(file){
-      plots_lst <- list(
-        "groups_sizes_barplot.pdf" = ifelse(exists("groups_plt_reactive"),
-                                            groups_plt_reactive(),
-                                            NA),
-        "missing_values_barplot.pdf" = ifelse(exists("mv_types_plt_reactive"),
-                                              mv_types_plt_reactive(),
-                                              NA),
-        "missing_values_counts.pdf" = ifelse(exists("NA_ratios_plt_full"),
-                                             NA_ratios_plt_full(),
-                                             NA),
-        "correlations_heatmap.pdf" = ifelse(exists("full_corr_heatmap_plt"),
-                                            full_corr_heatmap_plt(),
-                                            NA),
-        "venn_diagram.pdf" = ifelse(exists("venn_diagram"),
-                                    venn_diagram(),
-                                    NA),
-        "missing_values_heatmap.pdf" = ifelse(exists("missing_heatmap"),
-                                              missing_heatmap(),
-                                              NA),
-        "distribution_plot.pdf" = ifelse(exists("dist_plt"),
-                                         dist_plt(),
-                                         NA),
-        "PCA_plot.pdf" = ifelse(exists(PCA_plt),
-                                PCA_plt(),
-                                NA),
-        "variance_explained_plot.pdf" = ifelse(exists("PCA_variance"),
-                                               PCA_variance(),
-                                               NA),
-        "2_metabolites_plot.pdf" = ifelse(exists("2_metabo_plt"),
-                                          `2_metabo_plt`(),
-                                          NA)
-      )
-      
-      for(plt in 1:length(plots_lst)){
-        if(!is.na(plots_lst[[i]]))
-          ggsave(names(plots_lst)[i], plot = plots_lst[[i]], device = "pdf")
-      }
-      
-      zip(file, names(plots_lst)[which(!is.na(plots_lst))])
-    }
-  )
+  download_SERVER("download_rds", dat)
+  download_SERVER("download_matrix", dat)
+  download_SERVER("download_tables", dat)
+  download_SERVER("download_zip", dat)
+  download_SERVER("download_pdf", dat)
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
