@@ -87,7 +87,7 @@ nav_btns_SERVER <- function(input, output,
                      - LOD type: <b>calc</b>,<br>
                      - LLOQ method: <b>limit</b>,<br>
                      - ULOQ method: <b>third quartile</b>.<br>
-                     U can go back anytime to modify the imputation."),
+                     You can go back anytime to modify the imputation."),
                      type = "warning",
                      html = TRUE)
       
