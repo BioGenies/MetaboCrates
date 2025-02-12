@@ -31,12 +31,27 @@ ui <- navbarPage(
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
   
+  tags$head(
+    tags$style(HTML("
+      .custom-tabs .nav-tabs > li > a {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: normal;
+      line-height: 1.2;
+    }
+    "))
+  ),
+  
   tabPanel("About",
            ui_content_about()
   ),
   
   tabPanel(
     "Analysis",
+    div(class = "custom-tabs",
     tabsetPanel(
       id = "run",
       type = "hidden",
@@ -515,51 +530,49 @@ ui <- navbarPage(
       #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
-               column(8, 
-                      fluidRow(
-                        column(5, offset = 1,
-                               h3("Metabolites removed based on the")
-                        ),
-                        column(4, offset = 2,
-                               h3("Analysis summary")
-                        )
-                      ),
-                      fluidRow(
-                        column(3, offset = 1,
-                               h4("Limit of detection"),
-                               tags$div(
-                                 style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
-                                 border: 1px solid #ccc; padding: 11px;",
-                                 htmlOutput("summary_LOD_removed_txt")
-                               ),
-                               htmlOutput("LOD_threshold_txt"),
-                               htmlOutput("LOD_count_txt")
-                        ),
-                        column(3,
-                               h4("Coefficient of Variation"),
-                               tags$div(
-                                 style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
-                                 border: 1px solid #ccc; padding: 11px;",
-                                 htmlOutput("summary_CV_removed_txt")
-                               ),
-                               htmlOutput("CV_threshold_txt"),
-                               htmlOutput("CV_count_txt")
-                        ),
-                        column(1, offset = 1,
-                               tags$div(style = "border-left: 2px solid black; height: 450px;")
-                        ),
-                        column(3,
-                               htmlOutput("summary_txt")
-                        )
-                      )
-               ),
-               column(4, align = "right", 
+               column(12, align = "right", 
                       h2("Summary (step 6/7)"),
                       h3("next: Download")
-               )
+               ),
+               fluidRow(
+                 column(5, offset = 1,
+                        h3("Metabolites removed based on the")
+                 ),
+                 column(4, offset = 2,
+                        h3("Analysis summary")
+                 )
+               ),
+               fluidRow(
+                 column(2, offset = 1,
+                        h4("Limit of detection"),
+                        tags$div(
+                        style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
+                        border: 1px solid #ccc; padding: 11px;",
+                        htmlOutput("summary_LOD_removed_txt")
+                        ),
+                        htmlOutput("LOD_threshold_txt"),
+                        htmlOutput("LOD_count_txt")
+                 ),
+                 column(2,
+                        h4("Coefficient of Variation"),
+                        tags$div(
+                        style = "height: 350px; overflow-y: scroll; overflow-x: scroll;
+                        border: 1px solid #ccc; padding: 11px;",
+                        htmlOutput("summary_CV_removed_txt")
+                        ),
+                        htmlOutput("CV_threshold_txt"),
+                        htmlOutput("CV_count_txt")
+                  ),
+                 column(1, offset = 1,
+                        tags$div(style = "border-left: 2px solid black; height: 450px;")
+                 ),
+                 column(3,
+                        htmlOutput("summary_txt")
+                 )
+            )
       )
     )
-  ),
+  )),
   
   tabPanel("Download",
            nav_btns_UI("Download"),
