@@ -623,15 +623,18 @@ create_density_with_lod <- function(dat, metabolite_name) {
 #' Plot of two metabolites
 #' 
 #' @importFrom stringr str_extract
+#' @importFrom ggiraph geom_point_interactive
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_plot_of_2_metabolites(dat, "C0", "C2")
+#' print(create_plot_of_2_metabolites(dat, "C0", "C2"))
 #' 
 #' @export
-create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
+create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
+                                         width_svg = 6, height_svg = 5,
+                                         interactive = TRUE){
   LOD <- attr(dat, "LOD_table") %>%
     filter(type == "LOD (calc.)") %>%
     select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
@@ -647,7 +650,9 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
       vec <- sapply(unique(LOD[["LOD plate bar code"]]),
              function(LODcode) str_extract(`plate bar code`, LODcode))
       vec[!is.na(vec)]
-    })
+      }) %>%
+    ungroup() %>%
+    mutate(tooltip = paste0("Sample: ", 1:n()))
   
   combined_data <- bind_rows(LOD, plot_data) %>%
     group_by(`LOD plate bar code`) %>%
@@ -669,9 +674,9 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
     unique_counts
   ), combined_data[["plate bar code"]])
   
-  ggplot(plot_data, aes(x = get(metabolite1), y = get(metabolite2),
-                           color = `plate bar code`)) +
-    geom_point() +
+  plt <- ggplot(plot_data, aes(x = get(metabolite1), y = get(metabolite2),
+                           color = `plate bar code`, tooltip = tooltip)) +
+    geom_point_interactive() +
     geom_hline(data = LOD, aes(yintercept = get(metabolite2), 
                                color = `plate bar code`), linetype = "dashed") +
     geom_vline(data = LOD, aes(xintercept = get(metabolite1), 
@@ -679,6 +684,16 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2){
     labs(x = paste(metabolite1), y = paste(metabolite2)) +
     metabocrates_theme() +
     scale_color_manual(values = values)
+  
+  if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+           options = list(
+             opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                          opacity = 0.9),
+             opts_toolbar(saveaspng = FALSE),
+             opts_sizing(rescale = FALSE)
+           ))
+  else plt
 }
 
 
