@@ -1,7 +1,8 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  if(id %in% c("NA_ratios_plt", "corr_heatmap")) plt <- ggiraph::girafeOutput(ns("plot"))
+  if(id %in% c("NA_ratios_plt", "corr_heatmap", "2_metabo_plt"))
+    plt <- ggiraph::girafeOutput(ns("plot"))
   else plt <- plotOutput(ns("plot"))
   
   fluidRow(
@@ -52,9 +53,8 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
              height)
     }
     
-    if(id %in% c("NA_ratios_plt", "corr_heatmap")){
-      output[["plot"]] <-
-        ggiraph::renderGirafe(plot_reactive())
+    if(id %in% c("NA_ratios_plt", "corr_heatmap", "2_metabo_plt")){
+      output[["plot"]] <- ggiraph::renderGirafe(plot_reactive())
     }else{
       output[["plot"]] <- renderPlot(plot_reactive(),
                                      height = function() height_val(),
@@ -77,10 +77,11 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                ".pdf")
       },
       content = function(file){
+        if(is.null(full_plt)) plt <- plot_reactive()
+        else plt <- full_plt()
+        
         ggplot2::ggsave(filename = file,
-                        plot = ifelse(is.null(full_plt), plot_reactive(),
-                                      full_plt()),
-                        device = "pdf",
+                        plot = plt,
                         width = input[["plot_w"]], height = input[["plot_h"]])
       }
     )

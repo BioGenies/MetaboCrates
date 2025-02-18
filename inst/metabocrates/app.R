@@ -1292,7 +1292,18 @@ server <- function(input, output, session) {
                                  input[["2_metabo_plt_2"]])
   })
   
-  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt)
+  two_metabo_plt_full <- reactive({
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    
+    create_plot_of_2_metabolites(dat[["metabocrates_dat_group"]],
+                                 input[["2_metabo_plt_1"]],
+                                 input[["2_metabo_plt_2"]],
+                                 interactive = FALSE)
+    
+  })
+  
+  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt,
+                          full_plt = two_metabo_plt_full)
   
   ######## Summary
   

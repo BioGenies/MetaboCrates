@@ -135,37 +135,22 @@ download_SERVER <- function(id, dat){
       output[["download"]] <- downloadHandler(
         filename = "all_plots.zip",
         content = function(file){
+          get_plt <- function(id){
+            if(exists(id)) get(id)()
+            else NA
+          }
+            
           plots_lst <- list(
-            "groups_sizes_barplot.pdf" = ifelse(exists("groups_plt_reactive"),
-                                                groups_plt_reactive(),
-                                                NA),
-            "missing_values_barplot.pdf" = ifelse(exists("mv_types_plt_reactive"),
-                                                  mv_types_plt_reactive(),
-                                                  NA),
-            "missing_values_counts.pdf" = ifelse(exists("NA_ratios_plt_full"),
-                                                 NA_ratios_plt_full(),
-                                                 NA),
-            "correlations_heatmap.pdf" = ifelse(exists("full_corr_heatmap_plt"),
-                                                full_corr_heatmap_plt(),
-                                                NA),
-            "venn_diagram.pdf" = ifelse(exists("venn_diagram"),
-                                        venn_diagram(),
-                                        NA),
-            "missing_values_heatmap.pdf" = ifelse(exists("missing_heatmap"),
-                                                  missing_heatmap(),
-                                                  NA),
-            "distribution_plot.pdf" = ifelse(exists("dist_plt"),
-                                             dist_plt(),
-                                             NA),
-            "PCA_plot.pdf" = ifelse(exists(PCA_plt),
-                                    PCA_plt(),
-                                    NA),
-            "variance_explained_plot.pdf" = ifelse(exists("PCA_variance"),
-                                                   PCA_variance(),
-                                                   NA),
-            "2_metabolites_plot.pdf" = ifelse(exists("2_metabo_plt"),
-                                              `2_metabo_plt`(),
-                                              NA)
+            "groups_sizes_barplot.pdf" = get_plt("groups_plt_reactive"),
+            "missing_values_barplot.pdf" = get_plt("mv_types_plt_reactive"),
+            "missing_values_counts.pdf" = get_plt("NA_ratios_plt_full"),
+            "correlations_heatmap.pdf" = get_plt("full_corr_heatmap_plt"),
+            "venn_diagram.pdf" = get_plt("venn_diagram"),
+            "missing_values_heatmap.pdf" = get_plt("missing_heatmap"),
+            "distribution_plot.pdf" = get_plt("dist_plt"),
+            "PCA_plot.pdf" = get_plt("PCA_plt"),
+            "variance_explained_plot.pdf" = get_plt("PCA_variance"),
+            "2_metabolites_plot.pdf" = get_plt("2_metabo_plt")
           )
           
           for(plt in 1:length(plots_lst)){
