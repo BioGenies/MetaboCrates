@@ -13,15 +13,11 @@ download_UI <- function(id){
          div(
            style = "background-color: white; color: black; padding: 10px; border-radius: 5px; 
                   border: 2px solid black; display: flex; align-items: center; justify-content: space-between;",
-           
-           # Left: Text (with helper attached)
            h4(
              span(txt, style = "margin-right: 20px;") %>%
                helper(id = "download_helper"),
              style = "margin: 0;"
            ),
-           
-           # Right: Download Button
            downloadButton(ns("download"), "Download")
          )
   )
@@ -153,7 +149,7 @@ download_SERVER <- function(id, dat){
             "2_metabolites_plot.pdf" = get_plt("2_metabo_plt")
           )
           
-          for(plt in 1:length(plots_lst)){
+          for(i in 1:length(plots_lst)){
             if(!is.na(plots_lst[[i]]))
               ggsave(names(plots_lst)[i], plot = plots_lst[[i]], device = "pdf")
           }
