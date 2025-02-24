@@ -456,26 +456,25 @@ ui <- navbarPage(
                                  h2("Quality control (step 5/7)"),
                                  h3("next: Summary")
                           ),
-                          column(5, offset = 3,
+                          column(3, offset = 3,
                                  br(),
                                  radioButtons("PCA_type",
                                               label = "Select PCA plot type:",
-                                                     choices = c("sample type",
-                                                                   "group", "biplot"),
+                                                     choices = c("sample type", "biplot"),
                                                        inline = TRUE)
-                                   ),
-                          column(4, offset = 0.5,
-                                          br(),
-                                          conditionalPanel(
-                                            condition = "input.PCA_type == `biplot`",
-                                            numericInput(
-                                              inputId = "PCA_threshold",
-                                              label = "threshold [%]",
-                                              value = 30,
-                                              min = 0,
-                                              max = 100)
-                                          )
-                                   ),
+                          ),
+                          column(3,
+                                 br(),
+                                 conditionalPanel(
+                                   condition = "input.PCA_type == `biplot`",
+                                   numericInput(
+                                     inputId = "PCA_threshold",
+                                     label = "threshold [%]",
+                                     value = 30,
+                                     min = 0,
+                                     max = 100)
+                                   )
+                          ),
                           column(6, offset = 3,
                                           plot_with_button_UI("PCA_plt")  
                                    )
@@ -486,24 +485,24 @@ ui <- navbarPage(
                                h3("next: Summary")
                         ),
                         column(3, offset = 3,
-                                          br(),
-                                          numericInput("PCA_variance_threshold",
-                                                       label = "threshold [%]",
-                                                       value = 80,
-                                                       min = 0,
-                                                       max = 100)
-                                   ),
+                               br(),
+                               numericInput("PCA_variance_threshold",
+                                            label = "threshold [%]",
+                                            value = 80,
+                                            min = 0,
+                                            max = 100)
+                        ),
                         column(3,
-                                          br(),
-                                          numericInput("PCA_variance_max_num",
-                                                       label = "maximum number of principal components",
-                                                       value = 5,
-                                                       min = 1)
-                                   ),
+                               br(),
+                               numericInput("PCA_variance_max_num",
+                                            label = "maximum number of principal components",
+                                            value = 5,
+                                            min = 1)
+                        ),
                         column(6, offset = 3,
-                                          plot_with_button_UI("PCA_variance")
+                               plot_with_button_UI("PCA_variance")
                                    
-                            )
+                        )
                 ),
                tabPanel("Two metabolites plot",
                         column(12, align = "right",
@@ -512,13 +511,13 @@ ui <- navbarPage(
                         ),
                         column(3, offset = 3,
                                selectInput("2_metabo_plt_1",
-                                                  "First metabolite",
-                                                  choices = character(0))
+                                           "First metabolite",
+                                           choices = character(0))
                         ),
                         column(3,
-                                      selectInput("2_metabo_plt_2",
-                                                  "Second metabolite",
-                                                  choices = character(0))
+                               selectInput("2_metabo_plt_2",
+                                           "Second metabolite",
+                                           choices = character(0))
                         ),
                         column(6, offset = 3,
                                plot_with_button_UI("2_metabo_plt")
@@ -1177,6 +1176,14 @@ server <- function(input, output, session) {
       dat[["metabocrates_dat_group"]] <-
         calculate_CV(dat[["metabocrates_dat_group"]])
       
+      updateSelectInput(session,
+                        inputId = "2_metabo_plt_1",
+                        choices =
+                          setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                                  c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                    input[["2_metabo_plt_2"]])))
+      
       update_inputs_SERVER("cv_update", session, input, dat)
     }
   })
@@ -1284,8 +1291,19 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("PCA_variance", PCA_variance)
   
+  observeEvent(input[["2_metabo_plt_1"]],
+               updateSelectInput(session,
+                                 inputId = "2_metabo_plt_2",
+                                 choices =
+                                   setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                                           c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                                             attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                                             input[["2_metabo_plt_1"]]))))
+  
   two_metabo_plt <- reactive({
-    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["2_metabo_plt_1"]])
+    req(input[["2_metabo_plt_2"]])
     
     create_plot_of_2_metabolites(dat[["metabocrates_dat_group"]],
                                  input[["2_metabo_plt_1"]],
@@ -1293,7 +1311,9 @@ server <- function(input, output, session) {
   })
   
   two_metabo_plt_full <- reactive({
-    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["2_metabo_plt_1"]])
+    req(input[["2_metabo_plt_2"]])
     
     create_plot_of_2_metabolites(dat[["metabocrates_dat_group"]],
                                  input[["2_metabo_plt_1"]],
