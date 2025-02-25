@@ -1176,14 +1176,6 @@ server <- function(input, output, session) {
       dat[["metabocrates_dat_group"]] <-
         calculate_CV(dat[["metabocrates_dat_group"]])
       
-      updateSelectInput(session,
-                        inputId = "2_metabo_plt_1",
-                        choices =
-                          setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                  c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                    input[["2_metabo_plt_2"]])))
-      
       update_inputs_SERVER("cv_update", session, input, dat)
     }
   })
@@ -1291,14 +1283,37 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("PCA_variance", PCA_variance)
   
-  observeEvent(input[["2_metabo_plt_1"]],
-               updateSelectInput(session,
-                                 inputId = "2_metabo_plt_2",
-                                 choices =
-                                   setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                           c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                                             attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                                             input[["2_metabo_plt_1"]]))))
+  observeEvent(
+    input[["2_metabo_plt_1"]], {
+      req(input[["2_metabo_plt_1"]])
+      
+      updateSelectInput(
+        session,
+        inputId = "2_metabo_plt_2",
+        choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                          c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                            attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                            input[["2_metabo_plt_1"]])),
+        selected = input[["2_metabo_plt_2"]]
+      )
+    }
+  )
+  
+  observeEvent(
+    input[["2_metabo_plt_2"]], {
+      req(input[["2_metabo_plt_2"]])
+      
+      updateSelectInput(
+        session,
+        inputId = "2_metabo_plt_1",
+        choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                          c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                            attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                            input[["2_metabo_plt_2"]])),
+        selected = input[["2_metabo_plt_1"]]
+     )
+    }
+  )
   
   two_metabo_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
@@ -1322,8 +1337,8 @@ server <- function(input, output, session) {
     
   })
   
-  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt,
-                          full_plt = two_metabo_plt_full)
+  renderUI(plot_with_button_SERVER("2_metabo_plt", two_metabo_plt,
+                          full_plt = two_metabo_plt_full))
   
   ######## Summary
   

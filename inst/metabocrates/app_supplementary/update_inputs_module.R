@@ -51,10 +51,10 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                             choices = metabolites())
           
           updateSelectInput(main_session, inputId = "2_metabo_plt_1",
-                            choices = metabolites())
+                            choices = metabolites()[-2])
           
           updateSelectInput(main_session, inputId = "2_metabo_plt_2",
-                            choices = metabolites())
+                            choices = metabolites()[-1])
           
           uncomplete_metabolites <- reactive({
             req(dat[["metabocrates_dat_group"]])
