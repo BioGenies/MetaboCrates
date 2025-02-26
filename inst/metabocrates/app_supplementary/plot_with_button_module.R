@@ -1,9 +1,9 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  if(id %in% c("NA_ratios_plt", "corr_heatmap", "2_metabo_plt"))
+  if(id %in% c("NA_ratios_plt", "corr_heatmap")){
     plt <- ggiraph::girafeOutput(ns("plot"))
-  else plt <- plotOutput(ns("plot"))
+  }else plt <- plotOutput(ns("plot"))
   
   fluidRow(
     column(11,
@@ -53,7 +53,7 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
              height)
     }
     
-    if(id %in% c("NA_ratios_plt", "corr_heatmap", "2_metabo_plt")){
+    if(id %in% c("NA_ratios_plt", "corr_heatmap")){
       output[["plot"]] <- ggiraph::renderGirafe(plot_reactive())
     }else{
       output[["plot"]] <- renderPlot(plot_reactive(),
