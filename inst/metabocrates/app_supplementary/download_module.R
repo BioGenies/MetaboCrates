@@ -28,10 +28,16 @@ download_UI <- function(id){
 
 download_SERVER <- function(id, dat){
   moduleServer(id, function(input, output, session){
+    observe({
+    if(is.null(dat[["metabocrates_dat_group"]]))
+      download_dat <- dat[["metabocrates_dat"]]
+    else
+      download_dat <- dat[["metabocrates_dat_group"]]
+    
     if(id == "download_rds"){
       output[["download"]] <- downloadHandler(
         filename = "project.rds",
-        content = function(file) saveRDS(dat[["metabocrates_dat_group"]], file)
+        content = function(file) saveRDS(download_dat, file)
       )
     }else if(id == "download_matrix"){
       output[["download"]] <- downloadHandler(
@@ -39,17 +45,22 @@ download_SERVER <- function(id, dat){
         content = function(file){
           wb_file <- createWorkbook()
           
-          if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
-            metabo_tab <- dat[["metabocrates_dat_group"]] %>%
-              select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                        attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+          if(is.null(attr(download_dat, "completed")))
+            metabo_tab <- download_dat
           else
-            metabo_tab <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-              select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                        attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+            metabo_tab <- attr(download_dat, "completed")
           
-          addWorksheet(wb_file, "metabolites")
-          writeData(wb_file, "metabolites", metabo_tab)
+          metabo_tab <- metabo_tab %>%
+            select(any_of(c(
+              "sample identification", "sample id",
+              attr(download_dat, "group"),
+              setdiff(attr(download_dat, "metabolites"),
+                      c(attr(download_dat, "removed")[["LOD"]],
+                        attr(download_dat, "removed")[["QC"]]))
+            )))
+          
+          addWorksheet(wb_file, "metabolites_matrix")
+          writeData(wb_file, "metabolites_matrix", metabo_tab)
           saveWorkbook(wb_file, file, overwrite = TRUE)
         }
       )
@@ -59,66 +70,71 @@ download_SERVER <- function(id, dat){
         content = function(file){
           wb_file <- createWorkbook()
           
-          metabo_tab <- dat[["metabocrates_dat_group"]] %>%
-            select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                      attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+          metabo_tab <- download_dat %>%
+            select(!c(attr(download_dat, "removed")[["LOD"]],
+                      attr(download_dat, "removed")[["QC"]]))
           
-          addWorksheet(wb_file, "metabolites_martix")
-          writeData(wb_file, "metabolites", metabo_tab)
+          addWorksheet(wb_file, "metabolites_matrix")
+          writeData(wb_file, "metabolites_matrix", metabo_tab)
           
-          LOD_tab <- attr(dat[["metabocrates_dat_group"]], "LOD_table") %>%
-            select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                      attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+          LOD_tab <- attr(download_dat, "LOD_table") %>%
+            select(!c(attr(download_dat, "removed")[["LOD"]],
+                      attr(download_dat, "removed")[["QC"]]))
           
           addWorksheet(wb_file, "LOD_table")
           writeData(wb_file, "LOD_table", LOD_tab)
           
-          for(i in names(attr(dat[["metabocrates_dat_group"]], "NA_info"))){
-            addWorksheet(wb_file, i)
-            writeData(wb_file, i, attr(dat[["metabocrates_dat_group"]], "NA_info")[[i]])
+          for(i in names(attr(download_dat, "NA_info"))){
+            if(!is.null(attr(download_dat, "NA_info")[[i]])){
+              if(i == "counts") sheet <- "NA_counts"
+              else sheet <- i
+              
+              addWorksheet(wb_file, sheet)
+              writeData(wb_file, sheet, attr(download_dat, "NA_info")[[i]])
+            }
           }
           
           metabo_names <-
-            tibble(metabolites = attr(dat[["metabocrates_dat_group"]], "metabolites"))
+            tibble(metabolites = attr(download_dat, "metabolites"))
           
           addWorksheet(wb_file, "metabolites_names")
           writeData(wb_file, "metabolites_names", metabo_names)
           
           addWorksheet(wb_file, "samples")
           writeData(wb_file, "samples",
-                    attr(dat[["metabocrates_dat_group"]], "samples"))
+                    attr(download_dat, "samples"))
           
-          if(!is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])){
+          if(!is.null(attr(download_dat, "removed")[["LOD"]])){
             addWorksheet(wb_file, "removed_LOD")
             writeData(wb_file, "samples",
-                      attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+                      attr(download_dat, "removed")[["LOD"]])
           }
           
-          if(!is.null(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])){
+          if(!is.null(attr(download_dat, "removed")[["QC"]])){
             addWorksheet(wb_file, "removed_QC")
             writeData(wb_file, "samples",
-                      attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])
+                      attr(download_dat, "removed")[["QC"]])
           }
           
-          if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
+          if(!is.null(attr(download_dat, "group"))){
             addWorksheet(wb_file, "group_name")
             writeData(wb_file, "group_name",
-                      attr(dat[["metabocrates_dat_group"]], "group"))
+                      attr(download_dat, "group"))
           }
           
-          if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
-            imp_tab <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-              select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                        attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+          if(!is.null(attr(download_dat, "completed"))){
+            imp_tab <- attr(download_dat, "completed") %>%
+              select(!c(attr(download_dat, "removed")[["LOD"]],
+                        attr(download_dat, "removed")[["QC"]]))
             
             addWorksheet(wb_file, "imputed")
             writeData(wb_file, "imputed", imp_tab)
           }
           
-          if(!is.null(attr(dat[["metabocrates_dat_group"]], "cv"))){
-            cv_tab <- attr(dat[["metabocrates_dat_group"]], "cv") %>%
-              select(!c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                        attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+          if(!is.null(attr(download_dat, "cv"))){
+            cv_tab <- attr(download_dat, "cv") %>%
+              select(!c(attr(download_dat, "removed")[["LOD"]],
+                        attr(download_dat, "removed")[["QC"]]))
             
             addWorksheet(wb_file, "cv")
             writeData(wb_file, "cv", cv_tab)
@@ -128,11 +144,14 @@ download_SERVER <- function(id, dat){
         }
       )
     }else if(id == "download_zip"){
+      if(is.null(dat[["metabocrates_dat_group"]]))
+        dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
+      
       output[["download"]] <- downloadHandler(
         filename = "all_plots.zip",
         content = function(file){
-          get_plt <- function(id){
-            if(exists(id)) get(id)()
+          get_plt <- function(plot_id){
+            if(exists(plot_id)) get(plot_id)()
             else NA
           }
             
@@ -143,10 +162,8 @@ download_SERVER <- function(id, dat){
             "correlations_heatmap.pdf" = get_plt("full_corr_heatmap_plt"),
             "venn_diagram.pdf" = get_plt("venn_diagram"),
             "missing_values_heatmap.pdf" = get_plt("missing_heatmap"),
-            "distribution_plot.pdf" = get_plt("dist_plt"),
             "PCA_plot.pdf" = get_plt("PCA_plt"),
-            "variance_explained_plot.pdf" = get_plt("PCA_variance"),
-            "2_metabolites_plot.pdf" = get_plt("2_metabo_plt")
+            "variance_explained_plot.pdf" = get_plt("PCA_variance")
           )
           
           for(i in 1:length(plots_lst)){
@@ -160,5 +177,6 @@ download_SERVER <- function(id, dat){
     }else if(id == "download_pdf"){
       NULL
     }
+    })
   })
 }
