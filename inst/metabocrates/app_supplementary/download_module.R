@@ -144,34 +144,112 @@ download_SERVER <- function(id, dat){
         }
       )
     }else if(id == "download_zip"){
-      if(is.null(dat[["metabocrates_dat_group"]]))
-        dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
-      
       output[["download"]] <- downloadHandler(
         filename = "all_plots.zip",
         content = function(file){
-          get_plt <- function(plot_id){
-            if(exists(plot_id)) get(plot_id)()
-            else NA
-          }
+          tmp_dir <- tempdir()
             
           plots_lst <- list(
-            "groups_sizes_barplot.pdf" = get_plt("groups_plt_reactive"),
-            "missing_values_barplot.pdf" = get_plt("mv_types_plt_reactive"),
-            "missing_values_counts.pdf" = get_plt("NA_ratios_plt_full"),
-            "correlations_heatmap.pdf" = get_plt("full_corr_heatmap_plt"),
-            "venn_diagram.pdf" = get_plt("venn_diagram"),
-            "missing_values_heatmap.pdf" = get_plt("missing_heatmap"),
-            "PCA_plot.pdf" = get_plt("PCA_plt"),
-            "variance_explained_plot.pdf" = get_plt("PCA_variance")
+            "groups_sizes_barplot.pdf" = {
+              if(is.null(attr(download_dat, "group")))
+                NULL
+              else
+                plot_groups(download_dat)
+            },
+            "missing_values_barplot.pdf" =  plot_mv_types(download_dat),
+            "missing_values_counts.pdf" = plot_NA_percent(download_dat, 
+                                                          type = "joint",
+                                                          interactive = FALSE),
+            "missing_values_counts_type.pdf" = plot_NA_percent(download_dat, 
+                                                          type = "NA_type",
+                                                          interactive = FALSE),
+            "missing_values_counts_group.pdf" = {
+              if(is.null(attr(download_dat, "group")))
+                NULL
+              else
+                plot_NA_percent(download_dat, type = "group",
+                                interactive = FALSE)
+            },
+            "correlations_heatmap.pdf" = {
+              if(is.null(attr(download_dat, "completed")))
+                NULL
+              else
+                create_correlations_heatmap(
+                  download_dat,
+                  metabolites_to_display =
+                    ifelse(is.null(input[["corr_heatmap_metabolites"]]),
+                           "all",
+                           input[["corr_heatmap_metabolites"]]),
+                  interactive = FALSE
+                )
+            },
+            "venn_diagram.pdf" = {
+              if(is.null(attr(download_dat, "group")))
+                NULL
+              else
+               create_venn_diagram(
+                download_dat,
+                ifelse(is.null(input[["filtering_threshold"]]),
+                       0.8,
+                       input[["filtering_threshold"]]/100)
+               )
+            },
+            "missing_values_heatmap.pdf" = plot_heatmap(download_dat),
+            "PCA_plot_sample_type.pdf" = {
+              if(is.null(attr(download_dat, "completed")))
+                NULL
+              else
+                create_PCA_plot(download_dat, type = "sample_type")
+            },
+            "PCA_plot_group.pdf" = {
+              if(is.null(attr(download_dat, "completed")))
+                NULL
+              else{
+                if(is.null(attr(download_dat, "group")))
+                  NULL
+                else
+                  create_PCA_plot(download_dat, type = "group")
+              }
+            },
+            "biplot.pdf" = {
+              if(is.null(attr(download_dat, "completed")))
+                NULL
+              else
+                create_PCA_plot(
+                  download_dat, type = "biplot",
+                  threshold = ifelse(is.null(input[["PCA_threshold"]]),
+                                     0.8,
+                                     input[["PCA_threshold"]]/100)
+                )
+            },
+            "variance_explained_plot.pdf" = {
+              if(is.null(attr(download_dat, "completed")))
+                NULL
+              else
+                pca_variance(
+                  download_dat,
+                  threshold = ifelse(is.null(input[["PCA_variance_threshold"]]),
+                                     0.8,
+                                     input[["PCA_variance_threshold"]]/100),
+                  max_num = ifelse(is.null(input[["PCA_variance_max_num"]]),
+                                   5,
+                                   input[["PCA_variance_max_num"]])
+                )
+            }
           )
           
-          for(i in 1:length(plots_lst)){
-            if(!is.na(plots_lst[[i]]))
-              ggsave(names(plots_lst)[i], plot = plots_lst[[i]], device = "pdf")
+          plot_files <- c()
+          for(name in names(plots_lst)){
+            plot_obj <- plots_lst[[name]]
+            if(!is.null(plot_obj)){
+              file_path <- file.path(tmp_dir, name)
+              ggplot2::ggsave(file_path, plot = plot_obj,
+                              width = 14, height = 7, device = "pdf")
+              plot_files <- c(plot_files, file_path)
+            }
           }
           
-          zip(file, names(plots_lst)[which(!is.na(plots_lst))])
+          zip(zipfile = file, files = plot_files, flags = "-j")
         }
       )
     }else if(id == "download_pdf"){
