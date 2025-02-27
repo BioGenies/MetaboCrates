@@ -113,8 +113,8 @@ plot_mv_types <- function(dat) {
   if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
     
-  NA_info <- attr(dat, "NA_info")
-  counts <- NA_info[["counts"]]
+  counts <- attr(dat, "NA_info")[["counts"]] %>%
+    mutate(type = factor(type, levels = type))
   
   counts %>%
     rename(count = "n") %>%
@@ -249,7 +249,7 @@ plot_heatmap <- function(dat){
                           unlist(attr(dat, "removed"))))) %>%
     mutate(Sample = 1:n()) %>%
     pivot_longer(!Sample, names_to = "Metabolite", values_to = "Value") %>%
-    mutate(Metabolite = factor(Metabolite, ordered = TRUE),
+    mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
            `Is missing` =
              Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)) %>%
     ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
@@ -822,7 +822,7 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
                          c(unlist(attr(dat, "removed"))))
   
   metabo_dat <- mod_dat %>%
-    mutate(across(all_of(col_type), ~ factor(., ordered = TRUE))) %>%
+    mutate(across(all_of(col_type), ~ factor(., levels = unique(.)))) %>%
     select(any_of(metabolites))
   
   if(ncol(metabo_dat) == 0)
