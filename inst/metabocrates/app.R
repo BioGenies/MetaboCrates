@@ -1030,7 +1030,14 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(attr(dat[["metabocrates_dat_group"]], "group"))
     
-    if(length(na.omit(unique(unlist(dat[["metabocrates_dat_group"]][attr(dat[["metabocrates_dat_group"]], "group")])))) > 5)
+    group_len <- dat[["metabocrates_dat_group"]] %>%
+      filter(`sample type` == "Sample") %>%
+      select(all_of(attr(dat[["metabocrates_dat_group"]], "group"))) %>%
+      unlist() %>%
+      unique() %>%
+      length()
+    
+    if(!(group_len %in% 2:5))
       req(NULL)
     
     create_venn_diagram(dat[["metabocrates_dat_group"]], input[["filtering_threshold"]]/100)
