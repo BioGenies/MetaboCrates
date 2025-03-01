@@ -911,10 +911,13 @@ server <- function(input, output, session) {
   
   to_remove <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["filtering_threshold"]])
     
-    to_remove_tmp <- get_LOD_to_remove(dat[["metabocrates_dat_group"]],
-                                       input[["filtering_threshold"]]/100)
+    to_remove_tmp <- setdiff(
+      get_LOD_to_remove(dat[["metabocrates_dat_group"]],
+                        input[["filtering_threshold"]]/100),
+      c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+        attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+    )
     
     updateMultiInput(session, "LOD_to_remove", selected = to_remove_tmp)
     
@@ -923,6 +926,8 @@ server <- function(input, output, session) {
   
   
   output[["LOD_to_remove_txt"]] <- renderUI({
+    req(to_remove)
+    
     ro_remove_display <- unique(c(intersect(to_remove(), input[["LOD_to_remove"]]),
                                   input[["LOD_to_remove"]]))
     

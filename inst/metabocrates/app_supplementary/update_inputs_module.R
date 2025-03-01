@@ -6,6 +6,24 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                              c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
                                attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
     })
+    
+    LOD_to_remove <- reactive({
+      setdiff(
+        get_LOD_to_remove(dat[["metabocrates_dat_group"]],
+                          main_input[["filtering_threshold"]]/100),
+        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+      )
+    })
+    
+    CV_to_remove <- reactive({
+      setdiff(
+        get_CV_to_remove(dat[["metabocrates_dat_group"]],
+                         main_input[["cv_threshold"]]/100),
+        c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+          attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
+      )
+    })
       
       if(id == "complete_undo_update"){
         updateSelectInput(main_session, inputId = "sing_metabo_dist",
@@ -21,7 +39,8 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                           choices = c("None"))
       }else if(id == "cv_update"){
         updateMultiInput(main_session, "CV_to_remove", 
-                         choices = metabolites())
+                         choices = metabolites(), 
+                         selected = CV_to_remove())
       }else{
         if(id == "group_update"){
           if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
@@ -38,8 +57,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
         updateMultiInput(main_session, "LOD_to_remove", choices = metabolites())
         
         if(!is.null(attr(dat[["metabocrates_dat_group"]], "cv"))){
-          updateMultiInput(main_session, "CV_to_remove", 
-                           choices = metabolites())
+          updateMultiInput(main_session, "CV_to_remove",
+                           choices = metabolites(),
+                           selected = CV_to_remove())
         }
         
         if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
