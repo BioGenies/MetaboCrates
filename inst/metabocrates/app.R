@@ -818,65 +818,72 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat"]])
     req(dat[["metabocrates_dat_group"]])
     
-    if(!is.null(attr(dat[["metabocrates_dat"]], "group")) &&
-       is.null(last_selected_group()))
-      last_selected_group(attr(dat[["metabocrates_dat"]], "group"))
+    if(is.null(input[["group_columns-table_columns_selected"]])){
+      print("ok")
+      attr(dat[["metabocrates_dat_group"]], "group") <- NULL
     
-    group_candidates <- dat[["group_candidates"]]
-    group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
+      if(!is.null(last_selected_group())){
+        last_selected_group(NULL)
+        dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]], "LOD")
+        dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]], "QC")
+        attr(dat[["metabocrates_dat_group"]], "completed") <- NULL
+      }
+    }else{
+      if(!is.null(attr(dat[["metabocrates_dat"]], "group")) &&
+         is.null(last_selected_group()))
+        last_selected_group(attr(dat[["metabocrates_dat"]], "group"))
     
-    group_col_samples <- dat[["metabocrates_dat"]] %>% 
-      filter(`sample type` == "Sample") %>% 
-      pull(group_name)
+      group_candidates <- dat[["group_candidates"]]
+      group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
     
-    if (!is.null(last_selected_group()) && 
-        group_name == last_selected_group()) {
-      req(NULL)
+      group_col_samples <- dat[["metabocrates_dat"]] %>% 
+        filter(`sample type` == "Sample") %>% 
+        pull(group_name)
+    
+      if (!is.null(last_selected_group()) && 
+          group_name == last_selected_group()) {
+        req(NULL)
+      }
+    
+      if (group_col_samples %>% is.na() %>% any()) {
+        sendSweetAlert(session = session,
+                       title = "Invalid group: missing group labels",
+                       text = "Make sure that all samples have non-missing group name!",
+                       type = "error")
+      }
+    
+      if (any(table(group_col_samples) < 2)) {
+        sendSweetAlert(session = session,
+                       title = "Invalid group: too many groups",
+                       text = "We require at least 2 observations per group.",
+                       type = "error")
+      }
+      
+      if (length(unique(group_col_samples)) == 1) {
+        sendSweetAlert(session = session,
+                       title = "Single group",
+                       text = "Provided column contains only one unique label.",
+                       type = "warning")
+      } else {
+        sendSweetAlert(session = session,
+                       title = "Great!",
+                       text = paste0("Group ", group_name, " selected!"),
+                       type = "success")
+      }
+  
+      dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat_group"]], group_name)
+    
+      last_selected_group(group_name)
     }
     
-    if (group_col_samples %>% is.na() %>% any()) {
-      sendSweetAlert(session = session,
-                     title = "Invalid group: missing group labels",
-                     text = "Make sure that all samples have non-missing group name!",
-                     type = "error")
-    }
-    
-    if (any(table(group_col_samples) < 2)) {
-      sendSweetAlert(session = session,
-                     title = "Invalid group: too many groups",
-                     text = "We require at least 2 observations per group.",
-                     type = "error")
-    }
-    
-    if (length(unique(group_col_samples)) == 1) {
-      sendSweetAlert(session = session,
-                     title = "Single group",
-                     text = "Provided column contains only one unique label.",
-                     type = "warning")
-    } else {
-      sendSweetAlert(session = session,
-                     title = "Great!",
-                     text = paste0("Group ", group_name, " selected!"),
-                     type = "success")
-    }
-    
-    dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat_group"]], group_name)
-    
-    last_selected_group(group_name)
-    
-    updateRadioButtons(session, inputId = "NA_percent_plt_type",
-                       choiceValues = c("joint", "NA_type", "group"),
-                       choiceNames = c("Joint ratios", "Show NA type", "Show groups"),
-                       inline = TRUE)
-  })
+      update_inputs_SERVER("group_update", session, input, dat)
+    }, ignoreNULL = FALSE)
   
   output[["selected_group"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
-    update_inputs_SERVER("group_update", session, input, dat)
-    
     group_name <- attr(dat[["metabocrates_dat_group"]], "group")
-    
+
     if (is.null(group_name)){
       req(NULL)
     }
