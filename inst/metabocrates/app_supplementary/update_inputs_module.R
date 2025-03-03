@@ -8,6 +8,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
     })
     
     LOD_to_remove <- reactive({
+      req(dat[["metabocrates_dat_group"]])
+      req(main_input[["filtering_threshold"]])
+      
       setdiff(
         get_LOD_to_remove(dat[["metabocrates_dat_group"]],
                           main_input[["filtering_threshold"]]/100),
@@ -17,6 +20,8 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
     })
     
     CV_to_remove <- reactive({
+      req(attr(dat[["metabocrates_dat_group"]], "cv"))
+      
       setdiff(
         get_CV_to_remove(dat[["metabocrates_dat_group"]],
                          main_input[["cv_threshold"]]/100),
@@ -37,6 +42,8 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
         
         updatePickerInput(main_session, inputId = "corr_heatmap_metabolites",
                           choices = c("None"))
+        
+        attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
       }else if(id == "cv_update"){
         updateMultiInput(main_session, "CV_to_remove", 
                          choices = metabolites(), 
@@ -44,14 +51,23 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
       }else{
         if(id == "group_update"){
           if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
-            updateRadioButtons(main_session, inputId = "PCA_type",
-                               choices = c("sample type", "group", "biplot"),
-                               inline = TRUE)
+            pca_choices <- c("sample type", "group", "biplot")
+            na_choice_vals <- c("joint", "NA_type", "group")
+            na_choice_names <- c("Joint ratios", "Show NA type", "Show groups")
           }else{
-            updateRadioButtons(main_session, "PCA_type",
-                               choices = c("sample type", "biplot"),
-                               inline = TRUE)
+            pca_choices <- c("sample type", "biplot")
+            na_choice_vals <- c("joint", "NA_type")
+            na_choice_names <- c("Joint ratios", "Show NA type")
           }
+          
+          updateRadioButtons(main_session, inputId = "PCA_type",
+                             choices = pca_choices,
+                             inline = TRUE)
+          
+          updateRadioButtons(main_session, inputId = "NA_percent_plt_type",
+                             choiceValues = na_choice_vals,
+                             choiceNames = na_choice_names,
+                             inline = TRUE)
         }
         
         updateMultiInput(main_session, "LOD_to_remove", choices = metabolites())
