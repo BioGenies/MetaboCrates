@@ -819,7 +819,6 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     if(is.null(input[["group_columns-table_columns_selected"]])){
-      print("ok")
       attr(dat[["metabocrates_dat_group"]], "group") <- NULL
     
       if(!is.null(last_selected_group())){
