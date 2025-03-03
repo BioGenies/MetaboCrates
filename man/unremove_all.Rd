@@ -18,7 +18,8 @@ Setting attribute removed to NULL
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 test_dat <- read_data(path)
-attr(remove_metabolites(test_dat, "C0", "LOD"), "removed")
+test_dat <- remove_metabolites(test_dat, "C0", "LOD")
+attr(test_dat, "removed")
 attr(unremove_all(test_dat, "LOD"), "removed")
 
 }
