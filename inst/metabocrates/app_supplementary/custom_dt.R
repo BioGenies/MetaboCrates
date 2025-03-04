@@ -21,8 +21,11 @@ custom_datatable <- function(dat,
 
 
 display_short <- function(column) {
-  ifelse(nchar(column) > 7,
-         round(as.numeric(column), 2),
-         column)
+  short_form <- ifelse(is.na(as.numeric(column)),
+                  column,
+                  ifelse(nchar(column) > 7,
+                         round(as.numeric(column), 2),
+                         column))
+  ifelse(is.na(short_form), "NA", short_form)
 }
 

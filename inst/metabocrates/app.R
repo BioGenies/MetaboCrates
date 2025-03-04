@@ -746,7 +746,6 @@ server <- function(input, output, session) {
       select(`sample type`, all_of(setdiff(metabolites,
                                            c(attr(dat[["metabocrates_dat"]], "removed")[["LOD"]],
                                              attr(dat[["metabocrates_dat"]], "removed")[["QC"]])))) %>%
-      mutate_all(as.character) %>% 
       mutate_all(display_short) %>% 
       custom_datatable(scrollY = 400,
                        paging = TRUE)
@@ -1110,8 +1109,7 @@ server <- function(input, output, session) {
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
       dat_to_display <- dat[["metabocrates_dat_group"]] %>% 
-        select(all_of(metabolites)) %>% 
-        mutate_all(as.character) %>% 
+        select(all_of(metabolites)) %>%
         mutate_all(display_short)
     } else {
       dat_to_display <- attr(dat[["metabocrates_dat_group"]], "completed") %>% 
