@@ -95,7 +95,9 @@ download_SERVER <- function(id, dat){
           }
           
           metabo_names <-
-            tibble(metabolites = attr(download_dat, "metabolites"))
+            tibble(metabolites = setdiff(attr(download_dat, "metabolites"),
+                                         c(attr(download_dat, "removed")[["LOD"]],
+                                           attr(download_dat, "removed")[["QC"]])))
           
           addWorksheet(wb_file, "metabolites_names")
           writeData(wb_file, "metabolites_names", metabo_names)
@@ -106,13 +108,13 @@ download_SERVER <- function(id, dat){
           
           if(!is.null(attr(download_dat, "removed")[["LOD"]])){
             addWorksheet(wb_file, "removed_LOD")
-            writeData(wb_file, "samples",
+            writeData(wb_file, "removed_LOD",
                       attr(download_dat, "removed")[["LOD"]])
           }
           
           if(!is.null(attr(download_dat, "removed")[["QC"]])){
             addWorksheet(wb_file, "removed_QC")
-            writeData(wb_file, "samples",
+            writeData(wb_file, "removed_QC",
                       attr(download_dat, "removed")[["QC"]])
           }
           
@@ -133,8 +135,9 @@ download_SERVER <- function(id, dat){
           
           if(!is.null(attr(download_dat, "cv"))){
             cv_tab <- attr(download_dat, "cv") %>%
-              select(!c(attr(download_dat, "removed")[["LOD"]],
-                        attr(download_dat, "removed")[["QC"]]))
+              filter(!(metabolite %in%
+                         c(attr(download_dat, "removed")[["LOD"]],
+                           attr(download_dat, "removed")[["QC"]])))
             
             addWorksheet(wb_file, "cv")
             writeData(wb_file, "cv", cv_tab)
