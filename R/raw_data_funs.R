@@ -96,23 +96,23 @@ get_info <- function(raw_data){
 #' @export
 #'
 
-get_LOD_to_remove <- function(raw_data, threshold = 0.8, use_group = TRUE){
+get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
   
-  if(is.null(attr(raw_data, "group")) & use_group) {
+  if(is.null(attr(dat, "group")) & use_group) {
     message("No group to use! It will be ignored. 
 If you want to use group provide it with add_group function first.")
     use_group <- FALSE
   }
 
   if(use_group) {
-    to_remove <- attr(raw_data, "NA_info")[["NA_ratios_group"]] %>%
+    to_remove <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
       filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
       group_by(metabolite) %>%
       filter(all(NA_frac >= threshold)) %>%
       pull(metabolite) %>% 
       unique()
   } else {
-    to_remove <- attr(raw_data, "NA_info")[["NA_ratios_type"]] %>% 
+    to_remove <- attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
       filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
       group_by(metabolite) %>% 
       reframe(NA_frac = sum(NA_frac)) %>% 
