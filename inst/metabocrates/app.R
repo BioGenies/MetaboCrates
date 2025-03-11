@@ -1092,7 +1092,8 @@ server <- function(input, output, session) {
     attr(dat[["metabocrates_dat_group"]], "LOD_table") %>%
       select(-c(type,
                 attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])) %>% 
+                attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])) %>%
+      mutate(across(everything(), display_short)) %>%
       custom_datatable(scrollY = 300,
                        paging = TRUE,
                        selection = list(mode = "single", target = "column"))
