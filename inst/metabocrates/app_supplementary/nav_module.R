@@ -76,41 +76,6 @@ nav_btns_SERVER <- function(input, output,
     
     if(next_panel == "Download"){
       updateNavbarPage(parent_session, inputId = "main", selected = "Download")
-    }else if(next_panel == "Quality control" &&
-             is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
-      sendSweetAlert(parent_session,
-                     title = "Incompleted data - automatic imputation",
-                     text = HTML("<div style='text-align: left;'>
-                     Quality control requires imputed data.<br>
-                     Automatic imputation has been applied using<br>
-                     - LOD method: <b>halfmin</b>,<br>
-                     - LOD type: <b>calc</b>,<br>
-                     - LLOQ method: <b>limit</b>,<br>
-                     - ULOQ method: <b>third quartile</b>.<br>
-                     You can go back anytime to modify the imputation."),
-                     type = "warning",
-                     html = TRUE)
-      
-      updateSelectInput(parent_session, "LOD_method",
-                        selected = "halfmin")
-      
-      updateSelectInput(parent_session, "LLOQ_method",
-                        selected = "limit")
-      
-      updateSelectInput(parent_session, "ULOQ_method",
-                        selected = "third quartile")
-      
-      updateSelectInput(parent_session, "LOD_type",
-                        selected = "calc")
-      
-      dat[["metabocrates_dat_group"]] <-
-        complete_data(dat[["metabocrates_dat_group"]],
-                      LOD_method = "halfmin",
-                      LLOQ_method = "limit",
-                      ULOQ_method = "third quartile",
-                      LOD_type = "calc")
-      
-      update_inputs_SERVER("complete_update", parent_session, input, dat)
     }else{
       updateTabsetPanel(parent_session, inputId = "run", selected = next_panel)
     }

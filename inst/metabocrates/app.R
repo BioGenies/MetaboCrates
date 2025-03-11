@@ -1189,6 +1189,48 @@ server <- function(input, output, session) {
   
   observeEvent(input[["run"]], {
     if(input[["run"]] == "Quality control"){
+      
+    if(is.null(dat[["metabocrates_dat_group"]])){
+      print("NO")
+      dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
+    }
+      
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
+     sendSweetAlert(session,
+                     title = "Incompleted data - automatic imputation",
+                     text = HTML("<div style='text-align: left;'>
+                       Quality control requires imputed data.<br>
+                       Automatic imputation has been applied using<br>
+                       - LOD method: <b>halfmin</b>,<br>
+                       - LOD type: <b>calc</b>,<br>
+                       - LLOQ method: <b>limit</b>,<br>
+                       - ULOQ method: <b>third quartile</b>.<br>
+                       You can go back anytime to modify the imputation."),
+                     type = "warning",
+                     html = TRUE)
+    
+      updateSelectInput(session, "LOD_method",
+                        selected = "halfmin")
+    
+      updateSelectInput(session, "LLOQ_method",
+                        selected = "limit")
+    
+      updateSelectInput(session, "ULOQ_method",
+                        selected = "third quartile")
+    
+      updateSelectInput(session, "LOD_type",
+                        selected = "calc")
+    
+      dat[["metabocrates_dat_group"]] <-
+        complete_data(dat[["metabocrates_dat_group"]],
+                      LOD_method = "halfmin",
+                      LLOQ_method = "limit",
+                      ULOQ_method = "third quartile",
+                      LOD_type = "calc")
+    
+      update_inputs_SERVER("complete_update", session, input, dat)
+    }
+      
       dat[["metabocrates_dat_group"]] <-
         calculate_CV(dat[["metabocrates_dat_group"]])
       
