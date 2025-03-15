@@ -21,10 +21,11 @@ metabocrates_theme <- function(){
 #' @keywords internal
 
 metabocrates_palette <- function(n){
-  colors <- c("#54F3D3", "#2B2A29", "#09edfd", "#DCFFDB", "#FFEA8F", "#BA7B28",
+  colors <- c("#54F3D3", "#2B2A29", "#09EDFD", "#DCFFDB", "#FFEA8F", "#BA7B28",
               "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
   
-  colorRampPalette(colors)(n)
+  if(n <= 10) colors[1:n]
+  else colorRampPalette(colors)(n)
 }
 
 #' Metabocrates scale color
@@ -280,14 +281,16 @@ plot_heatmap <- function(dat){
 #' 
 #' @param metabolite A name of metabolite of interest.
 #' @param bins The number of bins for the histogram plot, 30 if not specified.
-#' @param type A type of the plot. Can be "histogram" (default) or "density".
+#' @param type A type of the plot. Can be "histogram" (default), "density"
+#' or "beeswarm".
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_distribution_plot(dat, "C0")
+#' create_distribution_plot(dat, "C3")
 #' create_distribution_plot(dat, "C3", type = "density")
+#' create_distribution_plot(dat, "C3", type = "beeswarm")
 #' 
 #' @export
 
@@ -298,11 +301,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
   uncomp_metabo_vals <- dat %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(metabolite)) %>%
-    unlist() %>%
-    as.numeric() %>%
-    as.data.frame()
-  
-  colnames(uncomp_metabo_vals) <- metabolite
+    mutate(across(everything(), ~ as.numeric(.)))
   
   comp_metabo_vals <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
@@ -355,8 +354,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
            
            plt_comp <- ggplot(comp_metabo_vals) +
              geom_density(aes(x = get(metabolite), y = after_stat(density),
-                                fill = "Completed"),
-                            color = "#54F3D3", alpha = 0.6) +
+                                fill = "Completed"), color = "#54F3D3", alpha = 0.6) +
              scale_fill_manual(name = NULL,
                                values = c("Completed" = "#54F3D3")) +
              labs(x = metabolite, y = "Density") +
@@ -429,7 +427,16 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
            }
          },
          "beeswarm" = {
-           
+           plt_dat <- uncomp_metabo_vals %>%
+             bind_rows(comp_metabo_vals) %>%
+             mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
+                      rep("Completed", nrow(comp_metabo_vals))))
+             
+           ggplot(plt_dat, aes(x = Type, y = get(metabolite), color = Type)) +
+             geom_beeswarm(cex = 2, show.legend = FALSE) +
+             labs(x = "", y = metabolite) +
+             metabocrates_theme() +
+             scale_color_metabocrates_discrete(2)
          }
   )
 }
