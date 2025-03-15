@@ -244,11 +244,31 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' @export
 
 plot_heatmap <- function(dat){
-  dat %>%
-    select(all_of(setdiff(attr(dat, "metabolites"),
-                          unlist(attr(dat, "removed"))))) %>%
+  p_b_codes <- attr(dat, "LOD_table") %>%
+    filter(type == "LOD (calc.)") %>%
+    filter(if_all(everything(), ~ . != 0)) %>%
+    select(`plate bar code`) %>%
+    mutate(`plate bar code` = gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1",
+                                   gsub("/", "-", `plate bar code`))) %>%
+    unlist()
+  
+  plt <- dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(c(setdiff(attr(dat, "metabolites"),
+                          unlist(attr(dat, "removed"))),
+                  "plate bar code"))) %>%
     mutate(Sample = 1:n()) %>%
-    pivot_longer(!Sample, names_to = "Metabolite", values_to = "Value") %>%
+    rowwise() %>%
+    mutate(`plate bar code` = {
+      vec <- sapply(unique(p_b_codes),
+                    function(LODcode){
+                      str_extract(`plate bar code`, LODcode)
+                    })
+      vec[!is.na(vec)]
+    }) %>%
+    ungroup() %>%
+    pivot_longer(!c(Sample, `plate bar code`),
+                 names_to = "Metabolite", values_to = "Value") %>%
     mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
            `Is missing` =
              Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)) %>%
@@ -257,6 +277,11 @@ plot_heatmap <- function(dat){
     scale_fill_manual(values = c(`FALSE` = "#BBBBBB", `TRUE` = "#2B2A29")) +
     scale_y_discrete(limits = rev) +
     metabocrates_theme()
+  
+  if(length(p_b_codes) > 1)
+    plt +
+      facet_grid(~ "plate bar code")
+  else plt
 }
 
 #' Histograms or density plots of individual metabolite values before and after imputation
@@ -416,6 +441,9 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
                                                       axis_titles ="collect",
                                                       guides = "collect")
            }
+         },
+         "beeswarm" = {
+           
          }
   )
 }
@@ -635,44 +663,39 @@ create_density_with_lod <- function(dat, metabolite_name) {
 create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
                                          width_svg = 6, height_svg = 5,
                                          interactive = TRUE){
+  p_b_codes <- dat %>%
+    filter(`sample type` == "Sample") %>%
+    select(`plate bar code`) %>%
+    unique() %>%
+    unlist()
+  
   LOD <- attr(dat, "LOD_table") %>%
     filter(type == "LOD (calc.)") %>%
     select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
-    filter(if_all(everything(), ~ . != 0)) %>%
-    mutate(`LOD plate bar code` = gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1",
-                                   gsub("/", "-", `plate bar code`)))
+    filter(if_any(everything(), ~ . != 0)) %>%
+    rowwise() %>%
+    mutate(`plate bar code` = {
+      pbc <- gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1",
+                  gsub("/", "-", `plate bar code`))
+      p_b_codes[grep(paste0("\\b", pbc, "\\b"), p_b_codes)]
+    }) %>%
+    group_by(`plate bar code`) %>%
+    summarise(across(everything(), ~ na.omit(.)[which(na.omit(.) != 0)]))
   
   plot_data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
-    rowwise() %>%
-    mutate(`LOD plate bar code` = {
-      vec <- sapply(unique(LOD[["LOD plate bar code"]]),
-             function(LODcode) str_extract(`plate bar code`, LODcode))
-      vec[!is.na(vec)]
-      }) %>%
-    ungroup() %>%
-    mutate(tooltip = paste0("Sample: ", 1:n()))
-  
-  combined_data <- bind_rows(LOD, plot_data) %>%
-    group_by(`LOD plate bar code`) %>%
-    reframe(`plate bar code` = unique(`plate bar code`)) %>%
-    group_by(`LOD plate bar code`) %>%
-    mutate(counts = n())
-  
-  unique_counts <- combined_data %>%
-    group_by(counts) %>%
-    reframe(`LOD plate bar code` = unique(`LOD plate bar code`)) %>%
-    select(counts) %>%
-    unlist()
+    mutate(tooltip = paste0("Sample: ", 1:n(),
+                            "<br>", metabolite1, ": ", get(metabolite1),
+                            "<br>", metabolite2, ": ", get(metabolite2)))
   
   palette <- c("#54F3D3", "#2B2A29", "#09edfd", "#DCFFDB", "#FFEA8F", "#BA7B28",
                "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
   
-  values <- setNames(rep(
-    palette[1:length(unique(combined_data[["LOD plate bar code"]]))],
-    unique_counts
-  ), combined_data[["plate bar code"]])
+  values <- setNames(
+    palette[1:length(unique(plot_data[["plate bar code"]]))],
+    unique(plot_data[["plate bar code"]])
+  )
   
   plt <- ggplot(plot_data, aes(x = get(metabolite1), y = get(metabolite2),
                            color = `plate bar code`, tooltip = tooltip)) +
@@ -897,6 +920,14 @@ create_beeswarm_plot <- function(dat, metabolite) {
     filter(`sample type` == "Sample") %>%
     select(all_of(c("plate bar code", metabolite))) %>%
     group_by(`plate bar code`)
+  
+  attr(dat, "completed") %>%
+    filter(`sample type` == "Sample") %>%
+    select(all_of(metabolite_name)) %>%
+    pivot_longer(cols = all_of(metabolite_name), 
+                 names_to = "Metabolite", 
+                 values_to = "Value") %>%
+    mutate(Value = as.numeric(Value))
   
   ggplot(plot_data, aes(x = `plate bar code`, y = get(metabolite), 
                         color = `plate bar code`)) +
