@@ -336,8 +336,9 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Missing values heatmap",
                                                   br(),
-                                                  br(),
-                                                  plot_with_button_UI("missing_heatmap")
+                                                  column(11,
+                                                    plot_with_button_UI("missing_heatmap")
+                                                  )
                                          ),
                                          tabPanel("Single metabolite distribution",
                                                   br(),

@@ -244,43 +244,29 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' @export
 
 plot_heatmap <- function(dat){
-  p_b_codes <- attr(dat, "LOD_table") %>%
-    filter(type == "LOD (calc.)") %>%
-    filter(if_all(everything(), ~ . != 0)) %>%
-    select(`plate bar code`) %>%
-    mutate(`plate bar code` = gsub("^.*\\s([0-9]+-[0-9]+)\\s.*$", "\\1",
-                                   gsub("/", "-", `plate bar code`))) %>%
-    unlist()
-  
-  plt <- dat %>%
+  plt_dat <- dat %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(c(setdiff(attr(dat, "metabolites"),
                           unlist(attr(dat, "removed"))),
                   "plate bar code"))) %>%
     mutate(Sample = 1:n()) %>%
-    rowwise() %>%
-    mutate(`plate bar code` = {
-      vec <- sapply(unique(p_b_codes),
-                    function(LODcode){
-                      str_extract(`plate bar code`, LODcode)
-                    })
-      vec[!is.na(vec)]
-    }) %>%
-    ungroup() %>%
     pivot_longer(!c(Sample, `plate bar code`),
                  names_to = "Metabolite", values_to = "Value") %>%
     mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
            `Is missing` =
-             Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA)) %>%
+             Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
+  
+  plt <- plt_dat %>%
     ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
     geom_tile(color = "white") +
     scale_fill_manual(values = c(`FALSE` = "#BBBBBB", `TRUE` = "#2B2A29")) +
     scale_y_discrete(limits = rev) +
-    metabocrates_theme()
+    metabocrates_theme() +
+    theme(legend.justification.right = "top")
   
-  if(length(p_b_codes) > 1)
+  if(length(unique(plt_dat[["plate bar code"]])) > 1)
     plt +
-      facet_grid(~ "plate bar code")
+      facet_wrap(~ `plate bar code`, ncol = 1, scales = "free_x")
   else plt
 }
 
