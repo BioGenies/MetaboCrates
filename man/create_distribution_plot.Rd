@@ -9,6 +9,7 @@ create_distribution_plot(
   metabolite,
   type = "histogram",
   bins = 30,
+  interactive = TRUE,
   width_svg = 6,
   height_svg = 5
 )
@@ -16,8 +17,8 @@ create_distribution_plot(
 \arguments{
 \item{metabolite}{A name of metabolite of interest.}
 
-\item{type}{A type of the plot. Can be "histogram" (default), "density",
-"beeswarm" or "beeswarm_interactive".}
+\item{type}{A type of the plot. Can be "histogram" (default), "density"
+or "beeswarm".}
 
 \item{bins}{The number of bins for the histogram plot, 30 if not specified.}
 }
@@ -30,9 +31,8 @@ after imputation against the histogram of only imputed ones.
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_distribution_plot(dat, "C3")
-create_distribution_plot(dat, "C3", type = "density")
-create_distribution_plot(dat, "C3", type = "beeswarm")
-print(create_distribution_plot(dat, "C3", type = "beeswarm_interactive"))
+print(create_distribution_plot(dat, "C3"))
+print(create_distribution_plot(dat, "C3", type = "density"))
+print(create_distribution_plot(dat, "C3", type = "beeswarm"))
 
 }

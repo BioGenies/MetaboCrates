@@ -1,7 +1,7 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  if(id %in% c("NA_ratios_plt", "corr_heatmap")){
+  if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt")){
     plt <- ggiraph::girafeOutput(ns("plot"))
   }else plt <- plotOutput(ns("plot"))
   
@@ -44,8 +44,8 @@ plot_with_button_UI <- function(id){
   )
 }
 
-plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
-                                    full_plt = NULL){
+plot_with_button_SERVER <- function(id, plot_reactive, parent_input = NULL,
+                                    height = "auto", full_plt = NULL){
   moduleServer(id, function(input, output, session){
     height_val <- function(){
       ifelse(is.reactive(height),
@@ -53,7 +53,7 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
              height)
     }
     
-    if(id %in% c("NA_ratios_plt", "corr_heatmap")){
+    if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt")){
       output[["plot"]] <- ggiraph::renderGirafe(plot_reactive())
     }else{
       output[["plot"]] <- renderPlot(plot_reactive(),

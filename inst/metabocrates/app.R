@@ -1175,20 +1175,52 @@ server <- function(input, output, session) {
     
     switch(input[["dist_plt_type"]],
            "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
-                                                  input[["sing_metabo_dist"]]),
+                                                  input[["sing_metabo_dist"]],
+                                                  width_svg = 10, height_svg = 6),
            "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "density"),
+                                                type = "density",
+                                                width_svg = 10, height_svg = 6),
            "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "beeswarm_interactive"),
+                                                type = "beeswarm",
+                                                width_svg = 10, height_svg = 6),
            "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]]),
+                                      input[["sing_metabo_dist"]],
+                                      width_svg = 10, height_svg = 6),
            "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]]))
+                                      input[["sing_metabo_dist"]],
+                                      width_svg = 10, height_svg = 6)
+       )
   })
   
-  plot_with_button_SERVER("dist_plt", dist_plt)
+  full_dist_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    req(input[["sing_metabo_dist"]])
+    
+    switch(input[["dist_plt_type"]],
+           "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                  input[["sing_metabo_dist"]],
+                                                  interactive = FALSE),
+           "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                input[["sing_metabo_dist"]],
+                                                type = "density",
+                                                interactive = FALSE),
+           "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                 input[["sing_metabo_dist"]],
+                                                 type = "beeswarm_interactive",
+                                                 interactive = FALSE),
+           "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
+                                      input[["sing_metabo_dist"]],
+                                      interactive = FALSE),
+           "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
+                                      input[["sing_metabo_dist"]],
+                                      interactive = FALSE)
+       )
+  })
+  
+  plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
   
   ######## Quality control
   

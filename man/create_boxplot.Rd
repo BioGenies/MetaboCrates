@@ -4,7 +4,13 @@
 \alias{create_boxplot}
 \title{Boxplots of individual metabolite values before and after imputation}
 \usage{
-create_boxplot(dat, metabolite)
+create_boxplot(
+  dat,
+  metabolite,
+  interactive = TRUE,
+  width_svg = 6,
+  height_svg = 5
+)
 }
 \arguments{
 \item{metabolite}{A name of metabolite of interest.}

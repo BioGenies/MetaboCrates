@@ -282,22 +282,22 @@ plot_heatmap <- function(dat){
 #' 
 #' @param metabolite A name of metabolite of interest.
 #' @param bins The number of bins for the histogram plot, 30 if not specified.
-#' @param type A type of the plot. Can be "histogram" (default), "density",
-#' "beeswarm" or "beeswarm_interactive".
+#' @param type A type of the plot. Can be "histogram" (default), "density"
+#' or "beeswarm".
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_distribution_plot(dat, "C3")
-#' create_distribution_plot(dat, "C3", type = "density")
-#' create_distribution_plot(dat, "C3", type = "beeswarm")
-#' print(create_distribution_plot(dat, "C3", type = "beeswarm_interactive"))
+#' print(create_distribution_plot(dat, "C3"))
+#' print(create_distribution_plot(dat, "C3", type = "density"))
+#' print(create_distribution_plot(dat, "C3", type = "beeswarm"))
 #' 
 #' @export
 
 create_distribution_plot <- function(dat, metabolite, type = "histogram",
-                                     bins = 30, width_svg = 6, height_svg = 5){
+                                     bins = 30, interactive = TRUE,
+                                     width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -312,7 +312,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
   
   if(all(is.na(uncomp_metabo_vals)) & all(is.na(comp_metabo_vals))) stop()
   
-  switch(type,
+  plt <- switch(type,
          "histogram" = {
            if(all(is.na(uncomp_metabo_vals)))
              fill_vals <- c("Only imputed values" = "#54F3D3")
@@ -429,7 +429,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
                                                       guides = "collect")
            }
          },
-         "beeswarm" =, "beeswarm_interactive" = {
+         "beeswarm" = {
            plt_dat <- uncomp_metabo_vals %>%
              mutate(Sample = 1:n()) %>%
              bind_rows(mutate(comp_metabo_vals, Sample = 1:n())) %>%
@@ -443,6 +443,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
              labs(x = "", y = metabolite) +
              metabocrates_theme() +
              scale_color_metabocrates_discrete(2)
+           
            if(type == "beeswarm")
              plt +
               geom_quasirandom(show.legend = FALSE)
@@ -457,11 +458,37 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
                       opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                                    opacity = 0.9),
                       opts_toolbar(saveaspng = FALSE),
-                      opts_sizing(rescale = FALSE)
+                      opts_zoom(min = 0.5, max = 5)
                     ))
            }
          }
   )
+  
+  if(type == "beeswarm"){
+    if(interactive){
+      int_plt <- plt +
+        geom_point_interactive(position = position_quasirandom(),
+                               show.legend = FALSE)
+      
+      girafe(ggobj = int_plt,
+             width_svg = width_svg, height_svg = height_svg,
+             options = list(
+               opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                            opacity = 0.9),
+               opts_toolbar(saveaspng = FALSE),
+               opts_zoom(min = 0.5, max = 5)
+             ))
+    }else
+      plt +
+        geom_quasirandom(show.legend = FALSE)
+  }else if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+           options = list(
+             opts_toolbar(saveaspng = FALSE),
+             opts_zoom(min = 0.5, max = 5)
+           ))
+  else plt
+  
 }
 
 #' Boxplots of individual metabolite values before and after imputation
@@ -476,7 +503,8 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
 #' 
 #' @export
 
-create_boxplot <- function(dat, metabolite){
+create_boxplot <- function(dat, metabolite, interactive = TRUE,
+                           width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -494,7 +522,7 @@ create_boxplot <- function(dat, metabolite){
     filter(`sample type` == "Sample") %>%
     select(all_of(metabolite))
   
-  uncomp_metabo_vals %>%
+  plt <- uncomp_metabo_vals %>%
     bind_rows(comp_metabo_vals) %>%
     mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
@@ -506,6 +534,16 @@ create_boxplot <- function(dat, metabolite){
     metabocrates_theme() +
     scale_fill_metabocrates_discrete() +
     scale_color_metabocrates_discrete()
+  
+  if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+           options = list(
+             opts_toolbar(saveaspng = FALSE),
+             opts_zoom(min = 0.5, max = 5)
+           )
+    )
+  else plt
+    
 }
 
 #' Qqplots of individual metabolite values before and after imputation
@@ -520,7 +558,8 @@ create_boxplot <- function(dat, metabolite){
 #' 
 #' @export
 
-create_qqplot <- function(dat, metabolite){
+create_qqplot <- function(dat, metabolite, interactive = TRUE,
+                          width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -538,7 +577,7 @@ create_qqplot <- function(dat, metabolite){
     filter(`sample type` == "Sample") %>%
     select(all_of(metabolite))
   
-  uncomp_metabo_vals %>%
+  plt <- uncomp_metabo_vals %>%
     bind_rows(comp_metabo_vals) %>%
     mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
@@ -550,6 +589,15 @@ create_qqplot <- function(dat, metabolite){
     facet_wrap(~ Type) +
     metabocrates_theme() +
     scale_color_metabocrates_discrete()
+  
+  if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+           options = list(
+             opts_toolbar(saveaspng = FALSE),
+             opts_zoom(min = 0.5, max = 5)
+           )
+    )
+  else plt
 }
 
 #' Heatmap of correlations between metabolites
