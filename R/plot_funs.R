@@ -278,11 +278,12 @@ plot_heatmap <- function(dat){
 #' after imputation against the histogram of only imputed ones.
 #' 
 #' @importFrom patchwork area plot_layout
+#' @importFrom ggbeeswarm position_quasirandom geom_quasirandom
 #' 
 #' @param metabolite A name of metabolite of interest.
 #' @param bins The number of bins for the histogram plot, 30 if not specified.
-#' @param type A type of the plot. Can be "histogram" (default), "density"
-#' or "beeswarm".
+#' @param type A type of the plot. Can be "histogram" (default), "density",
+#' "beeswarm" or "beeswarm_interactive".
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -291,10 +292,12 @@ plot_heatmap <- function(dat){
 #' create_distribution_plot(dat, "C3")
 #' create_distribution_plot(dat, "C3", type = "density")
 #' create_distribution_plot(dat, "C3", type = "beeswarm")
+#' print(create_distribution_plot(dat, "C3", type = "beeswarm_interactive"))
 #' 
 #' @export
 
-create_distribution_plot <- function(dat, metabolite, type = "histogram", bins = 30){
+create_distribution_plot <- function(dat, metabolite, type = "histogram",
+                                     bins = 30, width_svg = 6, height_svg = 5){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -426,17 +429,37 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram", bins =
                                                       guides = "collect")
            }
          },
-         "beeswarm" = {
+         "beeswarm" =, "beeswarm_interactive" = {
            plt_dat <- uncomp_metabo_vals %>%
-             bind_rows(comp_metabo_vals) %>%
+             mutate(Sample = 1:n()) %>%
+             bind_rows(mutate(comp_metabo_vals, Sample = 1:n())) %>%
              mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
-                      rep("Completed", nrow(comp_metabo_vals))))
+                      rep("Completed", nrow(comp_metabo_vals))),
+                    tooltip = paste0("Sample: ", Sample,
+                                     "<br>Value: ", get(metabolite)))
              
-           ggplot(plt_dat, aes(x = Type, y = get(metabolite), color = Type)) +
-             geom_beeswarm(cex = 2, show.legend = FALSE) +
+           plt <- ggplot(plt_dat, aes(x = Type, y = get(metabolite),
+                                      tooltip = tooltip, color = Type)) +
              labs(x = "", y = metabolite) +
              metabocrates_theme() +
              scale_color_metabocrates_discrete(2)
+           if(type == "beeswarm")
+             plt +
+              geom_quasirandom(show.legend = FALSE)
+           else{
+             int_plt <- plt +
+               geom_point_interactive(position = position_quasirandom(),
+                                      show.legend = FALSE)
+             
+             girafe(ggobj = int_plt,
+                    width_svg = width_svg, height_svg = height_svg,
+                    options = list(
+                      opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                                   opacity = 0.9),
+                      opts_toolbar(saveaspng = FALSE),
+                      opts_sizing(rescale = FALSE)
+                    ))
+           }
          }
   )
 }

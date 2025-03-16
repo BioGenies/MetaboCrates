@@ -1181,7 +1181,7 @@ server <- function(input, output, session) {
                                                 type = "density"),
            "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "beeswarm"),
+                                                type = "beeswarm_interactive"),
            "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
                                       input[["sing_metabo_dist"]]),
            "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],

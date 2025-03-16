@@ -4,12 +4,20 @@
 \alias{create_distribution_plot}
 \title{Histograms or density plots of individual metabolite values before and after imputation}
 \usage{
-create_distribution_plot(dat, metabolite, type = "histogram", bins = 30)
+create_distribution_plot(
+  dat,
+  metabolite,
+  type = "histogram",
+  bins = 30,
+  width_svg = 6,
+  height_svg = 5
+)
 }
 \arguments{
 \item{metabolite}{A name of metabolite of interest.}
 
-\item{type}{A type of the plot. Can be "histogram" (default) or "density".}
+\item{type}{A type of the plot. Can be "histogram" (default), "density",
+"beeswarm" or "beeswarm_interactive".}
 
 \item{bins}{The number of bins for the histogram plot, 30 if not specified.}
 }
@@ -22,7 +30,9 @@ after imputation against the histogram of only imputed ones.
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_distribution_plot(dat, "C0")
+create_distribution_plot(dat, "C3")
 create_distribution_plot(dat, "C3", type = "density")
+create_distribution_plot(dat, "C3", type = "beeswarm")
+print(create_distribution_plot(dat, "C3", type = "beeswarm_interactive"))
 
 }
