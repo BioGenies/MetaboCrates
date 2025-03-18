@@ -4,7 +4,14 @@
 \alias{create_PCA_plot}
 \title{PCA plot}
 \usage{
-create_PCA_plot(dat, type = "sample_type", threshold = NULL)
+create_PCA_plot(
+  dat,
+  type = "sample_type",
+  threshold = NULL,
+  width_svg = 6,
+  height_svg = 5,
+  interactive = TRUE
+)
 }
 \arguments{
 \item{type}{A character denoting which type of PCA plot should be created.
