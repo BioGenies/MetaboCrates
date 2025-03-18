@@ -131,7 +131,7 @@ plot_mv_types <- function(dat) {
 #' Barplot of missing values percents
 #' 
 #' @importFrom scales percent
-#' @importFrom ggiraph girafe geom_col_interactive opts_tooltip opts_toolbar opts_sizing
+#' @importFrom ggiraph girafe geom_col_interactive opts_tooltip opts_toolbar opts_sizing opts_zoom
 #' 
 #' @inheritParams plot_mv_types
 #' 
@@ -856,6 +856,7 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' 
 #' @import ggfortify
 #' @importFrom tidyr drop_na
+#' @importFrom ggiraph geom_segment_interactive
 #' 
 #' @param type A character denoting which type of PCA plot should be created.
 #' Default is "sample_type", which makes a plot for quality control. Type
@@ -877,7 +878,8 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' 
 #' @export
 
-create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
+create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL,
+                            width_svg = 6, height_svg = 5, interactive = TRUE){
   if(type == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
   
@@ -919,31 +921,16 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
   
   colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
   
-  pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
-                  "#2980B9", "#27AE60", "#D35400")
-  
-  
   pca_res <- prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit)
   
-  pca_plot <- pca_res %>%
-    autoplot(data = mod_dat, color = col_type,
-             frame = TRUE, frame.type = "norm") +
-    scale_color_manual(values = pca_colors,
-      name = ifelse(type == "sample_type", "Sample types", "Group levels")
-      ) +
-    scale_fill_manual(values = pca_colors,
-      name = ifelse(type == "sample_type", "Sample types", "Group levels")
-      ) +
-    metabocrates_theme()
-  
   if(type == "biplot"){
-    as.data.frame(pca_res[["rotation"]]) %>%
+    plt <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites,
              `Variance explained` = pca_res[["sdev"]]) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
       ggplot() +
-      geom_segment(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
+      geom_segment_interactive(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                    arrow = arrow(length = unit(0.1, "cm")),
                    colour = "black") +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
@@ -953,7 +940,33 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL){
                 colour = "black", size = 4) +
       labs(x = "PC1", y = "PC2") +
       metabocrates_theme()
-  }else pca_plot
+  }else{
+    pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
+                    "#2980B9", "#27AE60", "#D35400")
+    
+    pca_df <- as.data.frame(pca_res[["x"]]) %>%
+      mutate(col_type = mod_dat[[col_type]],
+             tooltip = paste("Sample:", 1:n()))
+    
+    plt <- ggplot(pca_df, aes(x = PC1, y = PC2, color = col_type)) +
+      geom_point_interactive(aes(tooltip = tooltip), size = 2) +
+      stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
+      scale_color_manual(values = pca_colors,
+                         name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
+      scale_fill_manual(values = pca_colors,
+                        name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
+      metabocrates_theme()
+  }
+  
+  if(interactive)
+    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+           options = list(
+             opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                          opacity = 0.9),
+             opts_toolbar(saveaspng = FALSE),
+             opts_zoom(min = 0.5, max = 5)
+           ))
+  else plt
 }
 
 #' Beeswarm Plot of Metabolite Values

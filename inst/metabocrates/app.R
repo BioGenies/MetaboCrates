@@ -342,6 +342,11 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Single metabolite distribution",
                                                   br(),
+                                                  conditionalPanel(
+                                                    condition = "input.dist_plt_type == 'Histogram'",
+                                                    tags$div("Histogram includes all values before imputation (observed) and only those that were missing and then completed (only imputed values).", style = "font-size: 1.17em; font-weight: bold;")
+                                                  ),
+                                                  br(),
                                                   column(5,
                                                          selectInput("sing_metabo_dist",
                                                                      "Metabolite",
@@ -351,9 +356,10 @@ ui <- navbarPage(
                                                          radioButtons("dist_plt_type",
                                                                       "Plot type",
                                                                       choices = c("Histogram", "Density", "Beeswarm", "Boxplot", "Q-Q plot"),
-                                                                      inline = TRUE)),
+                                                                      inline = TRUE)
+                                                  ),
                                                   br(),
-                                                  column(10, offset = 1,
+                                                  column(9, offset = 1,
                                                          plot_with_button_UI("dist_plt")
                                                   )
                                          ),
@@ -461,11 +467,10 @@ ui <- navbarPage(
                                  br(),
                                  radioButtons("PCA_type",
                                               label = "Select PCA plot type:",
-                                                     choices = c("sample type", "biplot"),
-                                                       inline = TRUE)
+                                              choices = c("sample type", "biplot", "variance"),
+                                              inline = TRUE)
                           ),
                           column(3,
-                                 br(),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `biplot`",
                                    numericInput(
@@ -474,37 +479,30 @@ ui <- navbarPage(
                                      value = 30,
                                      min = 0,
                                      max = 100)
-                                   )
+                                 ),
+                                 conditionalPanel(
+                                   condition = "input.PCA_type == `variance`",
+                                   numericInput(
+                                     inputId = "PCA_variance_threshold",
+                                     label = "threshold [%]",
+                                     value = 80,
+                                     min = 0,
+                                     max = 100)
+                                 )
                           ),
-                          column(6, offset = 3,
-                                          plot_with_button_UI("PCA_plt")  
-                                   )
+                          column(3,
+                                 br(),
+                                 conditionalPanel(
+                                   numericInput("PCA_variance_max_num",
+                                                label = "maximum number of principal components",
+                                                value = 5,
+                                                min = 1)
+                                 )
                           ),
-               tabPanel("Variance explained",
-                        column(12, align = "right",
-                               h2("Quality control (step 5/7)"),
-                               h3("next: Summary")
-                        ),
-                        column(3, offset = 3,
-                               br(),
-                               numericInput("PCA_variance_threshold",
-                                            label = "threshold [%]",
-                                            value = 80,
-                                            min = 0,
-                                            max = 100)
-                        ),
-                        column(3,
-                               br(),
-                               numericInput("PCA_variance_max_num",
-                                            label = "maximum number of principal components",
-                                            value = 5,
-                                            min = 1)
-                        ),
-                        column(6, offset = 3,
-                               plot_with_button_UI("PCA_variance")
-                                   
-                        )
-                ),
+                          column(7, offset = 3,
+                                 uiOutput("cond_pca_plt")
+                          )
+                 ),
                tabPanel("Two metabolites plot",
                         column(12, align = "right",
                                h2("Quality control (step 5/7)"),
@@ -1356,27 +1354,51 @@ server <- function(input, output, session) {
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
+    if(input[["PCA_type"]] == "variance") req(NULL)
+    if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
+    
+    print(input[["PCA_type"]])
+    
+    create_PCA_plot(dat[["metabocrates_dat_group"]],
+                      type = ifelse(input[["PCA_type"]] == "sample type",
+                                    "sample_type", input[["PCA_type"]]),
+                      threshold = input[["PCA_threshold"]]/100,
+                      width_svg = 10, height_svg = 6)
+  })
+  
+  PCA_plt_full <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["PCA_type"]])
     if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
     
     create_PCA_plot(dat[["metabocrates_dat_group"]],
                     type = ifelse(input[["PCA_type"]] == "sample type",
-                                  "sample_type", input[["PCA_type"]]),
-                    threshold = input[["PCA_threshold"]]/100)
+                                    "sample_type", input[["PCA_type"]]),
+                      threshold = input[["PCA_threshold"]]/100,
+                      interactive = FALSE)
   })
   
-  plot_with_button_SERVER("PCA_plt", PCA_plt)
+  plot_with_button_SERVER("PCA_plt", PCA_plt, full_plt = PCA_plt_full)
   
-  PCA_variance <- reactive({
+  PCA_variance_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["PCA_variance_threshold"]])
-    req(input[["PCA_variance_max_num"]])
+    req(input[["PCA_type"]])
+    if(input[["PCA_type"]] != "variance") req(NULL)
     
     pca_variance(dat[["metabocrates_dat_group"]],
                  threshold = input[["PCA_variance_threshold"]]/100,
                  max_num = input[["PCA_variance_max_num"]])
   })
   
-  plot_with_button_SERVER("PCA_variance", PCA_variance)
+  plot_with_button_SERVER("PCA_variance_plt", PCA_variance_plt)
+  
+  output[["cond_pca_plt"]] <- renderUI({
+    if(input[["PCA_type"]] == "variance"){
+      plot_with_button_UI("PCA_variance_plt")
+    }else{
+      plot_with_button_UI("PCA_plt")
+    }
+  })
   
   observeEvent(
     input[["2_metabo_plt_1"]], {
@@ -1433,7 +1455,7 @@ server <- function(input, output, session) {
     
   })
   
-  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt_full)
+  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt, two_metabo_plt_full)
   
   ######## Summary
   
