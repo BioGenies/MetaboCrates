@@ -51,11 +51,11 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
       }else{
         if(id == "group_update"){
           if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
-            pca_choices <- c("sample type", "group", "biplot")
+            pca_choices <- c("sample type", "group", "biplot", "variance")
             na_choice_vals <- c("joint", "NA_type", "group")
             na_choice_names <- c("Joint ratios", "Show NA type", "Show groups")
           }else{
-            pca_choices <- c("sample type", "biplot")
+            pca_choices <- c("sample type", "biplot", "variance")
             na_choice_vals <- c("joint", "NA_type")
             na_choice_names <- c("Joint ratios", "Show NA type")
           }
