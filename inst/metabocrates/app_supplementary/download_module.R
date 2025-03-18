@@ -52,7 +52,7 @@ download_SERVER <- function(id, dat){
           
           metabo_tab <- metabo_tab %>%
             select(any_of(c(
-              "sample identification", "sample id",
+              "plate bar code", "sample identification", "sample id",
               attr(download_dat, "group"),
               setdiff(attr(download_dat, "metabolites"),
                       c(attr(download_dat, "removed")[["LOD"]],
@@ -71,6 +71,7 @@ download_SERVER <- function(id, dat){
           wb_file <- createWorkbook()
           
           metabo_tab <- download_dat %>%
+            select(!any_of("tmp_id")) %>%
             select(!c(attr(download_dat, "removed")[["LOD"]],
                       attr(download_dat, "removed")[["QC"]]))
           
