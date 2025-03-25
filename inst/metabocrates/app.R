@@ -159,7 +159,7 @@ ui <- navbarPage(
                       style = "background-color:#f8f5f0; border-right: 1px solid; height: 400px",
                       br(),
                       br(),
-                      div(htmlOutput("selected_group"))
+                      div(htmlOutput("columns_info"))
                ),
                column(10,
                       column(6,
@@ -167,6 +167,8 @@ ui <- navbarPage(
                              table_with_button_UI("group_columns")
                       ),
                       column(6,
+                             br(),
+                             div(htmlOutput("selected_group")),
                              br(),
                              plot_with_button_UI("groups_plt")
                       )
@@ -876,6 +878,24 @@ server <- function(input, output, session) {
       update_inputs_SERVER("group_update", session, input, dat)
     }, ignoreNULL = FALSE)
   
+  output[["columns_info"]] <- renderUI({
+    req(dat[["group_candidates"]])
+    
+    counts <- dat[["group_candidates"]] %>%
+      summarise(across(everything(), n_distinct)) %>%
+      unlist() %>%
+      as.integer()
+    
+    HTML(
+      paste0("<span style = 'font-size:15px; font-weight: bold;'>",
+             "Found ",
+             ncol(dat[["group_candidates"]]),
+             " possible grouping columns.</br></br>Unique levels per column:</span></br><span style='font-size:15px'>",
+             paste0(colnames(dat[["group_candidates"]]), ": ", counts, collapse = "</br>"),
+             "</span>")
+    )
+  })
+  
   output[["selected_group"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
@@ -890,15 +910,10 @@ server <- function(input, output, session) {
       pull(group_name)
     
     HTML(
-      paste0("<span style = 'font-size:18px'>Selected group:</span><br/><span style='font-size:14px'>",
-             group_name,
-             "</span><br/><br/> <span style = 'font-size:18px'>Levels:</span><br/><span style='font-size:14px'>",
-             paste0(sort(unique(group_col_samples)), collapse = "</br>"),
-             "</span>")
+      paste0("<span style = 'font-size:18px; font-weight: bold;'>Selected group:</span><span style='font-size:17px'> ",
+             group_name, "</span>")
     )
   })
-  
-  
   
   groups_plt_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
