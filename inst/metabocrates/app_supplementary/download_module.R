@@ -28,6 +28,10 @@ download_UI <- function(id){
 
 download_SERVER <- function(id, dat){
   moduleServer(id, function(input, output, session){
+    if(!file.exists(paste0("./texts/", id, ".md"))){
+      file.create(paste0("./texts/", id, ".md"))
+    }
+    
     observe({
     if(is.null(dat[["metabocrates_dat_group"]]))
       download_dat <- dat[["metabocrates_dat"]]

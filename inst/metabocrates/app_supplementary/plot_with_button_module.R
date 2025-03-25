@@ -47,6 +47,10 @@ plot_with_button_UI <- function(id){
 plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                                     full_plt = NULL){
   moduleServer(id, function(input, output, session){
+    if(!file.exists(paste0("./texts/", id, ".md"))){
+      file.create(paste0("./texts/", id, ".md"))
+    }
+    
     height_val <- function(){
       ifelse(is.reactive(height),
              max(height() * 22, 400),
