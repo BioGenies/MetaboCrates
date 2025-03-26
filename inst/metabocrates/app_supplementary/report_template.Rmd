@@ -1,0 +1,11 @@
+---
+title: "Report"
+date: "`r Sys.Date()`"
+output: pdf_document
+params:
+  dat: NA
+---
+
+## Data summary
+
+Data contains `r ncol(params[["dat"]][["metabocrates_dat"]])` columns.

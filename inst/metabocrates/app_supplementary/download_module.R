@@ -28,25 +28,33 @@ download_UI <- function(id){
 
 download_SERVER <- function(id, dat){
   moduleServer(id, function(input, output, session){
+    ns <- session$ns
+    
     if(!file.exists(paste0("./texts/", id, ".md"))){
       file.create(paste0("./texts/", id, ".md"))
     }
     
-    observe({
-    if(is.null(dat[["metabocrates_dat_group"]]))
-      download_dat <- dat[["metabocrates_dat"]]
-    else
-      download_dat <- dat[["metabocrates_dat_group"]]
-    
     if(id == "download_rds"){
       output[["download"]] <- downloadHandler(
         filename = "project.rds",
-        content = function(file) saveRDS(download_dat, file)
+        content = function(file) {
+          if(is.null(dat[["metabocrates_dat_group"]]))
+            download_dat <- dat[["metabocrates_dat"]]
+          else
+            download_dat <- dat[["metabocrates_dat_group"]]
+          
+          saveRDS(download_dat, file)
+        }
       )
     }else if(id == "download_matrix"){
       output[["download"]] <- downloadHandler(
         filename = "metabolomics_matrix.xlsx",
         content = function(file){
+          if(is.null(dat[["metabocrates_dat_group"]]))
+            download_dat <- dat[["metabocrates_dat"]]
+          else
+            download_dat <- dat[["metabocrates_dat_group"]]
+          
           wb_file <- createWorkbook()
           
           if(is.null(attr(download_dat, "completed")))
@@ -72,6 +80,11 @@ download_SERVER <- function(id, dat){
       output[["download"]] <- downloadHandler(
         filename = "project.xlsx",
         content = function(file){
+          if(is.null(dat[["metabocrates_dat_group"]]))
+            download_dat <- dat[["metabocrates_dat"]]
+          else
+            download_dat <- dat[["metabocrates_dat_group"]]
+          
           wb_file <- createWorkbook()
           
           metabo_tab <- download_dat %>%
@@ -155,6 +168,11 @@ download_SERVER <- function(id, dat){
       output[["download"]] <- downloadHandler(
         filename = "all_plots.zip",
         content = function(file){
+          if(is.null(dat[["metabocrates_dat_group"]]))
+            download_dat <- dat[["metabocrates_dat"]]
+          else
+            download_dat <- dat[["metabocrates_dat_group"]]
+          
           tmp_dir <- tempdir()
             
           plots_lst <- list(
@@ -261,8 +279,17 @@ download_SERVER <- function(id, dat){
         }
       )
     }else if(id == "download_pdf"){
-      NULL
+        output[["download"]] <- downloadHandler(
+          filename = "report.pdf",
+          content = function(file){
+            rmarkdown::render("./app_supplementary/report_template.Rmd",
+                              output_file = file,
+                              envir = new.env(parent = globalenv()),
+                              params = list(
+                                dat = dat
+                              ))
+          }
+        )
     }
-    })
   })
 }
