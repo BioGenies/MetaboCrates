@@ -474,6 +474,19 @@ ui <- navbarPage(
                           ),
                           column(3,
                                  conditionalPanel(
+                                   condition = "input.PCA_type == `sample type`",
+                                   pickerInput(
+                                     "PCA_types",
+                                     choices = character(0),
+                                     options = pickerOptions(
+                                       actionsBox = TRUE,
+                                       selectedTextFormat = "count > 3",
+                                       liveSearch = TRUE
+                                       ),
+                                     multiple = TRUE
+                                 )
+                                 ),
+                                 conditionalPanel(
                                    condition = "input.PCA_type == `biplot`",
                                    numericInput(
                                      inputId = "PCA_threshold",
@@ -1366,31 +1379,60 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("CV_tbl", CV_tbl)
   
+  
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
     if(input[["PCA_type"]] == "variance") req(NULL)
     if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
     
-    print(input[["PCA_type"]])
+    if(input[["PCA_type"]] == "sample type" && is.null(input[["PCA_types"]])){
+      types <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        select(all_of(c(attr(dat[["metabocrates_dat_group"]], "metabolites"), "tmp_id"))) %>%
+        select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+        na.omit() %>%
+        select(where(~ n_distinct(.) > 1)) %>%
+        left_join(select(attr(dat[["metabocrates_dat_group"]], "completed"),
+                         all_of(c("tmp_id", "sample type")))) %>%
+        select("sample type")
+      
+      updatePickerInput(inputId = "PCA_types",
+                        choices = unique(types))
+    }
     
-    create_PCA_plot(dat[["metabocrates_dat_group"]],
+    if(input[["PCA_type"]] == "sample type" && is.null(input[["PCA_types"]]))
+      NULL
+    else{
+      if(input[["PCA_type"]] == "sample type")
+        types_to_display <- input[["PCA_types"]]
+      else types_to_display <- "all"
+      
+      create_PCA_plot(dat[["metabocrates_dat_group"]],
                       type = ifelse(input[["PCA_type"]] == "sample type",
                                     "sample_type", input[["PCA_type"]]),
+                      types_to_display = types_to_display,
                       threshold = input[["PCA_threshold"]]/100,
                       width_svg = 10, height_svg = 6)
+    }
   })
   
   PCA_plt_full <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
     if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
+    if(input[["PCA_type"]] == "sample type") req(input[["PCA_types"]])
+    
+    if(input[["PCA_type"]] == "sample type")
+      types_to_display <- input[["PCA_types"]]
+    else types_to_display <- "all"
     
     create_PCA_plot(dat[["metabocrates_dat_group"]],
                     type = ifelse(input[["PCA_type"]] == "sample type",
-                                    "sample_type", input[["PCA_type"]]),
-                      threshold = input[["PCA_threshold"]]/100,
-                      interactive = FALSE)
+                                  "sample_type", input[["PCA_type"]]),
+                    types_to_display = types_to_display,
+                    threshold = input[["PCA_threshold"]]/100,
+                    interactive = FALSE
+    )
   })
   
   plot_with_button_SERVER("PCA_plt", PCA_plt, full_plt = PCA_plt_full)

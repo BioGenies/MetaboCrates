@@ -225,7 +225,13 @@ download_SERVER <- function(id, dat){
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
-                create_PCA_plot(download_dat, type = "sample_type")
+                if(is.null(input[["PCA_types"]]))
+                  create_PCA_plot(download_dat, type = "sample_type",
+                                  interactive = FALSE)
+                else
+                  create_PCA_plot(download_dat, type = "sample_type",
+                                  types_to_display = input[["PCA_types"]],
+                                  interactive = FALSE)
             },
             "PCA_plot_group.pdf" = {
               if(is.null(attr(download_dat, "completed")))
@@ -234,7 +240,8 @@ download_SERVER <- function(id, dat){
                 if(is.null(attr(download_dat, "group")))
                   NULL
                 else
-                  create_PCA_plot(download_dat, type = "group")
+                  create_PCA_plot(download_dat, type = "group",
+                                  interactive = FALSE)
               }
             },
             "biplot.pdf" = {
@@ -245,7 +252,8 @@ download_SERVER <- function(id, dat){
                   download_dat, type = "biplot",
                   threshold = ifelse(is.null(input[["PCA_threshold"]]),
                                      0.8,
-                                     input[["PCA_threshold"]]/100)
+                                     input[["PCA_threshold"]]/100),
+                  interactive = FALSE
                 )
             },
             "variance_explained_plot.pdf" = {

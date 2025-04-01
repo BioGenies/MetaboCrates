@@ -609,6 +609,8 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 #' @param metabolites_to_display A vector of names or number of metabolites to
 #' display. If a number is provided, the first metabolites are selected.
 #' Defaults to "all".
+#' @param threshold A number indicating the minimal absolute correlation value
+#' to be displayed.
 #' @param width_svg Width of plot in inches.
 #' @param height_svg Height of plot in inches.
 #' @param interactive If TRUE, the plot includes interactive tooltips.
@@ -621,7 +623,8 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 #' 
 #' @export
 
-create_correlations_heatmap <- function(dat, metabolites_to_display = "all",
+create_correlations_heatmap <- function(dat, threshold = 0.3,
+                                        metabolites_to_display = "all",
                                         width_svg = 6, height_svg = 5,
                                         interactive = TRUE){
   if(is.null(attr(dat, "completed")))
@@ -862,6 +865,8 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' Default is "sample_type", which makes a plot for quality control. Type
 #' "group" creates a PCA plot with respect to the groups of samples with type
 #' 'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.
+#' @param types_to_display A vector of sample type names specifying which types
+#' should be shown on the plot when type = "sample_type". Defaults to all.
 #' @param threshold A value indicating the minimum correlation between
 #' a variable and any component, required for this  variable to be included
 #' on the PCA biplot.
@@ -871,15 +876,16 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat)
-#' create_PCA_plot(dat, type = "biplot", 0.3)
+#' create_PCA_plot(dat, type = "biplot", threshold = 0.3)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' create_PCA_plot(dat, type = "group")
 #' 
 #' @export
 
-create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL,
-                            width_svg = 6, height_svg = 5, interactive = TRUE){
+create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
+                            threshold = NULL, width_svg = 6, height_svg = 5,
+                            interactive = TRUE){
   if(type == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
   
@@ -889,12 +895,22 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL,
   if(is.null(attr(dat, "completed")))
     stop("Complete the missing values in data first.")
   
+  if(type != "biplot")
+    completed_with_tooltips <- attr(dat, "completed") %>%
+      group_by(`sample type`) %>%
+      mutate(tooltip = paste0(`sample type`, ": ", 1:n())) %>%
+      select(-all_of(attr(dat, "metabolites")))
+  else
+    completed_with_tooltips <- attr(dat, "completed") %>%
+      select(-all_of(attr(dat, "metabolites")))
+    
+  
   mod_dat <- attr(dat, "completed") %>%
     select(all_of(c(attr(dat, "metabolites"), "tmp_id"))) %>%
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
     na.omit() %>%
     select(where(~ n_distinct(.) > 1)) %>%
-    left_join(select(attr(dat, "completed"), -all_of(attr(dat, "metabolites"))))
+    left_join(completed_with_tooltips)
   
   if(type == "group"){
     mod_dat <- mod_dat %>%
@@ -946,15 +962,22 @@ create_PCA_plot <- function(dat, type = "sample_type", threshold = NULL,
     
     pca_df <- as.data.frame(pca_res[["x"]]) %>%
       mutate(col_type = mod_dat[[col_type]],
-             tooltip = paste("Sample:", 1:n()))
+             tooltip = mod_dat[["tooltip"]])
+    
+    pca_exact_colors <- pca_colors[1:nrow(unique(select(pca_df, col_type)))]
+    names(pca_exact_colors) <- unlist(unique(select(pca_df, col_type)))
+    
+    if(type == "sample_type" & all(types_to_display != "all")){
+      pca_df <- filter(pca_df, col_type %in% types_to_display)
+      pca_exact_colors <- pca_exact_colors[names(pca_exact_colors) %in%
+                                             types_to_display]
+    }
     
     plt <- ggplot(pca_df, aes(x = PC1, y = PC2, color = col_type)) +
       geom_point_interactive(aes(tooltip = tooltip), size = 2) +
       stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
-      scale_color_manual(values = pca_colors,
+      scale_color_manual(values = pca_exact_colors,
                          name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
-      scale_fill_manual(values = pca_colors,
-                        name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
       metabocrates_theme()
   }
   
