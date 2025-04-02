@@ -202,6 +202,11 @@ download_SERVER <- function(id, dat){
               else
                 create_correlations_heatmap(
                   download_dat,
+                  threshold = ifelse(
+                    is.null(input[["corr_threshold"]]),
+                    0.3,
+                    input[["corr_threshold"]]
+                  ),
                   metabolites_to_display =
                     ifelse(is.null(input[["corr_heatmap_metabolites"]]),
                            "all",

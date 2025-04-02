@@ -6,6 +6,7 @@
 \usage{
 create_correlations_heatmap(
   dat,
+  threshold = 0.3,
   metabolites_to_display = "all",
   width_svg = 6,
   height_svg = 5,
@@ -13,6 +14,10 @@ create_correlations_heatmap(
 )
 }
 \arguments{
+\item{threshold}{A numeric value specifying the minimum absolute correlation
+to display (only metabolites specified in metabolites_to_display are taken
+into account).}
+
 \item{metabolites_to_display}{A vector of names or number of metabolites to
 display. If a number is provided, the first metabolites are selected.
 Defaults to "all".}

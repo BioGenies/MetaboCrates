@@ -609,8 +609,9 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 #' @param metabolites_to_display A vector of names or number of metabolites to
 #' display. If a number is provided, the first metabolites are selected.
 #' Defaults to "all".
-#' @param threshold A number indicating the minimal absolute correlation value
-#' to be displayed.
+#' @param threshold A numeric value specifying the minimum absolute correlation
+#' to display (only metabolites specified in metabolites_to_display are taken
+#' into account).
 #' @param width_svg Width of plot in inches.
 #' @param height_svg Height of plot in inches.
 #' @param interactive If TRUE, the plot includes interactive tooltips.
@@ -642,10 +643,25 @@ create_correlations_heatmap <- function(dat, threshold = 0.3,
   if(all(metabolites_to_display == "all"))
     metabolites_to_display <- colnames(filtered_dat)
   
-  plt <- filtered_dat %>%
+  plt_dat <- filtered_dat %>%
     select(all_of(metabolites_to_display)) %>%
     cor(use = "na.or.complete") %>%
-    melt() %>%
+    melt()
+  
+  to_display <- plt_dat %>%
+    group_by(Var1) %>%
+    filter(Var1 != Var2) %>%
+    filter(abs(value) >= threshold) %>%
+    select(Var1) %>%
+    unlist() %>%
+    as.vector() %>%
+    unique()
+  
+  if(length(to_display) == 0) return(NULL)
+  
+  plt <- plt_dat %>%
+    rowwise() %>%
+    filter(all(c(Var1, Var2) %in% to_display)) %>%
     mutate(tooltip = paste0("Metabolite 1: ", Var2,
                             "<br>Metabolite 2: ", Var1,
                             "<br>Correlation coefficient:", round(value, 3))) %>%

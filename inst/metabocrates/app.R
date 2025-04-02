@@ -368,10 +368,13 @@ ui <- navbarPage(
                                          tabPanel("Correlations heatmap",
                                                   br(),
                                                   h4("Only up to 10 metabolites are visible. Download the plot to see all chosen metabolites."),
-                                                  column(1,
-                                                         h5(" Select metabolites:")
+                                                  column(4,
+                                                         h5("Select metabolites:")
                                                   ),
-                                                  column(11,
+                                                  column(8,
+                                                         h5("Absolute correlation value threshold:")
+                                                  ),
+                                                  column(4,
                                                          pickerInput("corr_heatmap_metabolites",
                                                                      choices = character(0),
                                                                      options = pickerOptions(
@@ -380,6 +383,16 @@ ui <- navbarPage(
                                                                        liveSearch = TRUE
                                                                      ),
                                                                      multiple = TRUE),
+                                                  ),
+                                                  column(8,
+                                                         numericInput(
+                                                           inputId = "corr_threshold",
+                                                           label = NULL,
+                                                           value = 0.3,
+                                                           min = 0,
+                                                           max = 1,
+                                                           step = 0.05
+                                                         ),
                                                   ),
                                                   column(10,
                                                     plot_with_button_UI("corr_heatmap")
@@ -1085,16 +1098,19 @@ server <- function(input, output, session) {
   corr_heatmap_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["corr_heatmap_metabolites"]])
+    req(input[["corr_threshold"]])
     
     if(is.null(input[["corr_heatmap_metabolites"]]))
       NULL
     else if(length(input[["corr_heatmap_metabolites"]]) > 10)
       create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  threshold = input[["corr_threshold"]],
                                   metabolites_to_display =
                                     input[["corr_heatmap_metabolites"]][1:10],
                                   width_svg = 10, height_svg = 6)
     else
       create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  threshold = input[["corr_threshold"]],
                                   metabolites_to_display =
                                     input[["corr_heatmap_metabolites"]],
                                   width_svg = 10, height_svg = 6)
@@ -1105,6 +1121,7 @@ server <- function(input, output, session) {
     req(input[["corr_heatmap_metabolites"]])
     
     create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                threshold = input[["corr_threshold"]],
                                 metabolites_to_display = input[["corr_heatmap_metabolites"]],
                                 interactive = FALSE)
   })
