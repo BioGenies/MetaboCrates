@@ -1529,7 +1529,7 @@ server <- function(input, output, session) {
     
   })
   
-  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt, two_metabo_plt_full)
+  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt_full)
   
   ######## Summary
   
