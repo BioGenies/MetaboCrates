@@ -109,6 +109,25 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                             choicesOpt = list(
                               style = rep("color: black;", length(metabolites()))
                             ))
+          
+          if(is.null(main_input[["PCA_types"]])){
+            types <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+              select(all_of(c(attr(dat[["metabocrates_dat_group"]], "metabolites"), "tmp_id"))) %>%
+              select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+              na.omit() %>%
+              select(where(~ n_distinct(.) > 1)) %>%
+              left_join(select(attr(dat[["metabocrates_dat_group"]], "completed"),
+                               all_of(c("tmp_id", "sample type")))) %>%
+              select("sample type") %>%
+              unlist()
+            
+            updatePickerInput(main_session, inputId = "PCA_types",
+                              choices = unique(types),
+                              selected = unique(types),
+                              choicesOpt = list(
+                                style = rep("color: black;", length(unique(types)))
+                              ))
+          }
         }
       }
 }
