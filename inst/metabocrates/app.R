@@ -240,14 +240,9 @@ ui <- navbarPage(
                       br()
                       
                ),
-               column(8,
-                      column(6, 
-                             h2("Clean your data here."),
-                      ),
-                      column(6, align = "right", 
-                             h2("Compounds filtering (step 3/7)"),
-                             h3("next: Completing")
-                      )
+               column(8, align = "right",
+                      h2("Compounds filtering (step 3/7)"),
+                      h3("next: Completing")
                ),
                column(8,
                       tabsetPanel(
@@ -474,18 +469,16 @@ ui <- navbarPage(
                                             table_with_button_UI("CV_tbl"))
                  ),
                  tabPanel("PCA",
-                          column(12, align = "right",
-                                 h2("Quality control (step 5/7)"),
-                                 h3("next: Summary")
-                          ),
-                          column(3, offset = 3,
+                          column(3,
+                                 style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
+                                 br(),
+                                 br(),
+                                 br(),
                                  br(),
                                  radioButtons("PCA_type",
                                               label = "Select PCA plot type:",
                                               choices = c("sample type", "biplot", "variance"),
-                                              inline = TRUE)
-                          ),
-                          column(3,
+                                              inline = TRUE),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `sample type`",
                                    pickerInput(
@@ -497,7 +490,7 @@ ui <- navbarPage(
                                        liveSearch = TRUE
                                        ),
                                      multiple = TRUE
-                                 )
+                                  )
                                  ),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `biplot`",
@@ -516,26 +509,25 @@ ui <- navbarPage(
                                      value = 80,
                                      min = 0,
                                      max = 100)
-                                 )
-                          ),
-                          column(3,
-                                 br(),
+                                 ),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `variance`",
                                    numericInput("PCA_variance_max_num",
                                                 label = "maximum number of principal components",
                                                 value = 5,
                                                 min = 1)
-                                 )
-                          ),
-                          column(3,
+                                 ),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `variance`",
                                    checkboxInput("PCA_variance_cum",
-                                                label = "Cumulative variance")
+                                                label = "Include cumulative variance")
                                  )
                           ),
-                          column(7, offset = 3,
+                          column(9, align = "right",
+                                 h2("Quality control (step 5/7)"),
+                                 h3("next: Summary")
+                          ),
+                          column(8,
                                  uiOutput("cond_pca_plt")
                           )
                  ),
@@ -1411,20 +1403,6 @@ server <- function(input, output, session) {
     if(input[["PCA_type"]] == "variance") req(NULL)
     if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
     
-    if(input[["PCA_type"]] == "sample type" && is.null(input[["PCA_types"]])){
-      types <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-        select(all_of(c(attr(dat[["metabocrates_dat_group"]], "metabolites"), "tmp_id"))) %>%
-        select(where(~ n_distinct(na.omit(.)) > 1)) %>%
-        na.omit() %>%
-        select(where(~ n_distinct(.) > 1)) %>%
-        left_join(select(attr(dat[["metabocrates_dat_group"]], "completed"),
-                         all_of(c("tmp_id", "sample type")))) %>%
-        select("sample type")
-      
-      updatePickerInput(inputId = "PCA_types",
-                        choices = unique(types))
-    }
-    
     if(input[["PCA_type"]] == "sample type" && is.null(input[["PCA_types"]]))
       NULL
     else{
@@ -1466,7 +1444,6 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
     if(input[["PCA_type"]] != "variance") req(NULL)
-    req(input[["PCA_variance_cum"]])
     
     pca_variance(dat[["metabocrates_dat_group"]],
                  threshold = input[["PCA_variance_threshold"]]/100,
