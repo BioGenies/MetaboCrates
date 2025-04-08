@@ -521,10 +521,18 @@ ui <- navbarPage(
                           column(3,
                                  br(),
                                  conditionalPanel(
+                                   condition = "input.PCA_type == `variance`",
                                    numericInput("PCA_variance_max_num",
                                                 label = "maximum number of principal components",
                                                 value = 5,
                                                 min = 1)
+                                 )
+                          ),
+                          column(3,
+                                 conditionalPanel(
+                                   condition = "input.PCA_type == `variance`",
+                                   checkboxInput("PCA_variance_cum",
+                                                label = "Cumulative variance")
                                  )
                           ),
                           column(7, offset = 3,
@@ -1458,10 +1466,12 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
     if(input[["PCA_type"]] != "variance") req(NULL)
+    req(input[["PCA_variance_cum"]])
     
     pca_variance(dat[["metabocrates_dat_group"]],
                  threshold = input[["PCA_variance_threshold"]]/100,
-                 max_num = input[["PCA_variance_max_num"]])
+                 max_num = input[["PCA_variance_max_num"]],
+                 cumulative = input[["PCA_variance_cum"]])
   })
   
   plot_with_button_SERVER("PCA_variance_plt", PCA_variance_plt)

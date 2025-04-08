@@ -818,8 +818,10 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #' "Sample".
 #' @param threshold A value indicating the maximum cumulative variance
 #' of components to display.
-#' #' @param max_num An optional parameter indicating the maximum number
+#' @param max_num An optional parameter indicating the maximum number
 #' of components to display.
+#' @param cumulative A logical value indicating if the cumulative variance
+#' should be showed on the plot, defaults to TRUE.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -828,7 +830,7 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #' pca_variance(dat, 0.8, 5)
 #'
 #' @export
-pca_variance <- function(dat, threshold, max_num = NULL) {
+pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
   data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(setdiff(attr(dat, "metabolites"),
@@ -856,13 +858,8 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
       filter(row_number() <= max_num)
   }
   
-  ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
+  plt <- ggplot(variance_df, aes(x = Component, y = Variance_Explained)) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
-    geom_line(aes(y = Cumulative_Variance, color = "cumulative variance"),
-              group = 1) +
-    geom_point(aes(y = Cumulative_Variance, color = "cumulative variance")) +
-    geom_hline(aes(yintercept = threshold, color = "threshold"),
-               linetype = "dashed") +
     labs(x = "Principal component", y = "% Variance explained") +
     scale_y_continuous(labels = scales::percent) +
     scale_x_discrete(
@@ -871,10 +868,21 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
                       round(variance_df[["Variance_Explained"]], 2)*100,
                       "%)")
     ) +
-    scale_color_manual(name = NULL,
-                       values = c("cumulative variance" = "#54F3D3",
-                                  "threshold" = "red")) +
     metabocrates_theme()
+  
+  if(cumulative)
+    plt +
+      geom_line(aes(y = Cumulative_Variance, color = "cumulative variance"),
+                group = 1) +
+      geom_point(aes(y = Cumulative_Variance, color = "cumulative variance")) +
+      geom_hline(aes(yintercept = threshold, color = "threshold"),
+                 linetype = "dashed") +
+      scale_color_manual(name = NULL,
+                         values = c("cumulative variance" = "#54F3D3",
+                                    "threshold" = "red"))
+  else
+    plt
+    
 }
 
 #' PCA plot

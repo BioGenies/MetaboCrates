@@ -272,7 +272,10 @@ download_SERVER <- function(id, dat){
                                      input[["PCA_variance_threshold"]]/100),
                   max_num = ifelse(is.null(input[["PCA_variance_max_num"]]),
                                    5,
-                                   input[["PCA_variance_max_num"]])
+                                   input[["PCA_variance_max_num"]]),
+                  cumulative = ifelse(is.null(input[["PCA_variance_cum"]]),
+                                      TRUE,
+                                      input[["PCA_variance_cum"]])
                 )
             }
           )
