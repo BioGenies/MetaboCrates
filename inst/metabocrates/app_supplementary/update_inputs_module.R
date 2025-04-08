@@ -121,12 +121,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
               select("sample type") %>%
               unlist()
             
-            updatePickerInput(main_session, inputId = "PCA_types",
+            updateCheckboxGroupInput(main_session, inputId = "PCA_types",
                               choices = unique(types),
-                              selected = unique(types),
-                              choicesOpt = list(
-                                style = rep("color: black;", length(unique(types)))
-                              ))
+                              selected = unique(types))
           }
         }
       }

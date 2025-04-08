@@ -341,7 +341,8 @@ ui <- navbarPage(
                                                   br(),
                                                   conditionalPanel(
                                                     condition = "input.dist_plt_type == 'Histogram'",
-                                                    tags$div("Histogram includes all values before imputation (observed) and only those that were missing and then completed (only imputed values).", style = "font-size: 1.17em; font-weight: bold;")
+                                                    h4("Histogram includes all values before imputation (observed) and only those that were missing and then completed (only imputed values).",
+                                                             style = "font-size:16px;")
                                                   ),
                                                   br(),
                                                   column(5,
@@ -364,10 +365,10 @@ ui <- navbarPage(
                                                   br(),
                                                   h4("Only up to 10 metabolites are visible. Download the plot to see all chosen metabolites."),
                                                   column(4,
-                                                         h5("Select metabolites:")
+                                                         h5("Select metabolites", style = "font-weight: bold")
                                                   ),
                                                   column(8,
-                                                         h5("Absolute correlation value threshold:")
+                                                         h5("Absolute correlation threshold [%]", style = "font-weight: bold")
                                                   ),
                                                   column(4,
                                                          pickerInput("corr_heatmap_metabolites",
@@ -476,27 +477,24 @@ ui <- navbarPage(
                                  br(),
                                  br(),
                                  radioButtons("PCA_type",
-                                              label = "Select PCA plot type:",
+                                              label = "Select PCA plot type",
                                               choices = c("sample type", "biplot", "variance"),
                                               inline = TRUE),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `sample type`",
-                                   pickerInput(
-                                     "PCA_types",
+                                   checkboxGroupInput(
+                                     inputId = "PCA_types",
+                                     label = "Select types to display",
                                      choices = character(0),
-                                     options = pickerOptions(
-                                       actionsBox = TRUE,
-                                       selectedTextFormat = "count > 3",
-                                       liveSearch = TRUE
-                                       ),
-                                     multiple = TRUE
-                                  )
+                                     inline = TRUE
+                                   )
+                                   
                                  ),
                                  conditionalPanel(
                                    condition = "input.PCA_type == `biplot`",
                                    numericInput(
                                      inputId = "PCA_threshold",
-                                     label = "threshold [%]",
+                                     label = "Absolute correlation threshold [%]",
                                      value = 30,
                                      min = 0,
                                      max = 100)
@@ -505,7 +503,7 @@ ui <- navbarPage(
                                    condition = "input.PCA_type == `variance`",
                                    numericInput(
                                      inputId = "PCA_variance_threshold",
-                                     label = "threshold [%]",
+                                     label = "Variance threshold [%]",
                                      value = 80,
                                      min = 0,
                                      max = 100)
@@ -527,7 +525,14 @@ ui <- navbarPage(
                                  h2("Quality control (step 5/7)"),
                                  h3("next: Summary")
                           ),
-                          column(8,
+                          column(9, align = "center",
+                           conditionalPanel(
+                              condition = "input.PCA_type == `biplot`",
+                              h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
+                              br()
+                            )
+                          ),
+                          column(7, offset = 1,
                                  uiOutput("cond_pca_plt")
                           )
                  ),
@@ -916,7 +921,7 @@ server <- function(input, output, session) {
       paste0("<span style = 'font-size:15px; font-weight: bold;'>",
              "Found ",
              ncol(dat[["group_candidates"]]),
-             " possible grouping columns.</br></br>Unique levels per column:</span></br><span style='font-size:15px'>",
+             " possible grouping columns.</br></br>Unique levels per column</span></br><span style='font-size:15px'>",
              paste0(colnames(dat[["group_candidates"]]), ": ", counts, collapse = "</br>"),
              "</span>")
     )
