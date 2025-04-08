@@ -865,6 +865,12 @@ pca_variance <- function(dat, threshold, max_num = NULL) {
                linetype = "dashed") +
     labs(x = "Principal component", y = "% Variance explained") +
     scale_y_continuous(labels = scales::percent) +
+    scale_x_discrete(
+      labels = paste0(variance_df[["Component"]],
+                      "(",
+                      round(variance_df[["Variance_Explained"]], 2)*100,
+                      "%)")
+    ) +
     scale_color_manual(name = NULL,
                        values = c("cumulative variance" = "#54F3D3",
                                   "threshold" = "red")) +
