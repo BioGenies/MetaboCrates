@@ -303,21 +303,21 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
   
   uncomp_metabo_vals <- dat %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(metabolite)) %>%
-    mutate(across(everything(), ~ as.numeric(.)))
+    select(all_of(c(metabolite, "sample identification"))) %>%
+    mutate(across(all_of(metabolite), ~ as.numeric(.)))
   
   comp_metabo_vals <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(metabolite))
+    select(all_of(c(metabolite, "sample identification")))
   
   if(all(is.na(uncomp_metabo_vals)) & all(is.na(comp_metabo_vals))) stop()
   
   plt <- switch(type,
          "histogram" = {
-           if(all(is.na(uncomp_metabo_vals)))
+           if(all(is.na(uncomp_metabo_vals[[metabolite]])))
              fill_vals <- c("Only imputed values" = "#54F3D3")
            
-           else if(all(is.na(comp_metabo_vals)))
+           else if(all(is.na(comp_metabo_vals[[metabolite]])))
              fill_vals <- c("Observed" = "#2B2A29")
            
            else fill_vals <- c("Only imputed values" = "#54F3D3",
@@ -341,17 +341,17 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
              metabocrates_theme()
          },
          "density" = {
-           if(all(is.na(uncomp_metabo_vals)))
+           if(all(is.na(uncomp_metabo_vals[[metabolite]])))
              fill_vals <- c("Only imputed values" = "#54F3D3")
            
-           else if(all(is.na(comp_metabo_vals)))
+           else if(all(is.na(comp_metabo_vals[[metabolite]])))
              fill_vals <- c("Observed" = "#2B2A29")
            
            else fill_vals <- c("Only imputed values" = "#54F3D3",
                                "Observed" = "#2B2A29")
            
            vline_data <- data.frame(
-             xintercept = min(na.omit(uncomp_metabo_vals)),
+             xintercept = min(na.omit(uncomp_metabo_vals[[metabolite]])),
              linetype = "sample LOD"
            )
            
@@ -392,17 +392,17 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
                                      values = c("sample LOD" = "dashed"))
            }
            
-           if(all(is.na(uncomp_metabo_vals)))
+           if(all(is.na(uncomp_metabo_vals[[metabolite]])))
              plt_comp
            
-           else if(all(is.na(comp_metabo_vals)))
+           else if(all(is.na(comp_metabo_vals[[metabolite]])))
              plt_uncomp
            
            else{
              max_uncomp_density <- uncomp_metabo_vals %>%
               na.omit() %>%
               summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
-               pull(max_density)
+              pull(max_density)
            
              max_comp_density <- comp_metabo_vals %>%
               na.omit() %>%
@@ -415,8 +415,9 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
                theme(plot.margin=margin(b=-1,unit="cm"))
              
              plt_uncomp <- plt_uncomp +
-               coord_cartesian(xlim = c(min(na.omit(comp_metabo_vals)),
-                                        max(na.omit(comp_metabo_vals))),
+               coord_cartesian(xlim =
+                                 c(min(na.omit(comp_metabo_vals[[metabolite]])),
+                                   max(na.omit(comp_metabo_vals[[metabolite]]))),
                                ylim = c(max_uncomp_density*-1.05, 0),
                                expand = FALSE) +
                theme(plot.margin=margin(t=-0.001,unit="cm"))
@@ -431,11 +432,10 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
          },
          "beeswarm" = {
            plt_dat <- uncomp_metabo_vals %>%
-             mutate(Sample = 1:n()) %>%
-             bind_rows(mutate(comp_metabo_vals, Sample = 1:n())) %>%
+             bind_rows(comp_metabo_vals) %>%
              mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
                       rep("Completed", nrow(comp_metabo_vals))),
-                    tooltip = paste0("Sample: ", Sample,
+                    tooltip = paste0("Sample id: ", `sample identification`,
                                      "<br>Value: ", get(metabolite)))
              
            plt <- ggplot(plt_dat, aes(x = Type, y = get(metabolite),
@@ -767,8 +767,9 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
   
   plot_data <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(c("plate bar code", metabolite1, metabolite2))) %>%
-    mutate(tooltip = paste0("Sample: ", 1:n(),
+    select(all_of(c("sample identification", "plate bar code",
+                    metabolite1, metabolite2))) %>%
+    mutate(tooltip = paste0("Sample id: ", `sample identification`,
                             "<br>", metabolite1, ": ", get(metabolite1),
                             "<br>", metabolite2, ": ", get(metabolite2)))
   
@@ -925,10 +926,15 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   if(is.null(attr(dat, "completed")))
     stop("Complete the missing values in data first.")
   
-  if(type != "biplot")
+  if(type == "sample_type")
     completed_with_tooltips <- attr(dat, "completed") %>%
       group_by(`sample type`) %>%
-      mutate(tooltip = paste0(`sample type`, ": ", 1:n())) %>%
+      mutate(tooltip = paste0("Type: ", `sample type`,
+                              "<br>Sample id: ", `sample identification`)) %>%
+      select(-all_of(attr(dat, "metabolites")))
+  else if(type == "group")
+    completed_with_tooltips <- attr(dat, "completed") %>%
+      mutate(tooltip = paste0("Sample id: ", `sample identification`)) %>%
       select(-all_of(attr(dat, "metabolites")))
   else
     completed_with_tooltips <- attr(dat, "completed") %>%
