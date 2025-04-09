@@ -503,7 +503,7 @@ ui <- navbarPage(
                                    condition = "input.PCA_type == `variance`",
                                    numericInput(
                                      inputId = "PCA_variance_threshold",
-                                     label = "Variance threshold [%]",
+                                     label = "Cumulative variance threshold [%]",
                                      value = 80,
                                      min = 0,
                                      max = 100)
