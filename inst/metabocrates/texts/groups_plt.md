@@ -1,0 +1,1 @@
+This bar plot displays the number of elements in each level of the selected grouping column.

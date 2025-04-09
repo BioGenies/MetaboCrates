@@ -1,1 +1,1 @@
-This matrix shows the measured compounds values.
+This table contains the concentrations measured for each metabolite and sample.

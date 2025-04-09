@@ -1,0 +1,1 @@
+This is the LOD table, containing the limits of detection for each metabolite, depending on the plate bar code.

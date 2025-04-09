@@ -1,0 +1,1 @@
+This heatmap displays the missing values for each metabolite across all samples.

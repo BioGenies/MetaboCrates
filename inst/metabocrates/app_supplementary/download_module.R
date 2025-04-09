@@ -15,7 +15,7 @@ download_UI <- function(id){
                   border: 2px solid black; display: flex; align-items: center; justify-content: space-between;",
            h4(
              span(txt, style = "margin-right: 20px;") %>%
-               helper(id = "download_helper"),
+               helper(content = id),
              style = "margin: 0;"
            ),
            downloadButton(ns("download"), "Download")
@@ -64,7 +64,7 @@ download_SERVER <- function(id, dat){
           
           metabo_tab <- metabo_tab %>%
             select(any_of(c(
-              "plate bar code", "sample identification", "sample id",
+              "plate bar code", "sample identification",
               attr(download_dat, "group"),
               setdiff(attr(download_dat, "metabolites"),
                       c(attr(download_dat, "removed")[["LOD"]],

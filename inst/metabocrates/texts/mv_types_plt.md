@@ -1,2 +1,1 @@
-This plot shows the number
-of missing values of each type.
+This plot shows the number of missing values in the data of each type.
