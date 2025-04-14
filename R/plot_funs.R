@@ -237,25 +237,42 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 
 #' Heatmap of missing metabolites values
 #' 
+#' @param dat A `raw_data` object, the output of the [read_data()].
+#' @param plate_bar_code A single plate bar code for selecting observations to
+#' include in the plot. If NULL (default), a grid of plots is returned, where
+#' each plot corresponds to a different plate bar code.
+#' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' plot_heatmap(dat)
+#' plot_heatmap(dat, "1036372116-1 | 1036372121-1")
 #' 
 #' @export
 
-plot_heatmap <- function(dat){
-  plt_dat <- dat %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(c(setdiff(attr(dat, "metabolites"),
-                          unlist(attr(dat, "removed"))),
-                  "plate bar code"))) %>%
-    mutate(Sample = 1:n()) %>%
-    pivot_longer(!c(Sample, `plate bar code`),
-                 names_to = "Metabolite", values_to = "Value") %>%
-    mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
-           `Is missing` =
-             Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
+plot_heatmap <- function(dat, plate_bar_code = NULL){
+  if(is.null(plate_bar_code))
+    plt_dat <- dat %>%
+      filter(`sample type` == "Sample") %>%
+      select(all_of(c(setdiff(attr(dat, "metabolites"),
+                              unlist(attr(dat, "removed"))),
+                      "plate bar code"))) %>%
+      mutate(Sample = 1:n()) %>%
+      pivot_longer(!c(Sample, `plate bar code`),
+                   names_to = "Metabolite", values_to = "Value")
+  else
+    plt_dat <- dat %>%
+      filter(`sample type` == "Sample",
+             `plate bar code` == plate_bar_code) %>%
+      select(all_of(setdiff(attr(dat, "metabolites"),
+                            unlist(attr(dat, "removed"))))) %>%
+      mutate(Sample = 1:n()) %>%
+      pivot_longer(!Sample,
+                   names_to = "Metabolite", values_to = "Value")
+    
+  plt_dat <- mutate(plt_dat,
+                    Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+                    `Is missing` =
+                      Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
   
   plt <- plt_dat %>%
     ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
@@ -265,10 +282,11 @@ plot_heatmap <- function(dat){
     metabocrates_theme() +
     theme(legend.justification.right = "top")
   
-  if(length(unique(plt_dat[["plate bar code"]])) > 1)
+  if(is.null(plate_bar_code))
     plt +
       facet_wrap(~ `plate bar code`, ncol = 1, scales = "free_x")
   else plt
+      
 }
 
 #' Histograms or density plots of individual metabolite values before and after imputation

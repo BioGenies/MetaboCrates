@@ -4,7 +4,7 @@
 \alias{pca_variance}
 \title{Plot of Variance Explained by Principal Components}
 \usage{
-pca_variance(dat, threshold, max_num = NULL)
+pca_variance(dat, threshold, max_num = NULL, cumulative = TRUE)
 }
 \arguments{
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
@@ -12,9 +12,13 @@ The data should be completed and filtered to include only samples of type
 "Sample".}
 
 \item{threshold}{A value indicating the maximum cumulative variance
-of components to display.
-#' @param max_num An optional parameter indicating the maximum number
 of components to display.}
+
+\item{max_num}{An optional parameter indicating the maximum number
+of components to display.}
+
+\item{cumulative}{A logical value indicating if the cumulative variance
+should be showed on the plot, defaults to TRUE.}
 }
 \description{
 This function creates a barplot showing the minimum number of the greatest

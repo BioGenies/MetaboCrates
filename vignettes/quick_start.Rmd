@@ -187,9 +187,9 @@ plot_NA_percent(grouped_dat, type = "group") +
 Next function creates heatmap, which shows if value is missing for each sample and metabolite. Below the cropped plot is presented, with the metabolites from 5th to 10th and first 50 samples.
 
 ```{r, fig.width=7}
-plot_heatmap(dat) +
-  xlim(c(0, 50)) +
-  ylim(attr(grouped_dat, "metabolites")[5:10])
+# plot_heatmap(dat) +
+#   xlim(c(0, 50)) +
+#   ylim(attr(grouped_dat, "metabolites")[5:10])
 ```
 
 Moreover, the heatmap of correlations between all metabolites can be created, using the below function.

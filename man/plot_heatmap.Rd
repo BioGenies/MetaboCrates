@@ -4,7 +4,14 @@
 \alias{plot_heatmap}
 \title{Heatmap of missing metabolites values}
 \usage{
-plot_heatmap(dat)
+plot_heatmap(dat, plate_bar_code = NULL)
+}
+\arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}}.}
+
+\item{plate_bar_code}{A single plate bar code for selecting observations to
+include in the plot. If NULL (default), a grid of plots is returned, where
+each plot corresponds to a different plate bar code.}
 }
 \description{
 Heatmap of missing metabolites values
@@ -12,6 +19,6 @@ Heatmap of missing metabolites values
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-plot_heatmap(dat)
+plot_heatmap(dat, "1036372116-1 | 1036372121-1")
 
 }
