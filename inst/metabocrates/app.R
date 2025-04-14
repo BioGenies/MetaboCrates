@@ -286,26 +286,26 @@ ui <- navbarPage(
                       h4("< LOD values"),
                       selectInput(
                         inputId = 'LOD_method',
-                        label = "< LOD imputation method.",
+                        label = "< LOD imputation method",
                         choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none"),
                       ),
                       selectInput(
                         inputId = 'LOD_type',
-                        label = "type of < LOD values.",
+                        label = "Type of < LOD values",
                         choices = c("OP", "calc"),
                       ),
                       br(),
                       h4("< LLOQ values"),
                       selectInput(
                         inputId = 'LLOQ_method',
-                        label = "< LLOQ imputation method.",
+                        label = "< LLOQ imputation method",
                         choices = c("limit", "none"),
                       ),
                       br(),
                       h4("> ULOQ values"),
                       selectInput(
                         inputId = 'ULOQ_method',
-                        label = "> ULOQ imputation method.",
+                        label = "> ULOQ imputation method",
                         choices = c("limit", "third quartile", "none"),
                       ),
                       br(),
@@ -333,6 +333,11 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Missing values heatmap",
                                                   br(),
+                                                  column(11,
+                                                         selectInput("pb_codes_heatmap",
+                                                                     label = "Select plate bar code",
+                                                                     choices = character(0))
+                                                  ),
                                                   column(11,
                                                     plot_with_button_UI("missing_heatmap")
                                                   )
@@ -741,12 +746,7 @@ server <- function(input, output, session) {
     
     sample_types <- pull(attr(uploaded_dat, "samples"), `sample type`)
     
-    dat_LOD_type <- attr(dat[["metabocrates_dat"]], "LOD_table")[["type"]]
-    
-    aval_LOD_types <- c("calc", "OP")[c(any(grepl("calc.", dat_LOD_type)),
-                                        any(grepl("OP", dat_LOD_type)))]
-    
-    updateSelectInput(session, "LOD_type", choices = aval_LOD_types)
+    update_inputs_SERVER("initial", session, input, dat)
     
     info_txt <- paste0(
       "<h4> Data summary:</h4><br/>",
@@ -1202,8 +1202,10 @@ server <- function(input, output, session) {
   
   missing_heatmap <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["pb_codes_heatmap"]])
     
-    plot_heatmap(dat[["metabocrates_dat_group"]])
+    plot_heatmap(dat[["metabocrates_dat_group"]],
+                 plate_bar_code = input[["pb_codes_heatmap"]])
   })
   
   missing_heatmap_height <- reactive({
