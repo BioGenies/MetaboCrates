@@ -3,11 +3,14 @@
 nav_btns_UI <- function(id) {
   ns <- NS(id)
   
+  footer_style <- "position:fixed; bottom:0; width:95%; height:20px;
+                   padding: 0px 0px 80px 80px; z-index: 9999"
+  
   if(id == "Uploading data") {
     tagList(
       tags$footer(
         align = "right",
-        style = "position:absolute; bottom:0; width:95%; height:20px; padding: 0px 0px 80px 80px;",
+        style = footer_style,
         column(1),
         column(10),
         column(1, align = "right", 
@@ -22,7 +25,7 @@ nav_btns_UI <- function(id) {
       tagList(
         tags$footer(
           align = "right",
-          style = "position:absolute; bottom:0; width:95%; height:20px; padding: 0px 0px 80px 80px;",
+          style = footer_style,
           column(1, align = "left", 
                  actionButton(ns("prev"), 
                               label = "back", 
@@ -36,7 +39,7 @@ nav_btns_UI <- function(id) {
       tagList(
         tags$footer(
           align = "right",
-          style = "position:absolute; bottom:0; width:95%; height:20px; padding: 0px 0px 80px 80px;",
+          style = footer_style,
           column(1, align = "left", 
                  actionButton(ns("prev"), 
                               label = "back", 

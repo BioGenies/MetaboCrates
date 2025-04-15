@@ -31,6 +31,13 @@ ui <- navbarPage(
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
   
+  tags$style(HTML("
+    .swal2-container {
+      z-index: 10000 !important;
+    }
+  ")),
+  
+  
   tags$head(
     tags$style(HTML("
       .custom-tabs .nav-tabs > li > a {
