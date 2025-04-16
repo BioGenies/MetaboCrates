@@ -216,14 +216,21 @@ download_SERVER <- function(id, dat){
             },
             "venn_diagram.pdf" = {
               if(is.null(attr(download_dat, "group")))
-                NULL
-              else
-               create_venn_diagram(
-                download_dat,
-                ifelse(is.null(input[["filtering_threshold"]]),
-                       0.8,
-                       input[["filtering_threshold"]]/100)
-               )
+                lvls_count <- dat[["metabocrates_dat_group"]] %>%
+                  filter(`sample type` == "Sample") %>%
+                  select(all_of(attr(dat[["metabocrates_dat_group"]], "group"))) %>%
+                  summarise(across(attr(dat[["metabocrates_dat_group"]], "group")),
+                            n_distinct) %>%
+                  unlist()
+              
+                if(lvls_count > 5) NULL
+                else
+                  create_venn_diagram(
+                    download_dat,
+                    ifelse(is.null(input[["filtering_threshold"]]),
+                           0.8,
+                           input[["filtering_threshold"]]/100)
+                 )
             },
             "missing_values_heatmap.pdf" = plot_heatmap(download_dat),
             "PCA_plot_sample_type.pdf" = {
@@ -298,12 +305,15 @@ download_SERVER <- function(id, dat){
         output[["download"]] <- downloadHandler(
           filename = "report.pdf",
           content = function(file){
+            params_lst <- list(dat = dat)
+            
+            if(!is.null(input[["filtering_threshold"]]))
+              params_lst[["mv_threshold"]] = input[["filtering_threshold"]]
+            
             rmarkdown::render("./app_supplementary/report_template.Rmd",
                               output_file = file,
                               envir = new.env(parent = globalenv()),
-                              params = list(
-                                dat = dat
-                              ))
+                              params = params_lst)
           }
         )
     }
