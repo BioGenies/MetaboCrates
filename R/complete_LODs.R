@@ -23,8 +23,10 @@
 complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL, 
                           ULOQ_method = NULL, LOD_type = "calc") {
   
+  if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
+    message("No missing values found.")
   
-  NA_info <- attr(dat, "NA_info")[["counts"]] %>% 
+  NA_info <- attr(dat, "NA_info")[["counts"]] %>%
     filter(type %in% c("< LOD", "< LLOQ", "> ULOQ")) %>% 
     spread(type, n)
   
@@ -43,43 +45,55 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
            -`sample type`, -`plate bar code`, -tmp_id)
   
   ### LOD imputation
-  if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
-    message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
-    gathered_data <- complete_LOD(gathered_data = gathered_data,  
-                                  method = LOD_method, 
-                                  LOD_type = LOD_type, 
-                                  LOD_vals = LOD_vals)
-  } else {
-    message("Skipping < LOD imputation.")
+  if(!is.null(NA_info[["< LOD"]])) {
+    if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
+      message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
+      gathered_data <- complete_LOD(gathered_data = gathered_data,  
+                                    method = LOD_method, 
+                                    LOD_type = LOD_type, 
+                                    LOD_vals = LOD_vals)
+    } else {
+      message("Skipping < LOD imputation.")
+    }
+  } else if(nrow(attr(dat, "NA_info")[["counts"]]) != 0){
+    message("No < LOD values found.")
   }
   
   ### LLOQ imputation
-  if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
-    message(paste0("Completing ", NA_info[["< LLOQ"]], " < LLOQ values..."))
-    gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
-                                   method = LLOQ_method, 
-                                   LOD_vals = LOD_vals)
-  } else {
-    message("Skipping < LLOQ imputation.")
+  if(!is.null(NA_info[["< LLOQ"]])) {
+    if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
+      message(paste0("Completing ", NA_info[["< LLOQ"]], " < LLOQ values..."))
+      gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
+                                     method = LLOQ_method, 
+                                     LOD_vals = LOD_vals)
+    } else {
+      message("Skipping < LLOQ imputation.")
+    }
+  } else if(nrow(attr(dat, "NA_info")[["counts"]]) != 0){
+    message("No < LLOQ values found.")
   }
   
   ### ULOQ imputation
-  if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
-    message(paste0("Completing ", NA_info[["> ULOQ"]], " < ULOQ values..."))
-    gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
-                                   method = ULOQ_method, 
-                                   LOD_vals = LOD_vals)
-  }else {
-    message("Skipping < ULOQ imputation.")
+  if(!is.null(NA_info[["> ULOQ"]])) {
+    if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
+      message(paste0("Completing ", NA_info[["> ULOQ"]], " < ULOQ values..."))
+      gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
+                                     method = ULOQ_method, 
+                                     LOD_vals = LOD_vals)
+    } else {
+      message("Skipping > ULOQ imputation.")
+    }
+  } else if(nrow(attr(dat, "NA_info")[["counts"]]) != 0){
+    message("No > ULOQ values found.")
   }
-
+  
   suppressWarnings({
     completed_dat <- gathered_data %>% 
       spread(key = compound, value = value) %>% 
       arrange(tmp_id) %>% 
       mutate_at(all_of(attr(dat, "metabolites")), as.numeric)
   })
-
+  
   tmp_dat <- dat
   tmp_dat[, colnames(completed_dat)] <- completed_dat
   attr(dat, "completed") <- tmp_dat
@@ -100,43 +114,54 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' "halflimit", "limit" or NULL meaning changing missing values into NAs.
 #' @param LOD_vals description
 #' 
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' 
 #' @keywords internal
 #' 
 
 
 complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   
-  method <- match.arg(method, c("halfmin", "random", "halflimit", "limit", NULL))
+  method <- match.arg(method,
+                      c("halfmin", "random", "halflimit", "limit",
+                        "limit-0.2min", NULL))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
   
   if(!any(grepl(LOD_type, LOD_vals[["type"]])))
     stop(paste0("There is no ", LOD_type, " values in LOD table."))
   
   merged_dat <- gathered_data %>% 
-    merge(filter(LOD_vals, grepl(LOD_type, type)), 
-          by = c("plate bar code", "compound"), all = TRUE)
+    left_join(filter(LOD_vals, grepl(LOD_type, type)), 
+              by = c("plate bar code", "compound"))
   
   merged_dat <- switch (
     method,
     halfmin = {
       merged_dat %>% 
-        mutate(value = ifelse(value == "< LOD", 0.5 * min(value), value))
+        group_by(compound) %>% 
+        mutate(value = ifelse(value == "< LOD" & !is.na(value), 
+                              0.5 * general_min(value), value)) 
     },
     halflimit = {
       merged_dat %>% 
-        mutate(value = ifelse(value == "< LOD", 0.5 * thresh_est, value))
+        mutate(value = ifelse(value == "< LOD" & !is.na(value), 
+                              0.5 * thresh_est, value))
     },
     random = {
-      merged_dat %>% 
-        mutate(value = ifelse(value == "< LOD", runif(1, 0, thresh_est), value))
+      merged_dat %>%  
+        mutate(value = ifelse(value == "< LOD" & !is.na(value), 
+                              runif(
+                                sum(value == "< LOD" & !is.na(value)), 0, 
+                                thresh_est[value == "< LOD" & !is.na(value)]), 
+                              value))
     },
     limit = {
       merged_dat %>% 
         mutate(value = ifelse(value == "< LOD", thresh_est, value))
+    },
+    `limit-0.2min` = {
+      merged_dat %>%
+        mutate(value = ifelse(value == "< LOD",
+                              thresh_est - 0.2 * general_min(value),
+                              value))
     }
   )
   
@@ -186,16 +211,12 @@ match_plate_codes <- function(LOD_table, sets) {
 #' changing missing values into NAs.
 #' @param LOD_vals description
 #' 
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' 
 #' @keywords internal
 #' 
 
 complete_ULOQ <- function(gathered_data, method, LOD_vals) {
   
-  method <- match.arg(method, c("limit"))
+  method <- match.arg(method, c("limit", "third quartile"))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "ULOQ"), 
@@ -206,6 +227,12 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
     limit = {
       merged_dat %>% 
         mutate(value = ifelse(value == "> ULOQ", thresh_est, value))
+    },
+    `third quartile` = {
+      merged_dat %>%
+        mutate(value = ifelse(value == "> ULOQ",
+                              general_third_quartile(value),
+                              value))
     }
   )
   merged_dat %>% 
@@ -224,10 +251,6 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
 #' @param method a character. Imputation method, one of "limit" or NULL meaning 
 #' changing missing values into NAs.
 #' @param LOD_vals description
-#' 
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
 #' 
 #' @keywords internal
 #' 
@@ -250,3 +273,46 @@ complete_LLOQ <- function(gathered_data, method, LOD_vals) {
   merged_dat %>% 
     select(- type, -thresh_est)
 }
+
+
+#' Calculate minimum ignoring character values
+#' 
+#' @description This function calculates minimum without values such as NA's, 
+#' values below or above LOD limit and so on. 
+#' 
+#' @param x a vector of observations
+#' 
+#' @examples
+#' x <- c("<LOD", 5, 6, NA, 9, 16)
+#' general_min(x)
+#' 
+#' @keywords internal
+#' 
+
+general_min <- function(x) {
+  suppressWarnings({
+    min_val <- min(as.numeric(x[!is.na(as.numeric(x))]))
+    ifelse(is.infinite(min_val), NA, min_val)
+  })
+}
+
+#' Calculate third quartile ignoring character values
+#' 
+#' @description This function calculates third quartile without values such as
+#' NA's, values below or above LOD limit and so on. 
+#' 
+#' @param x a vector of observations
+#' 
+#' @examples
+#' x <- c("<LOD", 5, 6, NA, 9, 16)
+#' general_third_quartile(x)
+#' 
+#' @keywords internal
+#' 
+
+general_third_quartile <- function(x){
+  suppressWarnings({
+    quantile(as.numeric(x[!is.na(as.numeric(x))]), prob = 0.75, type = 1)
+  })
+}
+

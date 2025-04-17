@@ -1,0 +1,1 @@
+This table displays the coefficient of variation (CV) values calculated for each metabolite and each QC type that appears more than once in data.

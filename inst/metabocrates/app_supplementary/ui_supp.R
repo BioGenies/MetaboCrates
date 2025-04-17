@@ -31,6 +31,9 @@ ui_content_about <- function() {
            h5(HTML("<b> 1. Input Data:</b> Make sure your input data is sourced 
                    from the MedIDQ application. This ensures compatibility and 
                    accurate analysis within MetaboCrates.")),
+           h5(HTML("Your data must be in .xls or .xlsx format and contain the
+                   following columns: plate bar code, sample type,
+                   sample identification.")),
            h5(HTML("<b> 2. Performing Analysis:</b> Navigate to the <b> 
                    Analysis</b> tab to begin your data analysis. This section 
                    provides all the tools and features necessary to process and 

@@ -1,0 +1,1 @@
+Select any column in this table to use it as a grouping column. Click to group the data.

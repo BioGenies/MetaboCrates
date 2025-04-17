@@ -3,7 +3,7 @@
 #' @description The \code{MetaboCrates} package is a toolbox for processing of 
 #' Biocrates® metabolomics data
 #' 
-#' @author Weronika Puchala, Michal Burdukiewicz.
+#' @author Krystyna Grzesiak, Joanna Pokora, Filip Gaj, Michal Burdukiewicz.
 #' @docType package
 #' @name MetaboCrates-package
 #' @aliases MetaboCrates

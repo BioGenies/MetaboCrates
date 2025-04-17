@@ -2,20 +2,26 @@
 % Please edit documentation in R/plot_funs.R
 \name{create_boxplot}
 \alias{create_boxplot}
-\title{Boxplot of individual metabolite values}
+\title{Boxplots of individual metabolite values before and after imputation}
 \usage{
-create_boxplot(dat, metabolite)
+create_boxplot(
+  dat,
+  metabolite,
+  interactive = TRUE,
+  width_svg = 6,
+  height_svg = 5
+)
 }
 \arguments{
-\item{metabolite}{The name of metabolite of interest.}
+\item{metabolite}{A name of metabolite of interest.}
 }
 \description{
-Boxplot of individual metabolite values
+Boxplots of individual metabolite values before and after imputation
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_boxplot(attr(dat, "completed"), "C0")
+create_boxplot(dat, "C0")
 
 }

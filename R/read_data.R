@@ -50,7 +50,18 @@ read_data <- function(path) {
              stri_detect_fixed(`plate bar code`, "ULOQ")) %>% 
     mutate_at(vars(-("plate bar code")), as.numeric)
   
+  metabolites_extensions <- metabolites[
+    apply(LOD_table, 2, function(ith_metabolite) {
+      all(is.na(ith_metabolite))
+    })
+  ]
+  
+  LOD_table <- LOD_table %>% select(-na.omit(metabolites_extensions))
+  
+  metabolites <- metabolites[!(metabolites %in% metabolites_extensions)]
+  
   dat %>% 
+    select(-na.omit(metabolites_extensions)) %>% 
     mutate(across(all_of(metabolites), check_values)) %>% 
     filter(!is.na(`plate bar code`)) %>% 
     raw_data(LOD_table, metabolites)

@@ -175,29 +175,72 @@ raw_data <- function(metabolomics_matrix,
   metabolomics_matrix <- metabolomics_matrix %>% 
     as.data.frame(check.names = FALSE)
   
-  NA_ratios <- metabolomics_matrix %>% 
-    filter(`sample type` == "Sample") %>% 
-    select(any_of(metabolites), get("group")) %>% 
-    tidyr::gather("metabolite", "value", -get("group")) %>% 
-    group_by(metabolite, get("group")) %>% 
-    summarise(NA_frac = mean(value %in% c("< LOD","< LLOQ", 
-                                          "> ULOQ", "NA", "∞"))) %>% 
-    ungroup()
-  
-  miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
-  
-  tmp <- metabolomics_matrix %>% 
-    filter(`sample type` == "Sample")
-  
-  counts <- lapply(miss_vals, function(i) {
-    data.frame(type = i, n = sum(tmp == i, na.rm = TRUE))
-  }) %>%  bind_rows()
-  
-  NA_info = list(NA_ratios = NA_ratios, counts = counts)
-  
   samples <- metabolomics_matrix %>% 
     group_by(`sample type`) %>% 
     summarise(count = n())
+  
+  n_samples <- samples %>% 
+    filter(`sample type` == "Sample") %>% 
+    pull(count)
+  
+  grouping_variable_tmp <- group
+  miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
+  
+  NA_ratios_type <- metabolomics_matrix %>% 
+    filter(`sample type` == "Sample") %>% 
+    select(any_of(metabolites)) %>% 
+    mutate(n_samples = n()) %>% 
+    tidyr::gather("metabolite", "value", -"n_samples") %>% 
+    filter(value %in% miss_vals) %>% 
+    rename(type = "value") %>% 
+    group_by(metabolite, type) %>% 
+    reframe(NA_frac = n()/n_samples) %>% 
+    unique() %>%
+    right_join(expand.grid(type = miss_vals,
+                           metabolite = metabolites),
+               by = c("metabolite", "type")) %>% 
+    mutate(NA_frac = ifelse(is.na(NA_frac), 0, NA_frac)) %>% 
+    arrange(metabolite) %>% 
+    ungroup()
+  
+  
+  if(!is.null(grouping_variable_tmp)) {
+    
+    grouping_column <- metabolomics_matrix[[grouping_variable_tmp]]
+    group_levels <- na.omit(unique(grouping_column))
+    
+    NA_ratios_group <- metabolomics_matrix %>% 
+      mutate(grouping_column = grouping_column) %>% 
+      filter(`sample type` == "Sample") %>% 
+      select(any_of(metabolites), grouping_column) %>% 
+      group_by(grouping_column) %>% 
+      mutate(group_size = n()) %>%
+      ungroup() %>% 
+      tidyr::gather("metabolite", "value", -"grouping_column", -"group_size") %>% 
+      filter(value %in% miss_vals) %>% 
+      rename(type = "value") %>% 
+      group_by(metabolite, grouping_column) %>% 
+      reframe(NA_frac = n()/group_size) %>% 
+      unique() %>% 
+      right_join(expand.grid(metabolite = metabolites,
+                             grouping_column = group_levels),
+                 by = c("metabolite", 'grouping_column')) %>% 
+      mutate(NA_frac = ifelse(is.na(NA_frac), 0, NA_frac)) %>% 
+      arrange(metabolite, grouping_column) 
+  } else {
+    NA_ratios_group <- NULL
+  }
+  
+  counts <- NA_ratios_type %>% 
+    group_by(type) %>% 
+    reframe(n = sum(NA_frac) * n_samples) %>% 
+    filter(n > 0) %>% 
+    arrange(-n)
+  
+  NA_info = list(counts = counts,
+                 NA_ratios_type = NA_ratios_type,
+                 NA_ratios_group = NA_ratios_group)
+  
   
   exclude_cols <- match.arg(c("plate bar code", "type"), 
                             colnames(LOD_table),

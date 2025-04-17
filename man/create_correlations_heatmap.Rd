@@ -4,7 +4,29 @@
 \alias{create_correlations_heatmap}
 \title{Heatmap of correlations between metabolites}
 \usage{
-create_correlations_heatmap(dat)
+create_correlations_heatmap(
+  dat,
+  threshold = 0.3,
+  metabolites_to_display = "all",
+  width_svg = 6,
+  height_svg = 5,
+  interactive = TRUE
+)
+}
+\arguments{
+\item{threshold}{A numeric value specifying the minimum absolute correlation
+to display (only metabolites specified in metabolites_to_display are taken
+into account).}
+
+\item{metabolites_to_display}{A vector of names or number of metabolites to
+display. If a number is provided, the first metabolites are selected.
+Defaults to "all".}
+
+\item{width_svg}{Width of plot in inches.}
+
+\item{height_svg}{Height of plot in inches.}
+
+\item{interactive}{If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 Heatmap of correlations between metabolites
@@ -13,6 +35,6 @@ Heatmap of correlations between metabolites
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_correlations_heatmap(attr(dat, "completed"))
+print(create_correlations_heatmap(dat))
 
 }

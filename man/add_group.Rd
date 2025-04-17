@@ -4,10 +4,11 @@
 \alias{add_group}
 \title{Specify group in the Biocrates data}
 \usage{
-add_group(dat, group_name)
+add_group(raw_data, group_name)
 }
 \arguments{
-\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function.}
+\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
 \item{group_name}{a character name of a column from the data containing group.}
 }

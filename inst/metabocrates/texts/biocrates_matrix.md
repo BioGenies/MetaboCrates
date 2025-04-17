@@ -1,0 +1,1 @@
+This table contains the concentrations measured for each metabolite and sample.

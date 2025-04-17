@@ -10,15 +10,17 @@ create_beeswarm_plot(dat, metabolite)
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
 The data should contain metabolite values and sample information.}
 
-\item{metabolite}{A character string specifying the name of the metabolite for which the beeswarm plot should be created.}
+\item{metabolite}{A character string specifying the name of the metabolite
+for which the beeswarm plot should be created.}
 }
 \description{
-This function creates a beeswarm plot for a specified metabolite, allowing visualization
-of the distribution of metabolite values across different sample types or groups.
+This function creates a beeswarm plot for a specified metabolite, allowing
+visualization of the distribution of metabolite values across different plate
+bar code.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
-path <- get_example_data("dwa_sety_example.xlsx")
+path <- get_example_data("two_sets_example.xlsx")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
 create_beeswarm_plot(dat, "C0")

@@ -1,0 +1,1 @@
+This table contains the number of missing values in the data of each type.

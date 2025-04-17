@@ -11,5 +11,5 @@ The \code{MetaboCrates} package is a toolbox for processing of
 Biocrates® metabolomics data
 }
 \author{
-Weronika Puchala, Michal Burdukiewicz.
+Krystyna Grzesiak, Joanna Pokora, Filip Gaj, Michal Burdukiewicz.
 }

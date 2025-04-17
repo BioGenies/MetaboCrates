@@ -1,10 +1,20 @@
 library(testthat)
 
+path <- get_example_data("small_biocrates_example.xls")
+test_dat <- read_data(path)
+
 # Check if function returns correct metabolite names
-test_that("Returns metabolite names", {
-  NA_info <- list(NA_ratios = tibble(metabolite = rep(c("C0", "C1", "C2"), each = 3),
-                                     group = rep(1:3, 3),
-                                     NA_frac = c(0, 0.1, 0, 0, 0, 0, 0.2, 0.3, 0.2)))
-  expect_identical(get_LOD_to_remove(NA_info, 0.01),
-                   "C2")
+
+test_that("Returns correct metabolite names", {
+  
+  expect_message(get_LOD_to_remove(test_dat, 0.01, TRUE), 
+                 "No group to use! It will be ignored.")
+  
+  expect_identical(get_LOD_to_remove(test_dat, 0.8, FALSE), 
+                   c("C3-DC (C4-OH)", "C3-OH", "C4:1"))
+  
+  test_dat <- add_group(test_dat, "group")
+  
+  expect_identical(get_LOD_to_remove(test_dat, 0.2, TRUE), 
+                   c("C3-DC (C4-OH)", "C3-OH", "C3:1", "C4:1"))
 })

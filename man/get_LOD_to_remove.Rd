@@ -4,20 +4,18 @@
 \alias{get_LOD_to_remove}
 \title{Get metabolites to remove}
 \usage{
-get_LOD_to_remove(NA_info, treshold)
+get_LOD_to_remove(dat, threshold = 0.8, use_group = TRUE)
 }
 \arguments{
-\item{NA_info}{Attribute of the raw_data object.}
-
-\item{treshold}{Percentage value.}
+\item{threshold}{Percentage value.}
 }
 \description{
 Returns metabolite names having more NA values in each group
-than the given treshold.
+than the given threshold.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-get_LOD_to_remove(attr(dat, "NA_info"), 0.1)
+get_LOD_to_remove(dat, 0.1)
 
 }

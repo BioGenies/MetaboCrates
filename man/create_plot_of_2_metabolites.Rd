@@ -4,8 +4,22 @@
 \alias{create_plot_of_2_metabolites}
 \title{Plot of two metabolites}
 \usage{
-create_plot_of_2_metabolites(dat, metabolite1, metabolite2)
+create_plot_of_2_metabolites(
+  dat,
+  metabolite1,
+  metabolite2,
+  width_svg = 6,
+  height_svg = 5,
+  interactive = TRUE
+)
 }
 \description{
 Plot of two metabolites
+}
+\examples{
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+dat <- complete_data(dat, "limit", "limit", "limit")
+print(create_plot_of_2_metabolites(dat, "C0", "C2"))
+
 }
