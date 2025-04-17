@@ -547,26 +547,7 @@ ui <- navbarPage(
                           column(7, offset = 1,
                                  uiOutput("cond_pca_plt")
                           )
-                 ),
-               tabPanel("Two metabolites plot",
-                        column(12, align = "right",
-                               h2("Quality control (step 5/7)"),
-                               h3("next: Summary")
-                        ),
-                        column(3, offset = 3,
-                               selectInput("2_metabo_plt_1",
-                                           "First metabolite",
-                                           choices = character(0))
-                        ),
-                        column(3,
-                               selectInput("2_metabo_plt_2",
-                                           "Second metabolite",
-                                           choices = character(0))
-                        ),
-                        column(6, offset = 3,
-                               plot_with_button_UI("2_metabo_plt")
-                        )
-           )
+                 )
         )
               
       ),
@@ -1474,63 +1455,6 @@ server <- function(input, output, session) {
       plot_with_button_UI("PCA_plt")
     }
   })
-  
-  observeEvent(
-    input[["2_metabo_plt_1"]], {
-      req(input[["2_metabo_plt_1"]])
-      
-      updateSelectInput(
-        session,
-        inputId = "2_metabo_plt_2",
-        choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                          c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                            attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                            input[["2_metabo_plt_1"]])),
-        selected = input[["2_metabo_plt_2"]]
-      )
-    }
-  )
-  
-  observeEvent(
-    input[["2_metabo_plt_2"]], {
-      req(input[["2_metabo_plt_2"]])
-      
-      updateSelectInput(
-        session,
-        inputId = "2_metabo_plt_1",
-        choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                          c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                            attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
-                            input[["2_metabo_plt_2"]])),
-        selected = input[["2_metabo_plt_1"]]
-     )
-    }
-  )
-  
-  two_metabo_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["2_metabo_plt_1"]])
-    req(input[["2_metabo_plt_2"]])
-    
-    create_plot_of_2_metabolites(dat[["metabocrates_dat_group"]],
-                                 input[["2_metabo_plt_1"]],
-                                 input[["2_metabo_plt_2"]],
-                                 width_svg = 10, height_svg = 6)
-  })
-  
-  two_metabo_plt_full <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["2_metabo_plt_1"]])
-    req(input[["2_metabo_plt_2"]])
-    
-    create_plot_of_2_metabolites(dat[["metabocrates_dat_group"]],
-                                 input[["2_metabo_plt_1"]],
-                                 input[["2_metabo_plt_2"]],
-                                 interactive = FALSE)
-    
-  })
-  
-  plot_with_button_SERVER("2_metabo_plt", two_metabo_plt_full)
   
   ######## Summary
   

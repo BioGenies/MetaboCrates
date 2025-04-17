@@ -49,12 +49,6 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
       updateSelectInput(main_session, inputId = "sing_metabo_dist",
                         choices = c("None"))
         
-      updateSelectInput(main_session, inputId = "2_metabo_plt_1",
-                        choices = c("None"))
-        
-      updateSelectInput(main_session, inputId = "2_metabo_plt_2",
-                        choices = c("None"))
-        
       updatePickerInput(main_session, inputId = "corr_heatmap_metabolites",
                         choices = c("None"))
       
@@ -100,12 +94,6 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
           
         updateSelectInput(main_session, inputId = "sing_metabo_dist",
                           choices = metabolites())
-          
-        updateSelectInput(main_session, inputId = "2_metabo_plt_1",
-                          choices = metabolites()[-2])
-          
-        updateSelectInput(main_session, inputId = "2_metabo_plt_2",
-                          choices = metabolites()[-1])
           
         uncomplete_metabolites <- reactive({
           req(dat[["metabocrates_dat_group"]])
