@@ -261,8 +261,8 @@ plot_heatmap <- function(dat, plate_bar_code = NULL){
                    names_to = "Metabolite", values_to = "Value")
   else
     plt_dat <- dat %>%
-      filter(`sample type` == "Sample",
-             `plate bar code` == plate_bar_code) %>%
+      filter(`sample type` == "Sample") %>%
+      filter(`plate bar code` == plate_bar_code) %>%
       select(all_of(setdiff(attr(dat, "metabolites"),
                             unlist(attr(dat, "removed"))))) %>%
       mutate(Sample = 1:n()) %>%
@@ -285,7 +285,9 @@ plot_heatmap <- function(dat, plate_bar_code = NULL){
   if(is.null(plate_bar_code))
     plt +
       facet_wrap(~ `plate bar code`, ncol = 1, scales = "free_x")
-  else plt
+  else
+    plt +
+      labs(title = paste0("Plate bar code: ", plate_bar_code))
       
 }
 
