@@ -809,7 +809,8 @@ server <- function(input, output, session) {
                        "plate production no.", "well position", "sample volume", 
                        "run number", "injection number", "measurement time"))) %>% 
       filter(`sample type` == "Sample") %>% 
-      select(-`sample type`, -`species`)
+      select(-`sample type`, -`species`) %>%
+      select(where(~ !any(is.na(.))))
     
     if(!is.null(attr(dat[["metabocrates_dat"]], "group"))){
       group_ind <- which(names(dat[["group_candidates"]]) == attr(dat[["metabocrates_dat"]], "group"))
