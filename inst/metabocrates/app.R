@@ -764,8 +764,7 @@ server <- function(input, output, session) {
     
     dat[["metabocrates_dat"]] %>% 
       select(`sample type`, all_of(setdiff(metabolites,
-                                           c(attr(dat[["metabocrates_dat"]], "removed")[["LOD"]],
-                                             attr(dat[["metabocrates_dat"]], "removed")[["QC"]])))) %>%
+                                           unlist(attr(dat[["metabocrates_dat"]], "removed"))))) %>%
       mutate_all(display_short) %>% 
       custom_datatable(scrollY = 400,
                        paging = TRUE)
@@ -1396,6 +1395,9 @@ server <- function(input, output, session) {
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
+    req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                       unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
+    
     if(input[["PCA_type"]] == "variance") req(NULL)
     if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
     
@@ -1418,6 +1420,9 @@ server <- function(input, output, session) {
   PCA_plt_full <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
+    req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                       unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
+    
     if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
     if(input[["PCA_type"]] == "sample type") req(input[["PCA_types"]])
     
@@ -1440,6 +1445,8 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     req(input[["PCA_type"]])
     if(input[["PCA_type"]] != "variance") req(NULL)
+    req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                       unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
     pca_variance(dat[["metabocrates_dat_group"]],
                  threshold = input[["PCA_variance_threshold"]]/100,
