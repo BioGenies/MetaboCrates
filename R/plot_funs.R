@@ -241,6 +241,10 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' @param plate_bar_code A single plate bar code for selecting observations to
 #' include in the plot. If NULL (default), a grid of plots is returned, where
 #' each plot corresponds to a different plate bar code.
+#' @param include_title Logical. Indicates whether the title with the
+#' plate bar code should be included (only if `plate_bar_code` is not NULL).
+#' Defaults to `FALSE`.
+#'
 #' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -249,7 +253,7 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' 
 #' @export
 
-plot_heatmap <- function(dat, plate_bar_code = NULL){
+plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
   if(is.null(plate_bar_code))
     plt_dat <- dat %>%
       filter(`sample type` == "Sample") %>%
@@ -285,10 +289,12 @@ plot_heatmap <- function(dat, plate_bar_code = NULL){
   if(is.null(plate_bar_code))
     plt +
       facet_wrap(~ `plate bar code`, ncol = 1, scales = "free_x")
-  else
-    plt +
+  else{
+    if(include_title)
+      plt +
       labs(title = paste0("Plate bar code: ", plate_bar_code))
-      
+    else plt
+  }
 }
 
 #' Histograms or density plots of individual metabolite values before and after imputation
