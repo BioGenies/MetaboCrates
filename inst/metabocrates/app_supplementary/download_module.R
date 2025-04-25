@@ -26,7 +26,7 @@ download_UI <- function(id){
   
 }
 
-download_SERVER <- function(id, dat, main_input){
+download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -323,7 +323,14 @@ download_SERVER <- function(id, dat, main_input){
               lapply(params, function(param) main_input[[param]]),
               params
             )
-            params_lst[["dat"]] <- dat
+            
+            if(is.null(dat[["metabocrates_dat_group"]]))
+              params_lst[["dat"]] <- dat[["metabocrates_dat"]]
+            else
+              params_lst[["dat"]] <- dat[["metabocrates_dat_group"]]
+            
+            params_lst[["filtering_threshold_ex"]] <- filtering_threshold_ex()
+              
             params_lst <- params_lst[lengths(params_lst) != 0]
               
             rmarkdown::render("./app_supplementary/report_template.Rmd",
