@@ -941,6 +941,13 @@ server <- function(input, output, session) {
   
   ######### filtering
   
+  filtering_threshold_ex <- reactiveVal(FALSE)
+  
+  observeEvent(input[["run"]], {
+    if(input[["run"]] == "Filtering")
+      filtering_threshold_ex(TRUE)
+  })
+  
   to_remove <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
@@ -1564,7 +1571,8 @@ server <- function(input, output, session) {
   download_SERVER("download_matrix", dat, input)
   download_SERVER("download_tables", dat, input)
   download_SERVER("download_zip", dat, input)
-  download_SERVER("download_pdf", dat, input)
+  download_SERVER("download_pdf", dat, input,
+                  filtering_threshold_ex = filtering_threshold_ex)
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
