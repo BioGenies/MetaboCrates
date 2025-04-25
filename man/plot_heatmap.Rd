@@ -4,7 +4,7 @@
 \alias{plot_heatmap}
 \title{Heatmap of missing metabolites values}
 \usage{
-plot_heatmap(dat, plate_bar_code = NULL)
+plot_heatmap(dat, plate_bar_code = NULL, include_title = FALSE)
 }
 \arguments{
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}}.}
@@ -12,6 +12,10 @@ plot_heatmap(dat, plate_bar_code = NULL)
 \item{plate_bar_code}{A single plate bar code for selecting observations to
 include in the plot. If NULL (default), a grid of plots is returned, where
 each plot corresponds to a different plate bar code.}
+
+\item{include_title}{Logical. Indicates whether the title with the
+plate bar code should be included (only if \code{plate_bar_code} is not NULL).
+Defaults to \code{FALSE}.}
 }
 \description{
 Heatmap of missing metabolites values
