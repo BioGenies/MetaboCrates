@@ -710,7 +710,7 @@ server <- function(input, output, session) {
   ## example data
   
   observeEvent(input[["example_dat"]], {
-    path <- get_example_data("small_biocrates_example.xls")
+    path <- get_example_data("Submission_1.xlsx")
     dat[["metabocrates_dat"]] <- read_data(path)
   }, ignoreInit = TRUE)
   
