@@ -35,12 +35,7 @@ ui <- navbarPage(
     .swal2-container {
       z-index: 10000 !important;
     }
-  ")),
-  
-  
-  tags$head(
-    tags$style(HTML("
-      .custom-tabs .nav-tabs > li > a {
+    .custom-tabs .nav-tabs > li > a {
       height: 50px;
       display: flex;
       align-items: center;
@@ -49,8 +44,7 @@ ui <- navbarPage(
       white-space: normal;
       line-height: 1.2;
     }
-    "))
-  ),
+  ")),
   
   tabPanel("About",
            ui_content_about()
@@ -947,6 +941,13 @@ server <- function(input, output, session) {
   
   ######### filtering
   
+  filtering_threshold_ex <- reactiveVal(FALSE)
+  
+  observeEvent(input[["run"]], {
+    if(input[["run"]] == "Filtering")
+      filtering_threshold_ex(TRUE)
+  })
+  
   to_remove <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
@@ -1566,11 +1567,12 @@ server <- function(input, output, session) {
   
   ###### Downloading
   
-  download_SERVER("download_rds", dat)
-  download_SERVER("download_matrix", dat)
-  download_SERVER("download_tables", dat)
-  download_SERVER("download_zip", dat)
-  download_SERVER("download_pdf", dat)
+  download_SERVER("download_rds", dat, input)
+  download_SERVER("download_matrix", dat, input)
+  download_SERVER("download_tables", dat, input)
+  download_SERVER("download_zip", dat, input)
+  download_SERVER("download_pdf", dat, input,
+                  filtering_threshold_ex = filtering_threshold_ex)
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))

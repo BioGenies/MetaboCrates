@@ -26,7 +26,7 @@ download_UI <- function(id){
   
 }
 
-download_SERVER <- function(id, dat){
+download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -203,14 +203,14 @@ download_SERVER <- function(id, dat){
                 create_correlations_heatmap(
                   download_dat,
                   threshold = ifelse(
-                    is.null(input[["corr_threshold"]]),
+                    is.null(main_input[["corr_threshold"]]),
                     0.3,
-                    input[["corr_threshold"]]
+                    main_input[["corr_threshold"]]
                   ),
                   metabolites_to_display =
-                    ifelse(is.null(input[["corr_heatmap_metabolites"]]),
+                    ifelse(is.null(main_input[["corr_heatmap_metabolites"]]),
                            "all",
-                           input[["corr_heatmap_metabolites"]]),
+                           main_input[["corr_heatmap_metabolites"]]),
                   interactive = FALSE
                 )
             },
@@ -227,9 +227,9 @@ download_SERVER <- function(id, dat){
                 else
                   create_venn_diagram(
                     download_dat,
-                    ifelse(is.null(input[["filtering_threshold"]]),
+                    ifelse(is.null(main_input[["filtering_threshold"]]),
                            0.8,
-                           input[["filtering_threshold"]]/100)
+                           main_input[["filtering_threshold"]]/100)
                  )
             },
             "missing_values_heatmap.pdf" = plot_heatmap(download_dat),
@@ -237,12 +237,12 @@ download_SERVER <- function(id, dat){
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
-                if(is.null(input[["PCA_types"]]))
+                if(is.null(main_input[["PCA_types"]]))
                   create_PCA_plot(download_dat, type = "sample_type",
                                   interactive = FALSE)
                 else
                   create_PCA_plot(download_dat, type = "sample_type",
-                                  types_to_display = input[["PCA_types"]],
+                                  types_to_display = main_input[["PCA_types"]],
                                   interactive = FALSE)
             },
             "PCA_plot_group.pdf" = {
@@ -262,9 +262,9 @@ download_SERVER <- function(id, dat){
               else
                 create_PCA_plot(
                   download_dat, type = "biplot",
-                  threshold = ifelse(is.null(input[["PCA_threshold"]]),
+                  threshold = ifelse(is.null(main_input[["PCA_threshold"]]),
                                      0.8,
-                                     input[["PCA_threshold"]]/100),
+                                     main_input[["PCA_threshold"]]/100),
                   interactive = FALSE
                 )
             },
@@ -274,15 +274,15 @@ download_SERVER <- function(id, dat){
               else
                 pca_variance(
                   download_dat,
-                  threshold = ifelse(is.null(input[["PCA_variance_threshold"]]),
+                  threshold = ifelse(is.null(main_input[["PCA_variance_threshold"]]),
                                      0.8,
-                                     input[["PCA_variance_threshold"]]/100),
-                  max_num = ifelse(is.null(input[["PCA_variance_max_num"]]),
+                                     main_input[["PCA_variance_threshold"]]/100),
+                  max_num = ifelse(is.null(main_input[["PCA_variance_max_num"]]),
                                    5,
-                                   input[["PCA_variance_max_num"]]),
-                  cumulative = ifelse(is.null(input[["PCA_variance_cum"]]),
+                                   main_input[["PCA_variance_max_num"]]),
+                  cumulative = ifelse(is.null(main_input[["PCA_variance_cum"]]),
                                       TRUE,
-                                      input[["PCA_variance_cum"]])
+                                      main_input[["PCA_variance_cum"]])
                 )
             }
           )
@@ -305,11 +305,34 @@ download_SERVER <- function(id, dat){
         output[["download"]] <- downloadHandler(
           filename = "report.pdf",
           content = function(file){
-            params_lst <- list(dat = dat)
+            params <- list("filtering_threshold",
+                           "LOD_method",
+                           "LLOQ_method",
+                           "ULOQ_method",
+                           "LOD_type",
+                           "corr_threshold",
+                           "corr_heatmap_metabolites",
+                           "cv_threshold",
+                           "PCA_types",
+                           "PCA_threshold",
+                           "PCA_variance_threshold",
+                           "PCA_variance_max_num",
+                           "PCA_variance_cum")
             
-            if(!is.null(input[["filtering_threshold"]]))
-              params_lst[["mv_threshold"]] = input[["filtering_threshold"]]
+            params_lst <- setNames(
+              lapply(params, function(param) main_input[[param]]),
+              params
+            )
             
+            if(is.null(dat[["metabocrates_dat_group"]]))
+              params_lst[["dat"]] <- dat[["metabocrates_dat"]]
+            else
+              params_lst[["dat"]] <- dat[["metabocrates_dat_group"]]
+            
+            params_lst[["filtering_threshold_ex"]] <- filtering_threshold_ex()
+              
+            params_lst <- params_lst[lengths(params_lst) != 0]
+              
             rmarkdown::render("./app_supplementary/report_template.Rmd",
                               output_file = file,
                               envir = new.env(parent = globalenv()),

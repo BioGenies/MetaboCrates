@@ -1139,8 +1139,10 @@ create_venn_diagram <- function(dat, threshold){
     mutate(across(!metabolite, ~ .x >= threshold)) %>%
     select(!metabolite)
   
+  if(length(NA_metabo_group) == 0) return(NULL)
+  
   ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
-         fill_alpha = 0.6) +
+         fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group))) +
     scale_fill_metabocrates_discrete() +
     scale_color_metabocrates_discrete()
 }
