@@ -334,14 +334,12 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Missing values heatmap",
                                                   br(),
-                                                  column(11,
+                                                  column(12,
                                                          selectInput("pb_codes_heatmap",
                                                                      label = "Select plate bar code",
                                                                      choices = character(0))
                                                   ),
-                                                  column(11,
-                                                    plot_with_button_UI("missing_heatmap")
-                                                  )
+                                                  plot_with_button_UI("missing_heatmap")
                                          ),
                                          tabPanel("Single metabolite distribution",
                                                   br(),
@@ -403,7 +401,6 @@ ui <- navbarPage(
                              ),
                       )
                )
-               
       ),
       #################
       tabPanel("Quality control",
@@ -610,7 +607,8 @@ ui <- navbarPage(
            download_UI("download_tables"),
            download_UI("download_zip"),
            download_UI("download_pdf")
-  )
+  ),
+  column(12, div(style = "height: 120px;"))
 )
 
 
