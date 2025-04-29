@@ -1094,12 +1094,6 @@ server <- function(input, output, session) {
     
     if(is.null(input[["corr_heatmap_metabolites"]]))
       NULL
-    else if(length(input[["corr_heatmap_metabolites"]]) > 10)
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  threshold = input[["corr_threshold"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]][1:10],
-                                  width_svg = 10, height_svg = 6)
     else
       create_correlations_heatmap(dat[["metabocrates_dat_group"]],
                                   threshold = input[["corr_threshold"]],
@@ -1145,11 +1139,13 @@ server <- function(input, output, session) {
                              attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
-      dat_to_display <- dat[["metabocrates_dat_group"]] %>% 
+      dat_to_display <- dat[["metabocrates_dat_group"]] %>%
+        filter(`sample type` == "Sample") %>%
         select(all_of(metabolites)) %>%
         mutate_all(display_short)
     } else {
-      dat_to_display <- attr(dat[["metabocrates_dat_group"]], "completed") %>% 
+      dat_to_display <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        filter(`sample type` == "Sample") %>%
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
         mutate_all(round, 5) 

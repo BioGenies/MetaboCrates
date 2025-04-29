@@ -103,12 +103,13 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
           select(all_of(metabolites())) %>%
           select(where(~ is.na(sd(., na.rm = TRUE)) | sd(., na.rm = TRUE) == 0))
         })
+        
+        aval_metabos <- setdiff(metabolites(),
+                                names(uncomplete_metabolites()))
           
         updatePickerInput(main_session, inputId = "corr_heatmap_metabolites",
-                          choices = setdiff(metabolites(),
-                                            names(uncomplete_metabolites())),
-                          selected = setdiff(metabolites(),
-                                             names(uncomplete_metabolites())),
+                          choices = aval_metabos,
+                          selected = aval_metabos[1:min(length(aval_metabos), 10)],
                           choicesOpt = list(
                             style = rep("color: black;", length(metabolites()))
                           ))
