@@ -1013,6 +1013,17 @@
       ],
       "Hash": "637ceb7665637edce9289dd763972704"
     },
+    "logspline": {
+      "Package": "logspline",
+      "Version": "2.1.22",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "graphics",
+        "stats"
+      ],
+      "Hash": "2a33494027bdf7383f6473e6d88d7979"
+    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.3",
