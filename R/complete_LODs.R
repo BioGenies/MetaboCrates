@@ -106,6 +106,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' 
 #' @importFrom stringr str_extract
 #' @importFrom stats runif
+#' @importFrom logspline logspline qlogspline
 #'
 #' @param gathered_data description
 #' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
@@ -175,7 +176,7 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
             })
         )
       
-      cos <- merged_dat %>%
+      merged_dat %>%
         left_join(models) %>%
         rowwise() %>%
         mutate(value = list({
@@ -183,7 +184,8 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
             if(all(is.na(model))) NA
             else qlogspline(0.05, model)
           }else value
-        }))
+        })) %>%
+        select(- model)
     }
   )
   
