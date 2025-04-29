@@ -111,7 +111,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
 #' It can be NULL depending on the \code{method} parameter.
 #' @param method a character. Imputation method, one of "halfmin",  "random", 
-#' "halflimit", "limit" or NULL meaning changing missing values into NAs.
+#' "halflimit", "limit", "logspline" or NULL meaning changing missing values into NAs.
 #' @param LOD_vals description
 #' 
 #' @keywords internal
@@ -122,7 +122,7 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
   
   method <- match.arg(method,
                       c("halfmin", "random", "halflimit", "limit",
-                        "limit-0.2min", NULL))
+                        "limit-0.2min", "logspline", NULL))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
   
   if(!any(grepl(LOD_type, LOD_vals[["type"]])))
@@ -162,6 +162,28 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
         mutate(value = ifelse(value == "< LOD",
                               thresh_est - 0.2 * general_min(value),
                               value))
+    },
+    logspline = {
+      models <- merged_dat %>%
+        group_by(compound) %>%
+        mutate(value = as.numeric(value)) %>%
+        filter(!is.na(value)) %>%
+        summarise(
+          model = list({
+            if((length(value) < 10) || length(unique(value)) < 3) NA
+            else logspline(value)
+            })
+        )
+      
+      cos <- merged_dat %>%
+        left_join(models) %>%
+        rowwise() %>%
+        mutate(value = list({
+          if(value == "< LOD" & !is.na(value)){
+            if(all(is.na(model))) NA
+            else qlogspline(0.05, model)
+          }else value
+        }))
     }
   )
   
