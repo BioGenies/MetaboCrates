@@ -86,10 +86,11 @@ plot_groups <- function(dat){
   
   group_dat <- dat %>%
     filter(`sample type` == "Sample") %>%
-    group_by(Groups = get(attr(dat, "group"))) %>%
+    group_by(group = get(attr(dat, "group"))) %>%
+    mutate(group = as.character(group)) %>%
     summarise(Count = n())
   
-  ggplot(group_dat, aes(x = Groups, y = Count)) +
+  ggplot(group_dat, aes(x = group, y = Count)) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
     labs(x = "Level", y = "Count") +
     geom_label(aes(label = Count)) +
