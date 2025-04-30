@@ -859,16 +859,15 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @export
 pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
-  data <- attr(dat, "completed") %>%
+  filt_dat <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(setdiff(attr(dat, "metabolites"),
                           unlist(attr(dat, "removed"))))) %>%
-    select(where(~ n_distinct(na.omit(.)) > 1))
+    select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+    na.omit() %>%
+    select(where(~ var(.) > 0))
   
-  data <- data[complete.cases(data),
-               sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
-  
-  pca_result <- prcomp(data, scale. = TRUE, center = TRUE)
+  pca_result <- prcomp(filt_dat, scale. = TRUE, center = TRUE)
   
   variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
   
@@ -879,7 +878,7 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
     Variance_Explained = variance_explained,
     Cumulative_Variance = cumulative_variance
   ) %>%
-    filter(Component %in% Component[1:(max(which(Cumulative_Variance <= threshold))+1)])
+    filter(Component %in% Component[1:(min(which(Cumulative_Variance > threshold)))])
   
   if(!is.null(max_num)){
     variance_df <- variance_df %>%
