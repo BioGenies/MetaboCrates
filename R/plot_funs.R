@@ -1004,8 +1004,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   if(type == "biplot"){
     plt <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
-      mutate(Variable = pca_metabolites,
-             `Variance explained` = pca_res[["sdev"]]) %>%
+      mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
       ggplot() +
       geom_segment_interactive(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
