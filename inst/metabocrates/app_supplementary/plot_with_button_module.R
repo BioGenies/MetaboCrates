@@ -1,9 +1,10 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt")){
-    plt <- ggiraph::girafeOutput(ns("plot"))
-  }else plt <- plotOutput(ns("plot"))
+  plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt")) {
+    ggiraph::girafeOutput(ns("plot"))
+  } else
+    plotOutput(ns("plot"))
   
   fluidRow(
     column(11,
