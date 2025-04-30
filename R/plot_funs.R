@@ -869,7 +869,7 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
   
   pca_result <- prcomp(filt_dat, scale. = TRUE, center = TRUE)
   
-  variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+  variance_explained <- pca_result[["sdev"]]^2 / sum(pca_result[["sdev"]]^2)
   
   cumulative_variance <- cumsum(variance_explained)
   
