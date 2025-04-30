@@ -268,7 +268,7 @@ ui <- navbarPage(
                         tabPanel("Venn diagram",
                                  column(12,
                                         br(),
-                                        h4("Provide a group with up to 4 levels to see Venn diagram."),
+                                        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram."),
                                         br(),
                                         plot_with_button_UI("venn_diagram")
                                   )
