@@ -9,6 +9,7 @@ create_distribution_plot(
   metabolite,
   type = "histogram",
   bins = 30,
+  histogram_type = "all",
   interactive = TRUE,
   width_svg = 6,
   height_svg = 5
@@ -21,6 +22,9 @@ create_distribution_plot(
 or "beeswarm".}
 
 \item{bins}{The number of bins for the histogram plot, 30 if not specified.}
+
+\item{histogram_type}{If \code{all} (default), the histogram displays all values
+after imputation. If \code{imputed}, it shows only the values that were imputed.}
 }
 \description{
 This function creates density plots of metabolite values before and after
