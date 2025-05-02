@@ -56,7 +56,12 @@ MetaboCrates::
 - [ ] group counts table
 - [x] group levels to character
 - [x] extra space on the bottom
-- [ ] colors to missing heatmap
+- [x] colors to missing heatmap
 - [ ] extra space under missing heatmap
 - [ ] venn description
 - [ ] download buttons
+- [ ] histogram change
+- [ ] PCA plots and correlations heatmap to new panel
+- [ ] correlations heatmap before and after imputation
+- [ ] thresholds steps to 5%
+- [ ] all summary info in excel
