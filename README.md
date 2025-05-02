@@ -40,3 +40,23 @@ If you have successfully installed the package, run the GUI in your web browser 
 ```
 MetaboCrates::
 ```
+
+## TODO
+
+- [x] report
+- [x] fix PCA plot
+- [x] fix biplot
+- [x] logspline imputation
+- [ ] ?correct logspline imputation?
+- [x] all metabolites allowed on correlation heatmap
+- [ ] correlation heatmap check on big screen + helper
+- [ ] NA ratios plot reactive height
+- [ ] multiple grouping column
+- [ ] group plot change
+- [ ] group counts table
+- [x] group levels to character
+- [x] extra space on the bottom
+- [ ] colors to missing heatmap
+- [ ] extra space under missing heatmap
+- [ ] venn description
+- [ ] download buttons
