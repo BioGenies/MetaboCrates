@@ -67,3 +67,5 @@ MetaboCrates::
 - [ ] all summary info in excel
 - [ ] info panel to markdown
 - [ ] information to impute data to see plots
+- [ ] adjustable correlations plot size
+- [ ] disable picking colummns in tables
