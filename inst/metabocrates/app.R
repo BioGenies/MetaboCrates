@@ -276,132 +276,180 @@ ui <- navbarPage(
       ),
       #################
       tabPanel("Completing",
-               nav_btns_UI("Completing"),        
-               column(3,
-                      style = "background-color:#f8f5f0; border-right: 1px solid",
-                      h3("Select methods for data imputation."),
-                      br(),
-                      h4("< LOD values"),
-                      selectInput(
-                        inputId = 'LOD_method',
-                        label = "< LOD imputation method",
-                        choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none"),
-                      ),
-                      selectInput(
-                        inputId = 'LOD_type',
-                        label = "Type of < LOD values",
-                        choices = c("OP", "calc"),
-                      ),
-                      br(),
-                      h4("< LLOQ values"),
-                      selectInput(
-                        inputId = 'LLOQ_method',
-                        label = "< LLOQ imputation method",
-                        choices = c("limit", "none"),
-                      ),
-                      br(),
-                      h4("> ULOQ values"),
-                      selectInput(
-                        inputId = 'ULOQ_method',
-                        label = "> ULOQ imputation method",
-                        choices = c("limit", "third quartile", "none"),
-                      ),
-                      br(),
-                      br(),
-                      column(5, align = "center",
-                             actionButton(inputId = "complete_btn",
-                                          label = "Complete data")),
-                      column(4, align = "center", offset = 1,
-                             actionButton("complete_undo_btn", label = "Undo")),
-                      br()
-               ),
-               column(9,
-                      column(12, align = "right", 
-                             h2("Gaps completing (step 4/7)",
-                                h3("next: Quality control"))),
-                      column(12, 
-                             tabsetPanel(id = "imputation_tabset",
-                                         tabPanel("Metabolomic matrix",
-                                                  br(),
-                                                  table_with_button_UI("completed_tbl")
-                                         ),
-                                         tabPanel("Table of limits",
-                                                  br(),
-                                                  table_with_button_UI("LOD_tbl")
-                                         ),
-                                         tabPanel("Missing values heatmap",
-                                                  br(),
-                                                  column(4,
-                                                         selectInput("pb_codes_heatmap",
-                                                                     label = "Select plate bar code",
-                                                                     choices = character(0))
-                                                  ),
-                                                  column(8,
-                                                         checkboxInput("missing_heatmap_colors",
-                                                                       label = HTML("<b>Show colors</b>"))
-                                                  ),
-                                                  plot_with_button_UI("missing_heatmap")
-                                         ),
-                                         tabPanel("Single metabolite distribution",
-                                                  br(),
-                                                  conditionalPanel(
-                                                    condition = "input.dist_plt_type == 'Histogram'",
-                                                    h4("Histogram includes all values before imputation (observed) and only those that were missing and then completed (only imputed values).",
-                                                             style = "font-size:16px;")
-                                                  ),
-                                                  br(),
-                                                  column(5,
-                                                         selectInput("sing_metabo_dist",
-                                                                     "Metabolite",
-                                                                     choices = character(0))
-                                                  ),
-                                                  column(6, offset = 1,
-                                                         radioButtons("dist_plt_type",
-                                                                      "Plot type",
-                                                                      choices = c("Histogram", "Density", "Beeswarm", "Boxplot", "Q-Q plot"),
-                                                                      inline = TRUE)
-                                                  ),
-                                                  br(),
-                                                  column(9, offset = 1,
-                                                         plot_with_button_UI("dist_plt")
-                                                  )
-                                         ),
-                                         tabPanel("Correlations heatmap",
-                                                  br(),
-                                                  h4("Only up to 10 metabolites are visible. Download the plot to see all chosen metabolites."),
-                                                  column(4,
-                                                         h5("Select metabolites", style = "font-weight: bold")
-                                                  ),
-                                                  column(8,
-                                                         h5("Absolute correlation threshold [%]", style = "font-weight: bold")
-                                                  ),
-                                                  column(4,
-                                                         pickerInput("corr_heatmap_metabolites",
-                                                                     choices = character(0),
-                                                                     options = pickerOptions(
-                                                                       actionsBox = TRUE,
-                                                                       selectedTextFormat = "count > 3",
-                                                                       liveSearch = TRUE
-                                                                     ),
-                                                                     multiple = TRUE),
-                                                  ),
-                                                  column(8,
-                                                         numericInput(
-                                                           inputId = "corr_threshold",
-                                                           label = NULL,
-                                                           value = 0.3,
-                                                           min = 0,
-                                                           max = 1,
-                                                           step = 0.05
-                                                         ),
-                                                  ),
-                                                  column(10,
-                                                    plot_with_button_UI("corr_heatmap")
-                                                  )
-                                         )
-                             ),
-                      )
-               )
+               nav_btns_UI("Completing"),
+               tabsetPanel(id = "imputation_tabset",
+                           tabPanel("Data completing",
+                                    column(3,
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           h3("Select methods for data imputation"),
+                                           br(),
+                                           h4("< LOD values"),
+                                           selectInput(inputId = 'LOD_method',
+                                                       label = "< LOD imputation method",
+                                                       choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none")
+                                           ),
+                                           selectInput(inputId = 'LOD_type',
+                                                       label = "Type of < LOD values",
+                                                       choices = c("OP", "calc")
+                                           ),
+                                           br(),
+                                           h4("< LLOQ values"),
+                                           selectInput(
+                                             inputId = 'LLOQ_method',
+                                             label = "< LLOQ imputation method",
+                                             choices = c("limit", "none")
+                                           ),
+                                           br(),
+                                           h4("> ULOQ values"),
+                                           selectInput(
+                                             inputId = 'ULOQ_method',
+                                             label = "> ULOQ imputation method",
+                                             choices = c("limit", "third quartile", "none")
+                                           ),
+                                           br(),
+                                           br(),
+                                           column(5, align = "center",
+                                                  actionButton(inputId = "complete_btn",
+                                                               label = "Complete data")
+                                           ),
+                                           column(4, align = "center", offset = 1,
+                                                  actionButton("complete_undo_btn", label = "Undo"),
+                                                  br()
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/7)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    column(9,
+                                           br(),
+                                           table_with_button_UI("completed_tbl")
+                                    )
+                           ),
+                           tabPanel("Table of limits",
+                                    column(12, align = "right",
+                                           h2("Gaps completing (step 4/7)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    br(),
+                                    column(9, offset = 1,
+                                           table_with_button_UI("LOD_tbl")      
+                                    )
+                           ),
+                           tabPanel("Missing values heatmap",
+                                   column(3,
+                                          style = "background-color:#f8f5f0; border-right: 1px solid",
+                                          br(),
+                                          br(),
+                                          br(),
+                                          br(),
+                                          selectInput("pb_codes_heatmap",
+                                                      label = "Select plate bar code",
+                                                      choices = character(0)
+                                          ),
+                                          br(),
+                                          checkboxInput("missing_heatmap_colors",
+                                                        label = HTML("<b>Show colors</b>")
+                                          )
+                                   ),
+                                   column(9, align = "right",
+                                          h2("Gaps completing (step 4/7)"),
+                                          h3("next: Quality control")
+                                   ),
+                                   column(9,
+                                          plot_with_button_UI("missing_heatmap")
+                                   )
+                           ),
+                           tabPanel("Single metabolite distribution",
+                                    column(3,
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           selectInput("sing_metabo_dist",
+                                                       "Metabolite",
+                                                       choices = character(0)
+                                           ),
+                                           br(),
+                                           radioButtons("dist_plt_type",
+                                                        "Plot type",
+                                                        choices = c("Histogram", "Density", "Beeswarm", "Boxplot", "Q-Q plot"),
+                                                        inline = TRUE
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.dist_plt_type == 'Histogram'",
+                                             tagList(
+                                               br(),
+                                               numericInput("hist_bins",
+                                                            "Number of bins",
+                                                            value = 30,
+                                                            min = 5,
+                                                            max = 100,
+                                                            step = 5
+                                               ),
+                                               br(),
+                                               checkboxInput("hist_type",
+                                                             HTML("<b>Show only imputed values</b>")
+                                               )
+                                             )
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/7)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    conditionalPanel(
+                                      condition = "input.hist_type",
+                                      tagList(
+                                        br(),
+                                        column(7, offset = 1,
+                                               h4("Histogram shows all values before imputation (observed) and only those that were missing and then completed (only imputed values)."),
+                                               br()
+                                        )
+                                      )
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("dist_plt")
+                                    )
+                           ),
+                           tabPanel("Correlations heatmap",
+                                    column(3,
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           h5("Select metabolites", style = "font-weight: bold"),
+                                           pickerInput("corr_heatmap_metabolites",
+                                                       choices = character(0),
+                                                       options = pickerOptions(
+                                                        actionsBox = TRUE, 
+                                                         selectedTextFormat = "count > 3",
+                                                        liveSearch = TRUE
+                                                       ),
+                                                       multiple = TRUE
+                                           ),
+                                           br(),
+                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
+                                           numericInput(
+                                             inputId = "corr_threshold",
+                                             label = NULL,
+                                             value = 0.3,
+                                             min = 0,
+                                             max = 1,
+                                             step = 0.05
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/7)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("corr_heatmap")
+                                    )
+                           )
+                )
       ),
       #################
       tabPanel("Quality control",
@@ -1231,7 +1279,11 @@ server <- function(input, output, session) {
     switch(input[["dist_plt_type"]],
            "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                   input[["sing_metabo_dist"]],
-                                                  width_svg = 10, height_svg = 6),
+                                                  width_svg = 10, height_svg = 6,
+                                                  histogram_type = ifelse(input[["hist_type"]],
+                                                                          "imputed",
+                                                                          "all"),
+                                                  bins = input[["hist_bins"]]),
            "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
                                                 type = "density",
