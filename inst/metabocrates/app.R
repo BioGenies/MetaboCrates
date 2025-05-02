@@ -1092,11 +1092,11 @@ server <- function(input, output, session) {
     tagList(
       br(),
       if(is.null(venn_plt())){
-        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram.")
+        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram")
       }
       else{
-        h4("Venn diagram shows the number of metabolites with missing values
-           ratios grater than the threhsold in any group level.") 
+        h4("This Venn diagram illustrates how many metabolites have missing
+           value ratios above the threshold across the different group levels") 
       },
       if(!is.null(venn_plt())){
         tagList(
