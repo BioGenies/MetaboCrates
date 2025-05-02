@@ -60,3 +60,6 @@ MetaboCrates::
 - [ ] extra space under missing heatmap
 - [ ] venn description
 - [ ] download buttons
+- [ ] histogram change
+- [ ] PCA plots and correlations heatmap to new panel
+- [ ] correlations heatmap before and after imputation
