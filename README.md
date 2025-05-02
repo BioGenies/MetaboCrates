@@ -56,7 +56,7 @@ MetaboCrates::
 - [ ] group counts table
 - [x] group levels to character
 - [x] extra space on the bottom
-- [ ] colors to missing heatmap
+- [x] colors to missing heatmap
 - [ ] extra space under missing heatmap
 - [ ] venn description
 - [ ] download buttons
