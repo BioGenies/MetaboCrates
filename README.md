@@ -63,3 +63,5 @@ MetaboCrates::
 - [ ] histogram change
 - [ ] PCA plots and correlations heatmap to new panel
 - [ ] correlations heatmap before and after imputation
+- [ ] thresholds steps to 5%
+- [ ] all summary info in excel
