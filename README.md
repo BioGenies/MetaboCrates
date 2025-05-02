@@ -60,7 +60,7 @@ MetaboCrates::
 - [ ] extra space under missing heatmap
 - [x] venn description
 - [ ] download buttons
-- [ ] histogram change
+- [x] histogram change
 - [ ] PCA plots and correlations heatmap to new panel
 - [ ] correlations heatmap before and after imputation
 - [ ] thresholds steps to 5%
@@ -69,3 +69,5 @@ MetaboCrates::
 - [ ] information to impute data to see plots
 - [ ] adjustable correlations plot size
 - [ ] disable picking colummns in tables
+- [x] new imputation panel layout
+- [ ] ?colored column height?
