@@ -58,10 +58,12 @@ MetaboCrates::
 - [x] extra space on the bottom
 - [x] colors to missing heatmap
 - [ ] extra space under missing heatmap
-- [ ] venn description
+- [x] venn description
 - [ ] download buttons
 - [ ] histogram change
 - [ ] PCA plots and correlations heatmap to new panel
 - [ ] correlations heatmap before and after imputation
 - [ ] thresholds steps to 5%
 - [ ] all summary info in excel
+- [ ] info panel to markdown
+- [ ] information to impute data to see plots
