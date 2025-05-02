@@ -245,8 +245,9 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' @param include_title Logical. Indicates whether the title with the
 #' plate bar code should be included (only if `plate_bar_code` is not NULL).
 #' Defaults to `FALSE`.
+#' @param show_colors Logical. If `TRUE`, applies distinct colors to different
+#' types of missing values, following the conventions used in Biocrates® files.
 #'
-#' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
@@ -254,7 +255,8 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' 
 #' @export
 
-plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
+plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
+                         show_colors = TRUE){
   if(is.null(plate_bar_code))
     plt_dat <- dat %>%
       filter(`sample type` == "Sample") %>%
@@ -274,15 +276,22 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
       pivot_longer(!Sample,
                    names_to = "Metabolite", values_to = "Value")
     
-  plt_dat <- mutate(plt_dat,
-                    Metabolite = factor(Metabolite, levels = unique(Metabolite)),
-                    `Is missing` =
-                      Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
+  plt_dat <- plt_dat %>%
+    rowwise() %>%
+    mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+           Missing = case_when(
+             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & show_colors ~ Value,
+             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & !show_colors ~ "True",
+             Value %in% c("NA", "∞") | is.na(Value) ~ "True",
+             TRUE ~ "False"
+           ))
   
   plt <- plt_dat %>%
-    ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
+    ggplot(aes(x = Sample, y = Metabolite, fill = Missing)) +
     geom_tile(color = "white") +
-    scale_fill_manual(values = c(`FALSE` = "#BBBBBB", `TRUE` = "#2B2A29")) +
+    scale_fill_manual(values = c("False" = "#BBBBBB", "True" = "#2B2A29",
+                                 "< LOD" = "#A28CA1", "< LLOQ" = "#B2D1DE",
+                                 "> ULOQ"  = "#7FB1C5")) +
     scale_y_discrete(limits = rev) +
     metabocrates_theme() +
     theme(legend.justification.right = "top")
