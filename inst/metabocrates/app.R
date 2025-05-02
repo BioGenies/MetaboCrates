@@ -267,10 +267,7 @@ ui <- navbarPage(
                         ),
                         tabPanel("Venn diagram",
                                  column(12,
-                                        br(),
-                                        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram."),
-                                        br(),
-                                        plot_with_button_UI("venn_diagram")
+                                        uiOutput("venn_diagram_ui")
                                   )
                         )
                       )
@@ -1074,7 +1071,7 @@ server <- function(input, output, session) {
   venn_plt <- reactive({
     req(input[["filtering_threshold"]])
     req(dat[["metabocrates_dat_group"]])
-    req(attr(dat[["metabocrates_dat_group"]], "group"))
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group"))) return(NULL)
     
     group_len <- dat[["metabocrates_dat_group"]] %>%
       filter(`sample type` == "Sample") %>%
@@ -1083,10 +1080,30 @@ server <- function(input, output, session) {
       unique() %>%
       length()
     
-    if(!(group_len %in% 2:5))
-      req(NULL)
+    if(!(group_len %in% 2:4))
+      return(NULL)
     
     create_venn_diagram(dat[["metabocrates_dat_group"]], input[["filtering_threshold"]]/100)
+  })
+  
+  output[["venn_diagram_ui"]] <- renderUI({
+    req(venn_plt)
+    
+    tagList(
+      br(),
+      if(is.null(venn_plt())){
+        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram.")
+      }
+      else{
+        h4("Venn diagram shows the number of metabolites with missing values
+           ratios grater than the threhsold in any group level.") 
+      },
+      if(!is.null(venn_plt())){
+        tagList(
+          br(),
+          plot_with_button_UI("venn_diagram"))
+      }
+    )
   })
   
   plot_with_button_SERVER("venn_diagram", venn_plt)
