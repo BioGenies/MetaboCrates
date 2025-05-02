@@ -334,10 +334,14 @@ ui <- navbarPage(
                                          ),
                                          tabPanel("Missing values heatmap",
                                                   br(),
-                                                  column(12,
+                                                  column(4,
                                                          selectInput("pb_codes_heatmap",
                                                                      label = "Select plate bar code",
                                                                      choices = character(0))
+                                                  ),
+                                                  column(8,
+                                                         checkboxInput("missing_heatmap_colors",
+                                                                       label = HTML("<b>Show colors</b>"))
                                                   ),
                                                   plot_with_button_UI("missing_heatmap")
                                          ),
@@ -1188,7 +1192,8 @@ server <- function(input, output, session) {
     req(input[["pb_codes_heatmap"]])
     
     plot_heatmap(dat[["metabocrates_dat_group"]],
-                 plate_bar_code = input[["pb_codes_heatmap"]])
+                 plate_bar_code = input[["pb_codes_heatmap"]],
+                 show_colors = input[["missing_heatmap_colors"]])
   })
   
   missing_heatmap_height <- reactive({
