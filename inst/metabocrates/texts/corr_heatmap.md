@@ -1,1 +1,1 @@
-This plot is a heatmap showing the correlations between each pair of metabolites. You can set a threshold to display only those metabolites that have at least one correlation value above the threshold and choose which metabolites to include.
+This heatmap shows the correlations between each pair of metabolites. You can set a threshold to display only those metabolites that have at least one correlation value above the threshold and choose which metabolites to include.
