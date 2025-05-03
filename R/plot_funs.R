@@ -230,7 +230,8 @@ plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
       options = list(
         opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                      opacity = 0.9),
-        opts_toolbar(saveaspng = FALSE)
+        opts_toolbar(saveaspng = FALSE),
+        opts_zoom(min = 0.5, max = 5)
       )
     )
   else plt
@@ -709,7 +710,8 @@ create_correlations_heatmap <- function(dat, threshold = 0.3,
          options = list(
            opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                         opacity = 0.9),
-           opts_toolbar(saveaspng = FALSE)
+           opts_toolbar(saveaspng = FALSE),
+           opts_zoom(min = 0.5, max = 5)
          ))
   else plt
 }
@@ -825,7 +827,8 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
            options = list(
              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                           opacity = 0.9),
-             opts_toolbar(saveaspng = FALSE)
+             opts_toolbar(saveaspng = FALSE),
+             opts_zoom(min = 0.5, max = 5)
            ))
   else plt
 }
