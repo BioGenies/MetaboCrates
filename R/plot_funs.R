@@ -153,8 +153,7 @@ plot_mv_types <- function(dat) {
 #' 
 #' @export
 
-plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
-                            interactive = TRUE){
+plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
   if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
   
@@ -226,13 +225,14 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
     metabocrates_theme()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
-              options = list(
-              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
-                           opacity = 0.9),
-              opts_toolbar(saveaspng = FALSE),
-              opts_sizing(rescale = FALSE)
-              ))
+    girafe(
+      ggobj = plt,
+      options = list(
+        opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                     opacity = 0.9),
+        opts_toolbar(saveaspng = FALSE)
+      )
+    )
   else plt
 }
 
@@ -477,8 +477,7 @@ create_beeswarm <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
 
 create_distribution_plot <- function(dat, metabolite, type = "histogram",
                                      bins = 30, histogram_type = "all",
-                                     interactive = TRUE,
-                                     width_svg = 6, height_svg = 5){
+                                     interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -509,7 +508,6 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
                                show.legend = FALSE)
       
       girafe(ggobj = int_plt,
-             width_svg = width_svg, height_svg = height_svg,
              options = list(
                opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                             opacity = 0.9),
@@ -520,7 +518,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
       plt +
         geom_quasirandom(show.legend = FALSE)
   }else if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
@@ -540,8 +538,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
 #' 
 #' @export
 
-create_boxplot <- function(dat, metabolite, interactive = TRUE,
-                           width_svg = 6, height_svg = 5){
+create_boxplot <- function(dat, metabolite, interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -573,7 +570,7 @@ create_boxplot <- function(dat, metabolite, interactive = TRUE,
     scale_color_metabocrates_discrete()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
@@ -595,8 +592,7 @@ create_boxplot <- function(dat, metabolite, interactive = TRUE,
 #' 
 #' @export
 
-create_qqplot <- function(dat, metabolite, interactive = TRUE,
-                          width_svg = 6, height_svg = 5){
+create_qqplot <- function(dat, metabolite, interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -628,7 +624,7 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
     scale_color_metabocrates_discrete()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
@@ -649,8 +645,6 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 #' @param threshold A numeric value specifying the minimum absolute correlation
 #' to display (only metabolites specified in metabolites_to_display are taken
 #' into account).
-#' @param width_svg Width of plot in inches.
-#' @param height_svg Height of plot in inches.
 #' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples
@@ -663,7 +657,6 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 
 create_correlations_heatmap <- function(dat, threshold = 0.3,
                                         metabolites_to_display = "all",
-                                        width_svg = 6, height_svg = 5,
                                         interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
@@ -712,12 +705,11 @@ create_correlations_heatmap <- function(dat, threshold = 0.3,
     scale_fill_metabocrates_continuous()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
          options = list(
            opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                         opacity = 0.9),
-           opts_toolbar(saveaspng = FALSE),
-           opts_sizing(rescale = FALSE)
+           opts_toolbar(saveaspng = FALSE)
          ))
   else plt
 }
@@ -781,7 +773,6 @@ create_density_with_lod <- function(dat, metabolite_name) {
 #' 
 #' @export
 create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
-                                         width_svg = 6, height_svg = 5,
                                          interactive = TRUE){
   p_b_codes <- dat %>%
     filter(`sample type` == "Sample") %>%
@@ -830,12 +821,11 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
     scale_color_manual(values = values)
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                           opacity = 0.9),
-             opts_toolbar(saveaspng = FALSE),
-             opts_sizing(rescale = FALSE)
+             opts_toolbar(saveaspng = FALSE)
            ))
   else plt
 }
@@ -951,8 +941,7 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
 #' @export
 
 create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
-                            threshold = NULL, width_svg = 6, height_svg = 5,
-                            interactive = TRUE){
+                            threshold = NULL, interactive = TRUE){
   if(type == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
   
@@ -1053,7 +1042,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   }
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                           opacity = 0.9),
