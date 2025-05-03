@@ -327,12 +327,15 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
     comp_metabo_vals <- comp_metabo_vals %>%
       bind_cols("Observed" = uncomp_metabo_vals[[metabolite]]) %>%
       filter(!is.numeric(Observed) | is.na(Observed))
-  }
+    
+    fill_name <- "Only imputed values"
+  }else
+    fill_name <- "Completed"
   
    comp_metabo_vals %>%
     ggplot() +
     geom_histogram(aes(x = get(metabolite), y = after_stat(count),
-                       fill = "Only imputed values"), bins = bins,
+                       fill = fill_name), bins = bins,
                    color = "#54F3D3", alpha = 0.6) +
     geom_histogram(data = uncomp_metabo_vals,
                    aes(x = get(metabolite), y = -after_stat(count),
@@ -640,12 +643,15 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE){
 #' @importFrom reshape2 melt
 #' @importFrom ggiraph geom_tile_interactive
 #' 
-#' @param metabolites_to_display A vector of names or number of metabolites to
-#' display. If a number is provided, the first metabolites are selected.
-#' Defaults to "all".
+#' @param type Default to `completed`, which creates a heatmap of correlations
+#' between the metabolites after imputation. If `both`, then correlations
+#' between the metabolites before and after imputation are shown.
 #' @param threshold A numeric value specifying the minimum absolute correlation
 #' to display (only metabolites specified in metabolites_to_display are taken
 #' into account).
+#' @param metabolites_to_display A vector of names or number of metabolites to
+#' display. If a number is provided, the first metabolites are selected.
+#' Defaults to "all".
 #' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples
@@ -656,7 +662,8 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE){
 #' 
 #' @export
 
-create_correlations_heatmap <- function(dat, threshold = 0.3,
+create_correlations_heatmap <- function(dat, type = "completed",
+                                        threshold = 0.3,
                                         metabolites_to_display = "all",
                                         interactive = TRUE){
   if(is.null(attr(dat, "completed")))
@@ -668,15 +675,29 @@ create_correlations_heatmap <- function(dat, threshold = 0.3,
                           unlist(attr(dat, "removed"))))) %>%
     select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
   
-  if(all(is.numeric(metabolites_to_display)))
-    metabolites_to_display <- colnames(filtered_dat)[1:metabolites_to_display]
+  if(type == "both"){
+    filtered_dat_observed <- dat %>%
+      filter(`sample type` == "Sample") %>%
+      select(all_of(setdiff(attr(dat, "metabolites"),
+                            unlist(attr(dat, "removed"))))) %>%
+      mutate(across(everything(), as.numeric)) %>%
+      select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
+    
+    metabo_to_disp_filtered <- intersect(colnames(filtered_dat),
+                                         colnames(filtered_dat_observed))
+  }else
+    filtered_dat_observed <- NULL
   
-  if(all(metabolites_to_display == "all"))
-    metabolites_to_display <- colnames(filtered_dat)
+  if(all(is.numeric(metabolites_to_display)))
+    metabo_to_disp_filtered <- metabo_to_disp_filtered[1:metabolites_to_display]
+  
+  if(type == "both")
+    filtered_dat_observed <- filtered_dat_observed %>%
+      select(all_of(metabo_to_disp_filtered))
   
   plt_dat <- filtered_dat %>%
-    select(all_of(metabolites_to_display)) %>%
-    cor(use = "na.or.complete") %>%
+    select(all_of(metabo_to_disp_filtered)) %>%
+    cor(y = filtered_dat_observed, use = "na.or.complete") %>%
     melt()
   
   to_display <- plt_dat %>%
