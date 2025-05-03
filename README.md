@@ -49,7 +49,7 @@ MetaboCrates::
 - [x] logspline imputation
 - [ ] ?correct logspline imputation?
 - [x] all metabolites allowed on correlation heatmap
-- [ ] correlation heatmap check on big screen + helper
+- [x] correlation heatmap check on big screen + helper
 - [ ] NA ratios plot reactive height
 - [ ] multiple grouping column
 - [ ] group plot change
@@ -68,4 +68,4 @@ MetaboCrates::
 - [ ] info panel to markdown
 - [ ] information to impute data to see plots
 - [ ] adjustable correlations plot size
-- [ ] disable picking colummns in tables
+- [ ] disable picking columns in tables
