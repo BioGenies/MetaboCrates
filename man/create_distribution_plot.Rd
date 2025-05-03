@@ -10,9 +10,7 @@ create_distribution_plot(
   type = "histogram",
   bins = 30,
   histogram_type = "all",
-  interactive = TRUE,
-  width_svg = 6,
-  height_svg = 5
+  interactive = TRUE
 )
 }
 \arguments{

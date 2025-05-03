@@ -1102,9 +1102,7 @@ server <- function(input, output, session) {
                                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])))
     
     plot_NA_percent(dat[["metabocrates_dat_group"]], 
-                    type = input[["NA_percent_plt_type"]],
-                    height_svg = max(metabo_num * 22, 400)/96,
-                    width_svg = 11)
+                    type = input[["NA_percent_plt_type"]])
     
   })
   
@@ -1172,8 +1170,7 @@ server <- function(input, output, session) {
       create_correlations_heatmap(dat[["metabocrates_dat_group"]],
                                   threshold = input[["corr_threshold"]],
                                   metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]],
-                                  width_svg = 10, height_svg = 6)
+                                    input[["corr_heatmap_metabolites"]])
   })
   
   full_corr_heatmap_plt <- reactive({
@@ -1284,25 +1281,20 @@ server <- function(input, output, session) {
     switch(input[["dist_plt_type"]],
            "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                   input[["sing_metabo_dist"]],
-                                                  width_svg = 10, height_svg = 6,
                                                   histogram_type = ifelse(input[["hist_type"]],
                                                                           "imputed",
                                                                           "all"),
                                                   bins = input[["hist_bins"]]),
            "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "density",
-                                                width_svg = 10, height_svg = 6),
+                                                type = "density"),
            "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "beeswarm",
-                                                width_svg = 10, height_svg = 6),
+                                                type = "beeswarm"),
            "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]],
-                                      width_svg = 10, height_svg = 6),
+                                      input[["sing_metabo_dist"]]),
            "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]],
-                                      width_svg = 10, height_svg = 6)
+                                      input[["sing_metabo_dist"]])
        )
   })
   
@@ -1486,8 +1478,7 @@ server <- function(input, output, session) {
                       type = ifelse(input[["PCA_type"]] == "sample type",
                                     "sample_type", input[["PCA_type"]]),
                       types_to_display = types_to_display,
-                      threshold = input[["PCA_threshold"]]/100,
-                      width_svg = 10, height_svg = 6)
+                      threshold = input[["PCA_threshold"]]/100)
     }
   })
   
