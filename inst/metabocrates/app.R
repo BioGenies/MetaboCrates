@@ -19,8 +19,8 @@ source("app_supplementary/update_inputs_module.R")
 source("app_supplementary/download_module.R")
 
 panels_vec <- c("About", "Uploading data", "Group selection",
-                "Filtering", "Completing",  "Quality control", "Summary", 
-                "Download")
+                "Filtering", "Completing",  "Quality control",
+                "Outlier detection", "Summary", "Download")
 
 
 ui <- navbarPage(
@@ -102,7 +102,7 @@ ui <- navbarPage(
                       h4("You can see metabolomics matrix and LOD table below:"),
                       br()),
                column(6, align = "right", 
-                      h2("Uploading data (step 1/7)"),
+                      h2("Uploading data (step 1/8)"),
                       h3("next: Group selection")),
                column(12, 
                       tabsetPanel(
@@ -152,7 +152,7 @@ ui <- navbarPage(
                ),
                column(4,
                       column(12, align = "right", 
-                             h2("Group selection (step 2/7)"),
+                             h2("Group selection (step 2/8)"),
                              h3("next: Filtering"),
                              br()),
                ),
@@ -242,7 +242,7 @@ ui <- navbarPage(
                       
                ),
                column(8, align = "right",
-                      h2("Compounds filtering (step 3/7)"),
+                      h2("Compounds filtering (step 3/8)"),
                       h3("next: Completing")
                ),
                column(8,
@@ -318,7 +318,7 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Gaps completing (step 4/7)"),
+                                           h2("Gaps completing (step 4/8)"),
                                            h3("next: Quality control")
                                     ),
                                     column(9,
@@ -328,7 +328,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Table of limits",
                                     column(12, align = "right",
-                                           h2("Gaps completing (step 4/7)"),
+                                           h2("Gaps completing (step 4/8)"),
                                            h3("next: Quality control")
                                     ),
                                     br(),
@@ -353,7 +353,7 @@ ui <- navbarPage(
                                           )
                                    ),
                                    column(9, align = "right",
-                                          h2("Gaps completing (step 4/7)"),
+                                          h2("Gaps completing (step 4/8)"),
                                           h3("next: Quality control")
                                    ),
                                    column(9,
@@ -396,7 +396,7 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Gaps completing (step 4/7)"),
+                                           h2("Gaps completing (step 4/8)"),
                                            h3("next: Quality control")
                                     ),
                                     conditionalPanel(
@@ -412,50 +412,12 @@ ui <- navbarPage(
                                     column(9,
                                            plot_with_button_UI("dist_plt")
                                     )
-                           ),
-                           tabPanel("Correlations heatmap",
-                                    column(3,
-                                           style = "background-color:#f8f5f0; border-right: 1px solid",
-                                           br(),
-                                           br(),
-                                           br(),
-                                           br(),
-                                           h5("Select metabolites", style = "font-weight: bold"),
-                                           pickerInput("corr_heatmap_metabolites",
-                                                       choices = character(0),
-                                                       options = pickerOptions(
-                                                        actionsBox = TRUE, 
-                                                         selectedTextFormat = "count > 3",
-                                                        liveSearch = TRUE
-                                                       ),
-                                                       multiple = TRUE
-                                           ),
-                                           br(),
-                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
-                                           numericInput(
-                                             inputId = "corr_threshold",
-                                             label = NULL,
-                                             value = 0.3,
-                                             min = 0,
-                                             max = 1,
-                                             step = 0.05
-                                           )
-                                    ),
-                                    column(9, align = "right",
-                                           h2("Gaps completing (step 4/7)"),
-                                           h3("next: Quality control")
-                                    ),
-                                    column(9,
-                                           plot_with_button_UI("corr_heatmap")
-                                    )
                            )
                 )
       ),
       #################
       tabPanel("Quality control",
                nav_btns_UI("Quality control"),
-               tabsetPanel(
-                 tabPanel("Remove metabolites",
                           column(4,
                                  style = "background-color:#f8f5f0; border-right: 1px solid",
                                  h4("Provide threshold."),
@@ -513,89 +475,129 @@ ui <- navbarPage(
                                  actionButton("CV_undo_btn", label = "Undo")),
                    ),
                    column(8, align = "right",
-                          h2("Quality control (step 5/7)"),
-                          h3("next: Summary")
+                          h2("Quality control (step 5/8)"),
+                          h3("next: Outlier detection")
                    ),
                    column(6, offset = 1,
                                             br(),
                                             br(),
-                                            table_with_button_UI("CV_tbl"))
-                 ),
-                 tabPanel("PCA",
-                          column(3,
-                                 style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
-                                 br(),
-                                 br(),
-                                 br(),
-                                 br(),
-                                 radioButtons("PCA_type",
-                                              label = "Select PCA plot type",
-                                              choices = c("sample type", "biplot", "variance"),
-                                              inline = TRUE),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `sample type`",
-                                   checkboxGroupInput(
-                                     inputId = "PCA_types",
-                                     label = "Select types to display",
-                                     choices = character(0),
-                                     inline = TRUE
-                                   )
-                                   
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `biplot`",
-                                   numericInput(
-                                     inputId = "PCA_threshold",
-                                     label = "Absolute correlation threshold [%]",
-                                     value = 30,
-                                     min = 0,
-                                     max = 100)
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `variance`",
-                                   numericInput(
-                                     inputId = "PCA_variance_threshold",
-                                     label = "Cumulative variance threshold [%]",
-                                     value = 80,
-                                     min = 0,
-                                     max = 100)
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `variance`",
-                                   numericInput("PCA_variance_max_num",
-                                                label = "maximum number of principal components",
-                                                value = 5,
-                                                min = 1)
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `variance`",
-                                   checkboxInput("PCA_variance_cum",
-                                                label = "Include cumulative variance")
-                                 )
-                          ),
-                          column(9, align = "right",
-                                 h2("Quality control (step 5/7)"),
-                                 h3("next: Summary")
-                          ),
-                          column(9, align = "center",
-                           conditionalPanel(
-                              condition = "input.PCA_type == `biplot`",
-                              h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
-                              br()
-                            )
-                          ),
-                          column(7, offset = 1,
-                                 uiOutput("cond_pca_plt")
-                          )
-                 )
-        )
-              
+                                            table_with_button_UI("CV_tbl")
+                   )
+      ),
+      #######
+      tabPanel("Outlier detection",
+               nav_btns_UI("Outlier detection"),
+               tabsetPanel(id = "outlier_detection",
+                           tabPanel("PCA",
+                                    column(3,
+                                           style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           radioButtons("PCA_type",
+                                                        label = "Select PCA plot type",
+                                                        choices = c("sample type", "biplot", "variance"),
+                                                        inline = TRUE),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `sample type`",
+                                             checkboxGroupInput(
+                                               inputId = "PCA_types",
+                                               label = "Select types to display",
+                                               choices = character(0),
+                                               inline = TRUE
+                                             )
+                                             
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `biplot`",
+                                             numericInput(
+                                               inputId = "PCA_threshold",
+                                               label = "Absolute correlation threshold [%]",
+                                               value = 30,
+                                               min = 0,
+                                               max = 100)
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `variance`",
+                                             numericInput(
+                                               inputId = "PCA_variance_threshold",
+                                               label = "Cumulative variance threshold [%]",
+                                               value = 80,
+                                               min = 0,
+                                               max = 100)
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `variance`",
+                                             numericInput("PCA_variance_max_num",
+                                                          label = "maximum number of principal components",
+                                                          value = 5,
+                                                          min = 1)
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `variance`",
+                                             checkboxInput("PCA_variance_cum",
+                                                           label = "Include cumulative variance")
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Outlier detection (step 6/8)"),
+                                           h3("next: Summary")
+                                    ),
+                                    column(9, align = "center",
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `biplot`",
+                                             h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
+                                             br()
+                                           )
+                                    ),
+                                    column(7, offset = 1,
+                                           uiOutput("cond_pca_plt")
+                                    )
+                           ),
+                           tabPanel("Correlations heatmap",
+                                    column(3,
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           h5("Select metabolites", style = "font-weight: bold"),
+                                           pickerInput("corr_heatmap_metabolites",
+                                                       choices = character(0),
+                                                       options = pickerOptions(
+                                                         actionsBox = TRUE, 
+                                                         selectedTextFormat = "count > 3",
+                                                         liveSearch = TRUE
+                                                       ),
+                                                       multiple = TRUE
+                                           ),
+                                           br(),
+                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
+                                           numericInput(
+                                             inputId = "corr_threshold",
+                                             label = NULL,
+                                             value = 0.3,
+                                             min = 0,
+                                             max = 1,
+                                             step = 0.05
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Outlier detection (step 6/8)"),
+                                           h3("next: Summary")
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("corr_heatmap")
+                                    )
+                           )
+               )
       ),
       #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
                column(12, align = "right", 
-                      h2("Summary (step 6/7)"),
+                      h2("Summary (step 7/8)"),
                       h3("next: Download")
                ),
                fluidRow(
@@ -643,7 +645,7 @@ ui <- navbarPage(
            column(9,
                   h2("Here you can download your results at any step of your work!")
            ),
-           column(3, align = "right", h2("Download (step 7/7)")),
+           column(3, align = "right", h2("Download (step 8/8)")),
            br(),
            br(),
            br(),
@@ -694,6 +696,9 @@ server <- function(input, output, session) {
   
   callModule(nav_btns_SERVER, id = "Quality control", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Quality control")
+  
+  callModule(nav_btns_SERVER, id = "Outlier detection", parent_session = session, 
+             panels_vec = panels_vec, panel_id = "Outlier detection")
   
   callModule(nav_btns_SERVER, "Summary", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Summary")
