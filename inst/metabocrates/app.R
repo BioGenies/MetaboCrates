@@ -190,7 +190,8 @@ ui <- navbarPage(
                         label = "threshold [%]",
                         value = 80,
                         min = 0,
-                        max = 100
+                        max = 100,
+                        step = 5
                       ),
                       br(),
                       
@@ -465,6 +466,7 @@ ui <- navbarPage(
                                    label = "threshold [%]",
                                    value = 20,
                                    min = 0,
+                                   step = 5
                                  ),
                                  column(8, 
                                  h4("The following metabolites will be removed:"),
@@ -552,7 +554,9 @@ ui <- navbarPage(
                                                label = "Absolute correlation threshold [%]",
                                                value = 30,
                                                min = 0,
-                                               max = 100)
+                                               max = 100,
+                                               step = 5
+                                              )
                                            ),
                                            conditionalPanel(
                                              condition = "input.PCA_type == `variance`",
@@ -561,7 +565,9 @@ ui <- navbarPage(
                                                label = "Cumulative variance threshold [%]",
                                                value = 80,
                                                min = 0,
-                                               max = 100)
+                                               max = 100,
+                                               step = 5
+                                              )
                                            ),
                                            conditionalPanel(
                                              condition = "input.PCA_type == `variance`",
