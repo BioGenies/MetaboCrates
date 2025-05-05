@@ -659,6 +659,7 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE){
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' print(create_correlations_heatmap(dat))
+#' print(create_correlations_heatmap(dat, type = "both"))
 #' 
 #' @export
 
@@ -674,6 +675,7 @@ create_correlations_heatmap <- function(dat, type = "completed",
       filter(`sample type` == "Sample") %>%
       select(all_of(setdiff(attr(dat, "metabolites"),
                             unlist(attr(dat, "removed"))))) %>%
+      mutate(across(everything(), as.numeric)) %>%
       select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
   }
   
@@ -682,7 +684,7 @@ create_correlations_heatmap <- function(dat, type = "completed",
   
   if(type == "both"){
     filtered_dat_observed <- dat %>%
-      filtered_data()
+      filter_data()
     
     metabo_to_disp_filtered <- intersect(colnames(filtered_dat),
                                          colnames(filtered_dat_observed))
@@ -724,14 +726,25 @@ create_correlations_heatmap <- function(dat, type = "completed",
   plt <- plt_dat %>%
     rowwise() %>%
     filter(all(c(Var1, Var2) %in% to_display)) %>%
-    mutate(tooltip = paste0("Metabolite 1: ", Var2,
-                            "<br>Metabolite 2: ", Var1,
+    mutate(tooltip = paste0(ifelse(type == "both",
+                                   "Metabolite after imputation: ",
+                                   "Metabolite 1: "),
+                            Var1,
+                            ifelse(type == "both",
+                                   "<br>Metabolite before imputation: ",
+                                   "<br>Metabolite 2: "),
+                            Var2,
                             "<br>Correlation coefficient:", round(value, 3))) %>%
     ggplot(aes(x = Var1, y = Var2, fill = value, tooltip = tooltip)) +
     geom_tile_interactive() +
     scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
     scale_y_discrete(limits = rev, labels = function(x) str_trunc(x, 10)) +
-    labs(x = "Metabolite", y = "Metabolite") +
+    labs(x = ifelse(type == "both",
+                    "Metabolites after imputation",
+                    "Metabolites"),
+         y = ifelse(type == "both",
+                    "Metabolites before imputation",
+                    "Metabolites")) +
     metabocrates_theme() +
     theme(axis.text.x = element_text(angle = 90)) +
     scale_fill_metabocrates_continuous()
@@ -911,8 +924,13 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
     Component = paste0("PC", 1:length(variance_explained)),
     Variance_Explained = variance_explained,
     Cumulative_Variance = cumulative_variance
-  ) %>%
-    filter(Component %in% Component[1:(min(which(Cumulative_Variance > threshold)))])
+  )
+  
+  if(max(variance_df[["Cumulative_Variance"]]) > threshold)
+    variance_df <- filter(
+      variance_df,
+      Component %in% Component[1:(min(which(Cumulative_Variance > threshold)))]
+    )
   
   if(!is.null(max_num)){
     variance_df <- variance_df %>%
