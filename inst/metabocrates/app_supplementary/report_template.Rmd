@@ -23,6 +23,8 @@ params:
   PCA_variance_threshold: NULL
   PCA_variance_max_num: NULL
   PCA_variance_cum: TRUE
+  corr_threshold_both: NULL
+  corr_heatmap_metabolites_both: "all"
   filtering_threshold_ex: FALSE
 ---
 
@@ -183,39 +185,40 @@ ggarrange(plotlist = heatmap_plts, ncol = min(length(heatmap_plts), 2))
 ```
 
 ```{r, results="asis", eval=!is.null(attr(params[["dat"]], "completed"))}
-cat("The absolute correlation threshold for correlation heatmap was set to ",
-    params[["corr_threshold"]]*100,
+cat("The absolute correlation threshold for the heatmap of correlations before and after imputation was set to ",
+    params[["corr_threshold_both"]]*100,
     "%. There were ",
-    length(params[["corr_heatmap_metabolites"]]),
+    length(params[["corr_heatmap_metabolites_both"]]),
     " metabolites chosen to be visible: ",
-    paste0(params[["corr_heatmap_metabolites"]], collapse = ", "),
+    paste0(params[["corr_heatmap_metabolites_both"]], collapse = ", "),
     ".  \n", sep = "")
 ```
 
-```{r, eval=!is.null(attr(params[["dat"]], "completed")), out.height="70%", out.width="80%", fig.cap="Correlations heatmap (up to 10 chosen metabolites visible).", fig.align='center', fig.pos="H"}
-cor_heatmap <- create_correlations_heatmap(
+```{r, eval=!is.null(attr(params[["dat"]], "completed")), out.height="70%", out.width="80%", fig.cap="Heatmap of correlations before and after imputation (up to 10 chosen metabolites visible).", fig.align='center', fig.pos="H"}
+cor_heatmap_both <- create_correlations_heatmap(
   params[["dat"]],
-  threshold = ifelse(is.null(params[["corr_threshold"]]),
+  threshold = ifelse(is.null(params[["corr_threshold_both"]]),
                      0,
-                     params[["corr_threshold"]]),
+                     params[["corr_threshold_both"]]),
   metabolites_to_display =
-    params[["corr_heatmap_metabolites"]][1:min(length(params[["corr_heatmap_metabolites"]]), 10)],
+    params[["corr_heatmap_metabolites_both"]][1:min(length(params[["corr_heatmap_metabolites_both"]]), 10)],
+  type = "both",
   interactive = FALSE
 )
 
-if(!is.null(cor_heatmap)){
-  cor_heatmap_cap <- "Correlations heatmap (up to 10 chosen metabolites visible)."
-  cor_heatmap_results <- "show"
+if(!is.null(cor_heatmap_both)){
+  cor_heatmap_cap_both <- "Correlations heatmap (up to 10 chosen metabolites visible)."
+  cor_heatmap_results_both <- "show"
 }else{
-  cor_heatmap_cap <- NULL
-  cor_heatmap_results <- "asis"
+  cor_heatmap_cap_both <- NULL
+  cor_heatmap_results_both <- "asis"
 }
 ```
-```{r, eval=!is.null(attr(params[["dat"]], "completed")), out.height="50%", out.width="70%", fig.cap=cor_heatmap_cap, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results"), cor_heatmap_results, "show")}
-if(is.null(cor_heatmap_cap)){
+```{r, eval=!is.null(attr(params[["dat"]], "completed")), out.height="50%", out.width="70%", fig.cap=cor_heatmap_cap_both, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results_both"), cor_heatmap_results_both, "show")}
+if(is.null(cor_heatmap_cap_both)){
   cat("No metabolites to show on the heatmap.  \n  \n")
 }else
-  cor_heatmap
+  cor_heatmap_both
 ```
 
 ```{r, results="asis", eval=!is.null(attr(params[["dat"]], "cv"))}
@@ -242,12 +245,51 @@ if(!is.null(attr(params[["dat"]], "removed")[["QC"]])){
              collapse = ", "),
       ".  \n", sep = "")
 }else cat("No metabolites were removed based on the CV.  \n")
+```
+
+```{r, eval=!is.null(attr(params[["dat"]], "cv")), results="asis"}
+cat("## Outlier detection  \n  \n")
+
+cat("The absolute correlation threshold for the heatmap of correlations after imputation was set to ",
+    params[["corr_threshold"]]*100,
+    "%. There were ",
+    length(params[["corr_heatmap_metabolites"]]),
+    " metabolites chosen to be visible: ",
+    paste0(params[["corr_heatmap_metabolites"]], collapse = ", "),
+    ".  \n", sep = "")
+```
+
+```{r, eval=!is.null(attr(params[["dat"]], "cv")), out.height="70%", out.width="80%", fig.cap="Heatmap of correlations after imputation (up to 10 chosen metabolites visible).", fig.align='center', fig.pos="H"}
+cor_heatmap <- create_correlations_heatmap(
+  params[["dat"]],
+  threshold = ifelse(is.null(params[["corr_threshold"]]),
+                     0,
+                     params[["corr_threshold"]]),
+  metabolites_to_display =
+    params[["corr_heatmap_metabolites"]][1:min(length(params[["corr_heatmap_metabolites"]]), 10)],
+  interactive = FALSE
+)
+
+if(!is.null(cor_heatmap)){
+  cor_heatmap_cap <- "Correlations heatmap (up to 10 chosen metabolites visible)."
+  cor_heatmap_results <- "show"
+}else{
+  cor_heatmap_cap <- NULL
+  cor_heatmap_results <- "asis"
+}
+```
+
+```{r, eval=!is.null(attr(params[["dat"]], "cv")), out.height="50%", out.width="70%", fig.cap=cor_heatmap_cap, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results"), cor_heatmap_results, "show")}
+if(is.null(cor_heatmap_cap)){
+  cat("No metabolites to show on the heatmap.  \n  \n")
+}else
+  cor_heatmap
 
 pca_fig_cap <- paste0("PCA plot",
                       ifelse(is.null(attr(params[["dat"]], "group")),
                              " ",
                              "s "),
-                      "with colors indicating",
+                      "with colors indicating ",
                       ifelse(is.null(attr(params[["dat"]], "group")),
                              "sample type.",
                              "(a) sample type, (b) group levels."))
@@ -261,6 +303,7 @@ pca_plt <- create_PCA_plot(
                             "all",
                             params[["PCA_types"]]),
   interactive = FALSE)
+
 labels <- NULL
 
 if(!is.null(attr(params[["dat"]], "group"))){
@@ -268,7 +311,8 @@ if(!is.null(attr(params[["dat"]], "group"))){
                                    interactive = FALSE)
   pca_plt <- list(pca_plt, pca_group_plt)
   labels <- "auto"
-}
+}else
+  pca_plt <- list(pca_plt)
 
 ggarrange(plotlist = pca_plt, labels = labels, ncol = 1)
 ```
@@ -298,7 +342,7 @@ biplot <- create_PCA_plot(params[["dat"]],
                           interactive = FALSE)
 
 pca_variance_plt <- pca_variance(params[["dat"]],
-                                 threshold = params[["PCA_variance_threshold"]],
+                                 threshold = params[["PCA_variance_threshold"]]/100,
                                  max_num = params[["PCA_variance_max_num"]],
                                  cumulative = params[["PCA_variance_cum"]])
 
