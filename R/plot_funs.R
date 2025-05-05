@@ -651,7 +651,7 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE){
 #' into account).
 #' @param metabolites_to_display A vector of names or number of metabolites to
 #' display. If a number is provided, the first metabolites are selected.
-#' Defaults to "all".
+#' Defaults to `all`.
 #' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples
@@ -669,27 +669,37 @@ create_correlations_heatmap <- function(dat, type = "completed",
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
-  filtered_dat <- attr(dat, "completed") %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(setdiff(attr(dat, "metabolites"),
-                          unlist(attr(dat, "removed"))))) %>%
-    select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
-  
-  if(type == "both"){
-    filtered_dat_observed <- dat %>%
+  filter_data <- function(dat){
+    dat %>%
       filter(`sample type` == "Sample") %>%
       select(all_of(setdiff(attr(dat, "metabolites"),
                             unlist(attr(dat, "removed"))))) %>%
-      mutate(across(everything(), as.numeric)) %>%
       select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
+  }
+  
+  filtered_dat <- attr(dat, "completed") %>%
+    filter_data()
+  
+  if(type == "both"){
+    filtered_dat_observed <- dat %>%
+      filtered_data()
     
     metabo_to_disp_filtered <- intersect(colnames(filtered_dat),
                                          colnames(filtered_dat_observed))
-  }else
+  }else{
     filtered_dat_observed <- NULL
-  
-  if(all(is.numeric(metabolites_to_display)))
-    metabo_to_disp_filtered <- metabo_to_disp_filtered[1:metabolites_to_display]
+    metabo_to_disp_filtered <- colnames(filtered_dat)
+  }
+
+  if(length(metabolites_to_display) == 1 && is.numeric(metabolites_to_display))
+    metabo_to_disp_filtered <-
+      metabo_to_disp_filtered[1:min(metabolites_to_display,
+                                    length(metabo_to_disp_filtered))]
+  else if(all(is.character(metabolites_to_display)) & all(metabolites_to_display != "all"))
+    metabo_to_disp_filtered <- intersect(metabo_to_disp_filtered,
+                                         metabolites_to_display)
+  else if(is.null(metabolites_to_display))
+    return(NULL)
   
   if(type == "both")
     filtered_dat_observed <- filtered_dat_observed %>%
@@ -697,7 +707,7 @@ create_correlations_heatmap <- function(dat, type = "completed",
   
   plt_dat <- filtered_dat %>%
     select(all_of(metabo_to_disp_filtered)) %>%
-    cor(y = filtered_dat_observed, use = "na.or.complete") %>%
+    cor(y = filtered_dat_observed, use = "pairwise.complete.obs") %>%
     melt()
   
   to_display <- plt_dat %>%

@@ -6,19 +6,24 @@
 \usage{
 create_correlations_heatmap(
   dat,
+  type = "completed",
   threshold = 0.3,
   metabolites_to_display = "all",
   interactive = TRUE
 )
 }
 \arguments{
+\item{type}{Default to \code{completed}, which creates a heatmap of correlations
+between the metabolites after imputation. If \code{both}, then correlations
+between the metabolites before and after imputation are shown.}
+
 \item{threshold}{A numeric value specifying the minimum absolute correlation
 to display (only metabolites specified in metabolites_to_display are taken
 into account).}
 
 \item{metabolites_to_display}{A vector of names or number of metabolites to
 display. If a number is provided, the first metabolites are selected.
-Defaults to "all".}
+Defaults to \code{all}.}
 
 \item{interactive}{If TRUE, the plot includes interactive tooltips.}
 }

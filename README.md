@@ -62,12 +62,12 @@ MetaboCrates::
 - [ ] download buttons
 - [x] histogram change
 - [x] PCA plots and correlations heatmap to new panel
-- [ ] correlations heatmap before and after imputation
+- [x] correlations heatmap before and after imputation
 - [ ] thresholds steps to 5%
 - [ ] all summary info in excel
 - [ ] info panel to markdown
 - [ ] information to impute data to see plots
 - [ ] adjustable correlations plot size
-- [ ] disable picking colummns in tables
+- [ ] disable picking columns in tables
 - [x] new imputation panel layout
 - [ ] ?colored column height?

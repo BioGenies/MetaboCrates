@@ -412,6 +412,42 @@ ui <- navbarPage(
                                     column(9,
                                            plot_with_button_UI("dist_plt")
                                     )
+                           ),
+                           tabPanel("Correlations heatmap",
+                                    column(3,
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           h5("Select metabolites", style = "font-weight: bold"),
+                                           pickerInput("corr_heatmap_metabolites_both",
+                                                       choices = character(0),
+                                                       options = pickerOptions(
+                                                         actionsBox = TRUE, 
+                                                         selectedTextFormat = "count > 3",
+                                                         liveSearch = TRUE
+                                                       ),
+                                                       multiple = TRUE
+                                           ),
+                                           br(),
+                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
+                                           numericInput(
+                                             inputId = "corr_threshold_both",
+                                             label = NULL,
+                                             value = 0.3,
+                                             min = 0,
+                                             max = 1,
+                                             step = 0.05
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/8)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("corr_heatmap_both")
+                                    )
                            )
                 )
       ),
@@ -555,7 +591,7 @@ ui <- navbarPage(
                                            uiOutput("cond_pca_plt")
                                     )
                            ),
-                           tabPanel("Correlations heatmap",
+                           tabPanel("Heatmap of correlations after imputation",
                                     column(3,
                                            style = "background-color:#f8f5f0; border-right: 1px solid",
                                            br(),
@@ -1159,31 +1195,7 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("venn_diagram", venn_plt)
   
-  corr_heatmap_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites"]])
-    req(input[["corr_threshold"]])
-    
-    if(is.null(input[["corr_heatmap_metabolites"]]))
-      NULL
-    else
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  threshold = input[["corr_threshold"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]])
-  })
   
-  full_corr_heatmap_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites"]])
-    
-    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                threshold = input[["corr_threshold"]],
-                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
-                                interactive = FALSE)
-  })
-  
-  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
   
   ######### imputation
   
@@ -1326,13 +1338,40 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
   
+  corr_heatmap_both_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites_both"]])
+    req(input[["corr_threshold_both"]])
+    
+    if(is.null(input[["corr_heatmap_metabolites_both"]]))
+      NULL
+    else
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  threshold = input[["corr_threshold_both"]],
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites_both"]],
+                                  type = "both")
+  })
+  
+  full_corr_heatmap_both_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites_both"]])
+    
+    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                threshold = input[["corr_threshold"]],
+                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
+                                type = "both",
+                                interactive = FALSE)
+  })
+  
+  plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt, full_plt = full_corr_heatmap_both_plt)
+  
   ######## Quality control
   
   observeEvent(input[["run"]], {
     if(input[["run"]] == "Quality control"){
       
     if(is.null(dat[["metabocrates_dat_group"]])){
-      print("NO")
       dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
     }
       
@@ -1457,6 +1496,7 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("CV_tbl", CV_tbl)
   
+  ######### Outlier detection
   
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
@@ -1528,6 +1568,32 @@ server <- function(input, output, session) {
       plot_with_button_UI("PCA_plt")
     }
   })
+  
+  corr_heatmap_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites"]])
+    req(input[["corr_threshold"]])
+    
+    if(is.null(input[["corr_heatmap_metabolites"]]))
+      NULL
+    else
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  threshold = input[["corr_threshold"]],
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites"]])
+  })
+  
+  full_corr_heatmap_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites"]])
+    
+    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                threshold = input[["corr_threshold"]],
+                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
+                                interactive = FALSE)
+  })
+  
+  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
   
   ######## Summary
   

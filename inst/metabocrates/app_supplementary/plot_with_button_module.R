@@ -1,7 +1,8 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt")) {
+  plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt",
+                      "corr_heatmap_both")) {
     ggiraph::girafeOutput(ns("plot"))
   } else
     plotOutput(ns("plot"))
@@ -58,7 +59,7 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
              height)
     }
     
-    if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt")){
+    if(!is.null(full_plt)){
       output[["plot"]] <- ggiraph::renderGirafe(plot_reactive())
     }else{
       output[["plot"]] <- renderPlot(plot_reactive(),
@@ -72,13 +73,13 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                       groups_plt = "groups_sizes_barplot",
                       mv_types_plt = "missing_values_barplot",
                       NA_ratios_plt = "missing_values_counts",
-                      corr_heatmap = "correlations_heatmap",
+                      corr_heatmap = "correlations_heatmap_after_imputation",
                       venn_diagram = "venn_diagram",
                       missing_heatmap = "missing_values_heatmap",
                       dist_plt = "distribution_plot",
                       PCA_plt = "PCA_plot",
                       PCA_variance = "variance_explained_plot",
-                      `2_metabo_plt` = "2_metabolites_plot"),
+                      corr_heatmap_both = "correlations_heatmap"),
                ".pdf")
       },
       content = function(file){

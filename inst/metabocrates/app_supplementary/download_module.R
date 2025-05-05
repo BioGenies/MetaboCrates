@@ -211,6 +211,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                     ifelse(is.null(main_input[["corr_heatmap_metabolites"]]),
                            "all",
                            main_input[["corr_heatmap_metabolites"]]),
+                  type = 'both',
                   interactive = FALSE
                 )
             },
@@ -284,7 +285,25 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                                       TRUE,
                                       main_input[["PCA_variance_cum"]])
                 )
-            }
+            },
+            "correlations_heatmap_after_imputation.pdf" = {
+              if(is.null(attr(download_dat, "completed")))
+                NULL
+              else
+                create_correlations_heatmap(
+                  download_dat,
+                  threshold = ifelse(
+                    is.null(main_input[["corr_threshold"]]),
+                    0.3,
+                    main_input[["corr_threshold"]]
+                  ),
+                  metabolites_to_display =
+                    ifelse(is.null(main_input[["corr_heatmap_metabolites"]]),
+                           "all",
+                           main_input[["corr_heatmap_metabolites"]]),
+                  interactive = FALSE
+                )
+            },
           )
           
           plot_files <- c()
@@ -317,7 +336,9 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                            "PCA_threshold",
                            "PCA_variance_threshold",
                            "PCA_variance_max_num",
-                           "PCA_variance_cum")
+                           "PCA_variance_cum",
+                           "corr_threshold_both",
+                           "corr_heatmap_metabolites_both")
             
             params_lst <- setNames(
               lapply(params, function(param) main_input[[param]]),
