@@ -12,7 +12,7 @@ library(shinyhelper)
 
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
-source("app_supplementary/ui_supp.R")
+source("app_supplementary/about_module.R")
 source("app_supplementary/plot_with_button_module.R")
 source("app_supplementary/table_with_button_module.R")
 source("app_supplementary/update_inputs_module.R")
@@ -47,7 +47,7 @@ ui <- navbarPage(
   ")),
   
   tabPanel("About",
-           ui_content_about()
+           about_UI("content_about")
   ),
   
   tabPanel(
@@ -748,6 +748,10 @@ server <- function(input, output, session) {
   callModule(nav_btns_SERVER, "Download", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Download")
   
+  
+  ##### about
+  
+  about_SERVER("content_about")
   
   ##### uploading data
   

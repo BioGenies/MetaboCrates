@@ -64,7 +64,7 @@ MetaboCrates::
 - [x] correlations heatmap before and after imputation
 - [x] thresholds steps to 5%
 - [x] all summary info in excel
-- [ ] info panel to markdown
+- [x] info panel to markdown
 - [ ] information to impute data to see plots
 - [ ] adjustable correlations plot size
 - [ ] disable picking columns in tables
