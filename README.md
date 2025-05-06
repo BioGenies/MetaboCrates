@@ -47,7 +47,6 @@ MetaboCrates::
 - [x] fix PCA plot
 - [x] fix biplot
 - [x] logspline imputation
-- [ ] ?correct logspline imputation?
 - [x] all metabolites allowed on correlation heatmap
 - [x] correlation heatmap check on big screen + helper
 - [ ] NA ratios plot reactive height
@@ -64,10 +63,15 @@ MetaboCrates::
 - [x] PCA plots and correlations heatmap to new panel
 - [x] correlations heatmap before and after imputation
 - [x] thresholds steps to 5%
-- [ ] all summary info in excel
+- [x] all summary info in excel
 - [ ] info panel to markdown
 - [ ] information to impute data to see plots
 - [ ] adjustable correlations plot size
 - [ ] disable picking columns in tables
 - [x] new imputation panel layout
+- [ ] scaled random imputation
 - [ ] ?colored column height?
+- [ ] ?fix report?
+- [ ] ?correct logspline imputation?
+- [ ] legends to the top
+- [ ] downloading check

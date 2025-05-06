@@ -124,25 +124,76 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
           writeData(wb_file, "samples",
                     attr(download_dat, "samples"))
           
+          if(!is.null(attr(download_dat, "group"))){
+            addWorksheet(wb_file, "group")
+            
+            writeData(wb_file, "group", "Name:")
+            writeData(wb_file, "group", startCol = 2,
+                      attr(download_dat, "group"))
+            
+            group_tab <- download_dat %>%
+              group_by(!!sym(attr(download_dat, "group"))) %>%
+              summarise(Counts = n()) %>%
+              rename("Levels" = all_of(attr(download_dat, "group")))
+            
+            writeData(wb_file, "group", startRow = 3,
+                      group_tab)
+          }
+          
           if(!is.null(attr(download_dat, "removed")[["LOD"]])){
             addWorksheet(wb_file, "removed_LOD")
-            writeData(wb_file, "removed_LOD",
-                      attr(download_dat, "removed")[["LOD"]])
+            
+            writeData(
+              wb_file, "removed_LOD",
+              data.frame(
+                "Metabolites removed" =  attr(download_dat, "removed")[["LOD"]],
+                check.names = FALSE
+              )
+            )
+            
+            writeData(wb_file, "removed_LOD", startCol = 3, colNames = FALSE,
+                      data.frame(
+                        c("Threshold:", "Count:"),
+                        c(paste0(main_input[["filtering_threshold"]], "%"),
+                          length(attr(download_dat, "removed")[["LOD"]])),
+                        check.names = FALSE
+                      )
+            )
           }
           
           if(!is.null(attr(download_dat, "removed")[["QC"]])){
             addWorksheet(wb_file, "removed_QC")
-            writeData(wb_file, "removed_QC",
-                      attr(download_dat, "removed")[["QC"]])
-          }
-          
-          if(!is.null(attr(download_dat, "group"))){
-            addWorksheet(wb_file, "group_name")
-            writeData(wb_file, "group_name",
-                      attr(download_dat, "group"))
+            
+            writeData(
+              wb_file, "removed_QC",
+              data.frame(
+                "Metabolites removed" =  attr(download_dat, "removed")[["QC"]],
+                check.names = FALSE
+              )
+            )
+            
+            writeData(wb_file, "removed_QC", startCol = 3, colNames = FALSE,
+                      data.frame(
+                        c("Threshold:", "Count:"),
+                        c(paste0(main_input[["cv_threshold"]], "%"),
+                          length(attr(download_dat, "removed")[["QC"]])),
+                        check.names = FALSE
+                      )
+            )
           }
           
           if(!is.null(attr(download_dat, "completed"))){
+            imputation_info <- data.frame(
+              Name = c("LOD method:", "LOD type:", "LLOQ method:",
+                       "ULOQ method:"),
+              Value = c(main_input[["LOD_method"]], main_input[["LOD_type"]],
+                        main_input[["LLOQ_method"]], main_input[["ULOQ_method"]])
+            )
+            
+            addWorksheet(wb_file, "imputation_info")
+            writeData(wb_file, "imputation_info",
+                      imputation_info, colNames = FALSE)
+            
             imp_tab <- attr(download_dat, "completed") %>%
               select(!c(attr(download_dat, "removed")[["LOD"]],
                         attr(download_dat, "removed")[["QC"]]))
@@ -211,7 +262,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                     ifelse(is.null(main_input[["corr_heatmap_metabolites"]]),
                            "all",
                            main_input[["corr_heatmap_metabolites"]]),
-                  type = 'both',
+                  type = "both",
                   interactive = FALSE
                 )
             },
