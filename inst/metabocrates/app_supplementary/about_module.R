@@ -22,7 +22,7 @@ about_UI <- function(id){
     ),
     HTML('<hr style="border-color: black;">'),
     column(11,
-           htmlOutput(ns("content_about"))
+           withSpinner(htmlOutput(ns("content_about")))
     )
   )
 }

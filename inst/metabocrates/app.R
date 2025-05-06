@@ -18,6 +18,12 @@ source("app_supplementary/table_with_button_module.R")
 source("app_supplementary/update_inputs_module.R")
 source("app_supplementary/download_module.R")
 
+options(
+  shiny.maxRequestSize=100*1024^2,
+  spinner.color = "#54F3D3",
+  spinner.type = 1
+)
+
 panels_vec <- c("About", "Uploading data", "Group selection",
                 "Filtering", "Completing",  "Quality control",
                 "Outlier detection", "Summary", "Download")
@@ -44,6 +50,9 @@ ui <- navbarPage(
       white-space: normal;
       line-height: 1.2;
     }
+    div.dataTables_processing {
+    background-color: white;
+  }
   ")),
   
   tabPanel("About",
@@ -707,8 +716,6 @@ ui <- navbarPage(
 
 ################################################################################
 ################################################################################
-options(shiny.maxRequestSize=100*1024^2)
-
 server <- function(input, output, session) {
   
   #### helpers

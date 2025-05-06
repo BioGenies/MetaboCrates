@@ -75,3 +75,6 @@ MetaboCrates::
 - [ ] ?correct logspline imputation?
 - [ ] legends to the top
 - [ ] downloading check
+- [ ] color of spinners in DT
+- [x] spinners color
+- [ ] spinners placement
