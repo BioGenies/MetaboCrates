@@ -33,7 +33,7 @@ about_SERVER <- function(id){
       temp_html <- tempfile(fileext = ".html")
       
       rmarkdown::render(
-          input = "./app_supplementary/content_about.Rmd",
+          input = "./app_supplementary/content_about.md",
           output_file = temp_html,
           output_format = "html_fragment",
           quiet = TRUE
