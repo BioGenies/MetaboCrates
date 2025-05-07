@@ -4,13 +4,7 @@
 \alias{plot_NA_percent}
 \title{Barplot of missing values percents}
 \usage{
-plot_NA_percent(
-  dat,
-  type = "joint",
-  width_svg = 6,
-  height_svg = 5,
-  interactive = TRUE
-)
+plot_NA_percent(dat, type = "joint", interactive = TRUE)
 }
 \arguments{
 \item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}

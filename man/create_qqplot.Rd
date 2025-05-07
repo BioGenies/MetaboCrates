@@ -4,13 +4,7 @@
 \alias{create_qqplot}
 \title{Qqplots of individual metabolite values before and after imputation}
 \usage{
-create_qqplot(
-  dat,
-  metabolite,
-  interactive = TRUE,
-  width_svg = 6,
-  height_svg = 5
-)
+create_qqplot(dat, metabolite, interactive = TRUE)
 }
 \arguments{
 \item{metabolite}{A name of metabolite of interest.}

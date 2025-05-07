@@ -4,7 +4,12 @@
 \alias{plot_heatmap}
 \title{Heatmap of missing metabolites values}
 \usage{
-plot_heatmap(dat, plate_bar_code = NULL, include_title = FALSE)
+plot_heatmap(
+  dat,
+  plate_bar_code = NULL,
+  include_title = FALSE,
+  show_colors = TRUE
+)
 }
 \arguments{
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}}.}
@@ -16,6 +21,9 @@ each plot corresponds to a different plate bar code.}
 \item{include_title}{Logical. Indicates whether the title with the
 plate bar code should be included (only if \code{plate_bar_code} is not NULL).
 Defaults to \code{FALSE}.}
+
+\item{show_colors}{Logical. If \code{TRUE}, applies distinct colors to different
+types of missing values, following the conventions used in Biocrates® files.}
 }
 \description{
 Heatmap of missing metabolites values

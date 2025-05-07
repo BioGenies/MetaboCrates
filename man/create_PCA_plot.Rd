@@ -9,8 +9,6 @@ create_PCA_plot(
   type = "sample_type",
   types_to_display = "all",
   threshold = NULL,
-  width_svg = 6,
-  height_svg = 5,
   interactive = TRUE
 )
 }

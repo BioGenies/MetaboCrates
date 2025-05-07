@@ -4,14 +4,7 @@
 \alias{create_plot_of_2_metabolites}
 \title{Plot of two metabolites}
 \usage{
-create_plot_of_2_metabolites(
-  dat,
-  metabolite1,
-  metabolite2,
-  width_svg = 6,
-  height_svg = 5,
-  interactive = TRUE
-)
+create_plot_of_2_metabolites(dat, metabolite1, metabolite2, interactive = TRUE)
 }
 \description{
 Plot of two metabolites

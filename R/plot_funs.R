@@ -86,10 +86,11 @@ plot_groups <- function(dat){
   
   group_dat <- dat %>%
     filter(`sample type` == "Sample") %>%
-    group_by(Groups = get(attr(dat, "group"))) %>%
+    group_by(group = get(attr(dat, "group"))) %>%
+    mutate(group = as.character(group)) %>%
     summarise(Count = n())
   
-  ggplot(group_dat, aes(x = Groups, y = Count)) +
+  ggplot(group_dat, aes(x = group, y = Count)) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
     labs(x = "Level", y = "Count") +
     geom_label(aes(label = Count)) +
@@ -152,8 +153,7 @@ plot_mv_types <- function(dat) {
 #' 
 #' @export
 
-plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
-                            interactive = TRUE){
+plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
   if(nrow(attr(dat, "NA_info")[["counts"]]) == 0)
     stop("No missing values found.")
   
@@ -225,13 +225,16 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
     metabocrates_theme()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
-              options = list(
-              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
-                           opacity = 0.9),
-              opts_toolbar(saveaspng = FALSE),
-              opts_sizing(rescale = FALSE)
-              ))
+    girafe(
+      ggobj = plt,
+      height_svg = 4 + length(unique(filtered_dat[["metabolite"]]))/20,
+      options = list(
+        opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+                     opacity = 0.9),
+        opts_toolbar(saveaspng = FALSE),
+        opts_zoom(min = 0.5, max = 5)
+      )
+    )
   else plt
 }
 
@@ -244,8 +247,9 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' @param include_title Logical. Indicates whether the title with the
 #' plate bar code should be included (only if `plate_bar_code` is not NULL).
 #' Defaults to `FALSE`.
+#' @param show_colors Logical. If `TRUE`, applies distinct colors to different
+#' types of missing values, following the conventions used in Biocrates® files.
 #'
-#' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
@@ -253,7 +257,8 @@ plot_NA_percent <- function(dat, type = "joint", width_svg = 6, height_svg = 5,
 #' 
 #' @export
 
-plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
+plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
+                         show_colors = TRUE){
   if(is.null(plate_bar_code))
     plt_dat <- dat %>%
       filter(`sample type` == "Sample") %>%
@@ -273,15 +278,22 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
       pivot_longer(!Sample,
                    names_to = "Metabolite", values_to = "Value")
     
-  plt_dat <- mutate(plt_dat,
-                    Metabolite = factor(Metabolite, levels = unique(Metabolite)),
-                    `Is missing` =
-                      Value %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
+  plt_dat <- plt_dat %>%
+    rowwise() %>%
+    mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+           Missing = case_when(
+             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & show_colors ~ Value,
+             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & !show_colors ~ "True",
+             Value %in% c("NA", "∞") | is.na(Value) ~ "True",
+             TRUE ~ "False"
+           ))
   
   plt <- plt_dat %>%
-    ggplot(aes(x = Sample, y = Metabolite, fill = `Is missing`)) +
+    ggplot(aes(x = Sample, y = Metabolite, fill = Missing)) +
     geom_tile(color = "white") +
-    scale_fill_manual(values = c(`FALSE` = "#BBBBBB", `TRUE` = "#2B2A29")) +
+    scale_fill_manual(values = c("False" = "#BBBBBB", "True" = "#2B2A29",
+                                 "< LOD" = "#A28CA1", "< LLOQ" = "#B2D1DE",
+                                 "> ULOQ"  = "#7FB1C5")) +
     scale_y_discrete(limits = rev) +
     metabocrates_theme() +
     theme(legend.justification.right = "top")
@@ -297,6 +309,155 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
   }
 }
 
+#' Histogram of individual metabolite values before and after imputation
+#' 
+#' @keywords internal
+
+create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
+                             bins, type){
+  if(type == "imputed"){
+    comp_metabo_vals <- comp_metabo_vals %>%
+      bind_cols("Observed" = uncomp_metabo_vals[[metabolite]]) %>%
+      filter(!is.numeric(Observed) | is.na(Observed))
+    
+    fill_name <- "Only imputed values"
+  }else
+    fill_name <- "Completed"
+  
+  if(all(is.na(uncomp_metabo_vals[[metabolite]])))
+    fill_vals <- c("Only imputed values" = "#54F3D3")
+  
+  else if(all(is.na(comp_metabo_vals[[metabolite]])))
+    fill_vals <- c("Observed" = "#2B2A29")
+  
+  else
+    fill_vals <- c("Only imputed values" = "#54F3D3",
+                   "Observed" = "#2B2A29")
+  
+  if(type == "all" && !all(is.na(comp_metabo_vals[[metabolite]])))
+    names(fill_vals)[1] <- "Completed"
+  
+   comp_metabo_vals %>%
+    ggplot() +
+    geom_histogram(aes(x = get(metabolite), y = after_stat(count),
+                       fill = fill_name), bins = bins,
+                   color = "#54F3D3", alpha = 0.6) +
+    geom_histogram(data = uncomp_metabo_vals,
+                   aes(x = get(metabolite), y = -after_stat(count),
+                       fill = "Observed"),
+                   bins = bins, color = "#2B2A29", alpha = 0.6) +
+    labs(y = "Count") +
+    scale_fill_manual(name = NULL,
+                      values = fill_vals) +
+    labs(x = metabolite) +
+    metabocrates_theme()
+}
+
+#' Density of individual metabolite values before and after imputation
+#' 
+#' @keywords internal
+
+create_density <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
+  vline_data <- data.frame(
+    xintercept = min(na.omit(uncomp_metabo_vals[[metabolite]])),
+    linetype = "sample LOD"
+  )
+  
+  plt_comp <- ggplot(comp_metabo_vals) +
+    geom_density(aes(x = get(metabolite), y = after_stat(density),
+                     fill = "Completed"), color = "#54F3D3", alpha = 0.6) +
+    scale_fill_manual(name = NULL,
+                      values = c("Completed" = "#54F3D3")) +
+    labs(x = metabolite, y = "Density") +
+    metabocrates_theme()
+  
+  plt_uncomp <- ggplot(uncomp_metabo_vals) +
+    geom_density(
+      aes(x = get(metabolite), y = after_stat(-density),
+          fill = "Observed"),
+      color = "#2B2A29", alpha = 0.6) +
+    geom_vline(data = vline_data,
+               aes(xintercept = xintercept),
+               color = "red", linetype = "dashed") +
+    scale_fill_manual(name = NULL,
+                      values = c("Observed" = "#2B2A29")) +
+    labs(x = metabolite , y = "Density") +
+    metabocrates_theme()
+  
+  if(!is.infinite(vline_data[["xintercept"]])){
+    plt_comp <- plt_comp +
+      geom_vline(data = vline_data,
+                 aes(xintercept = xintercept, linetype = linetype),
+                 color = "red") +
+      scale_linetype_manual(name = NULL,
+                            values = c("sample LOD" = "dashed"))
+    
+    plt_uncomp <- plt_uncomp +
+      geom_vline(data = vline_data,
+                 aes(xintercept = xintercept, linetype = linetype),
+                 color = "red") +
+      scale_linetype_manual(name = NULL,
+                            values = c("sample LOD" = "dashed"))
+  }
+  
+  if(all(is.na(uncomp_metabo_vals[[metabolite]])))
+    plt_comp
+  
+  else if(all(is.na(comp_metabo_vals[[metabolite]])))
+    plt_uncomp
+  
+  else{
+    max_uncomp_density <- uncomp_metabo_vals %>%
+      na.omit() %>%
+      summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
+      pull(max_density)
+    
+    max_comp_density <- comp_metabo_vals %>%
+      na.omit() %>%
+      summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
+      pull(max_density)
+    
+    plt_comp <- plt_comp +
+      coord_cartesian(ylim = c(0, max_comp_density*1.05),
+                      expand = FALSE) +
+      theme(plot.margin=margin(b=-1,unit="cm"))
+    
+    plt_uncomp <- plt_uncomp +
+      coord_cartesian(xlim =
+                        c(min(na.omit(comp_metabo_vals[[metabolite]])),
+                          max(na.omit(comp_metabo_vals[[metabolite]]))),
+                      ylim = c(max_uncomp_density*-1.05, 0),
+                      expand = FALSE) +
+      theme(plot.margin=margin(t=-0.001,unit="cm"))
+    
+    custom_layout <- c(area(1, 1), area(2, 1))
+    
+    (plt_comp + plt_uncomp) + plot_layout(design = custom_layout,
+                                          axes = "collect",
+                                          axis_titles ="collect",
+                                          guides = "collect")
+  }
+}
+
+#' Beeswarm of individual metabolite values before and after imputation
+#' 
+#' @keywords internal
+
+create_beeswarm <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
+  plt_dat <- uncomp_metabo_vals %>%
+    bind_rows(comp_metabo_vals) %>%
+    mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
+                    rep("Completed", nrow(comp_metabo_vals))),
+           tooltip = paste0("Sample id: ", `sample identification`,
+                            "<br>Value: ", get(metabolite)))
+  
+  plt <- ggplot(plt_dat, aes(x = Type, y = get(metabolite),
+                             tooltip = tooltip, color = Type)) +
+    labs(x = "", y = metabolite) +
+    metabocrates_theme() +
+    scale_color_metabocrates_discrete(2)
+}
+
 #' Histograms or density plots of individual metabolite values before and after imputation
 #' 
 #' This function creates density plots of metabolite values before and after
@@ -307,9 +468,11 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
 #' @importFrom ggbeeswarm position_quasirandom geom_quasirandom
 #' 
 #' @param metabolite A name of metabolite of interest.
-#' @param bins The number of bins for the histogram plot, 30 if not specified.
 #' @param type A type of the plot. Can be "histogram" (default), "density"
 #' or "beeswarm".
+#' @param bins The number of bins for the histogram plot, 30 if not specified.
+#' @param histogram_type If `all` (default), the histogram displays all values
+#' after imputation. If `imputed`, it shows only the values that were imputed.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -322,8 +485,8 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE){
 #' @export
 
 create_distribution_plot <- function(dat, metabolite, type = "histogram",
-                                     bins = 30, interactive = TRUE,
-                                     width_svg = 6, height_svg = 5){
+                                     bins = 30, histogram_type = "all",
+                                     interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -339,155 +502,12 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
   if(all(is.na(uncomp_metabo_vals)) & all(is.na(comp_metabo_vals))) stop()
   
   plt <- switch(type,
-         "histogram" = {
-           if(all(is.na(uncomp_metabo_vals[[metabolite]])))
-             fill_vals <- c("Only imputed values" = "#54F3D3")
-           
-           else if(all(is.na(comp_metabo_vals[[metabolite]])))
-             fill_vals <- c("Observed" = "#2B2A29")
-           
-           else fill_vals <- c("Only imputed values" = "#54F3D3",
-                               "Observed" = "#2B2A29")
-             
-           comp_metabo_vals %>%
-             bind_cols("Observed" = uncomp_metabo_vals[[metabolite]]) %>%
-             filter(!is.numeric(Observed) | is.na(Observed)) %>%
-             ggplot() +
-             geom_histogram(aes(x = get(metabolite), y = after_stat(count),
-                                fill = "Only imputed values"), bins = bins,
-                            color = "#54F3D3", alpha = 0.6) +
-             geom_histogram(data = uncomp_metabo_vals,
-                            aes(x = get(metabolite), y = -after_stat(count),
-                                fill = "Observed"),
-                            bins = bins, color = "#2B2A29", alpha = 0.6) +
-             labs(y = "Count") +
-             scale_fill_manual(name = NULL,
-                               values = fill_vals) +
-             labs(x = metabolite) +
-             metabocrates_theme()
-         },
-         "density" = {
-           if(all(is.na(uncomp_metabo_vals[[metabolite]])))
-             fill_vals <- c("Only imputed values" = "#54F3D3")
-           
-           else if(all(is.na(comp_metabo_vals[[metabolite]])))
-             fill_vals <- c("Observed" = "#2B2A29")
-           
-           else fill_vals <- c("Only imputed values" = "#54F3D3",
-                               "Observed" = "#2B2A29")
-           
-           vline_data <- data.frame(
-             xintercept = min(na.omit(uncomp_metabo_vals[[metabolite]])),
-             linetype = "sample LOD"
-           )
-           
-           plt_comp <- ggplot(comp_metabo_vals) +
-             geom_density(aes(x = get(metabolite), y = after_stat(density),
-                                fill = "Completed"), color = "#54F3D3", alpha = 0.6) +
-             scale_fill_manual(name = NULL,
-                               values = c("Completed" = "#54F3D3")) +
-             labs(x = metabolite, y = "Density") +
-             metabocrates_theme()
-           
-           plt_uncomp <- ggplot(uncomp_metabo_vals) +
-             geom_density(
-               aes(x = get(metabolite), y = after_stat(-density),
-                   fill = "Observed"),
-               color = "#2B2A29", alpha = 0.6) +
-             geom_vline(data = vline_data,
-                        aes(xintercept = xintercept),
-                        color = "red", linetype = "dashed") +
-             scale_fill_manual(name = NULL,
-                               values = c("Observed" = "#2B2A29")) +
-             labs(x = metabolite , y = "Density") +
-             metabocrates_theme()
-           
-           if(!is.infinite(vline_data[["xintercept"]])){
-             plt_comp <- plt_comp +
-               geom_vline(data = vline_data,
-                          aes(xintercept = xintercept, linetype = linetype),
-                          color = "red") +
-               scale_linetype_manual(name = NULL,
-                                     values = c("sample LOD" = "dashed"))
-             
-             plt_uncomp <- plt_uncomp +
-               geom_vline(data = vline_data,
-                          aes(xintercept = xintercept, linetype = linetype),
-                          color = "red") +
-               scale_linetype_manual(name = NULL,
-                                     values = c("sample LOD" = "dashed"))
-           }
-           
-           if(all(is.na(uncomp_metabo_vals[[metabolite]])))
-             plt_comp
-           
-           else if(all(is.na(comp_metabo_vals[[metabolite]])))
-             plt_uncomp
-           
-           else{
-             max_uncomp_density <- uncomp_metabo_vals %>%
-              na.omit() %>%
-              summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
-              pull(max_density)
-           
-             max_comp_density <- comp_metabo_vals %>%
-              na.omit() %>%
-              summarise(max_density = max(density(get(metabolite))[["y"]])) %>%
-              pull(max_density)
-            
-             plt_comp <- plt_comp +
-               coord_cartesian(ylim = c(0, max_comp_density*1.05),
-                               expand = FALSE) +
-               theme(plot.margin=margin(b=-1,unit="cm"))
-             
-             plt_uncomp <- plt_uncomp +
-               coord_cartesian(xlim =
-                                 c(min(na.omit(comp_metabo_vals[[metabolite]])),
-                                   max(na.omit(comp_metabo_vals[[metabolite]]))),
-                               ylim = c(max_uncomp_density*-1.05, 0),
-                               expand = FALSE) +
-               theme(plot.margin=margin(t=-0.001,unit="cm"))
-             
-             custom_layout <- c(area(1, 1), area(2, 1))
-               
-             (plt_comp + plt_uncomp) + plot_layout(design = custom_layout,
-                                                      axes = "collect",
-                                                      axis_titles ="collect",
-                                                      guides = "collect")
-           }
-         },
-         "beeswarm" = {
-           plt_dat <- uncomp_metabo_vals %>%
-             bind_rows(comp_metabo_vals) %>%
-             mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
-                      rep("Completed", nrow(comp_metabo_vals))),
-                    tooltip = paste0("Sample id: ", `sample identification`,
-                                     "<br>Value: ", get(metabolite)))
-             
-           plt <- ggplot(plt_dat, aes(x = Type, y = get(metabolite),
-                                      tooltip = tooltip, color = Type)) +
-             labs(x = "", y = metabolite) +
-             metabocrates_theme() +
-             scale_color_metabocrates_discrete(2)
-           
-           if(type == "beeswarm")
-             plt +
-              geom_quasirandom(show.legend = FALSE)
-           else{
-             int_plt <- plt +
-               geom_point_interactive(position = position_quasirandom(),
-                                      show.legend = FALSE)
-             
-             girafe(ggobj = int_plt,
-                    width_svg = width_svg, height_svg = height_svg,
-                    options = list(
-                      opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
-                                   opacity = 0.9),
-                      opts_toolbar(saveaspng = FALSE),
-                      opts_zoom(min = 0.5, max = 5)
-                    ))
-           }
-         }
+         "histogram" = create_histogram(uncomp_metabo_vals, comp_metabo_vals,
+                                        metabolite, bins, histogram_type),
+         "density" = create_density(uncomp_metabo_vals, comp_metabo_vals,
+                                    metabolite),
+         "beeswarm" = create_beeswarm(uncomp_metabo_vals, comp_metabo_vals,
+                                      metabolite)
   )
   
   if(type == "beeswarm"){
@@ -497,7 +517,6 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
                                show.legend = FALSE)
       
       girafe(ggobj = int_plt,
-             width_svg = width_svg, height_svg = height_svg,
              options = list(
                opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                             opacity = 0.9),
@@ -508,13 +527,12 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
       plt +
         geom_quasirandom(show.legend = FALSE)
   }else if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
            ))
   else plt
-  
 }
 
 #' Boxplots of individual metabolite values before and after imputation
@@ -529,8 +547,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
 #' 
 #' @export
 
-create_boxplot <- function(dat, metabolite, interactive = TRUE,
-                           width_svg = 6, height_svg = 5){
+create_boxplot <- function(dat, metabolite, interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -562,7 +579,7 @@ create_boxplot <- function(dat, metabolite, interactive = TRUE,
     scale_color_metabocrates_discrete()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
@@ -584,8 +601,7 @@ create_boxplot <- function(dat, metabolite, interactive = TRUE,
 #' 
 #' @export
 
-create_qqplot <- function(dat, metabolite, interactive = TRUE,
-                          width_svg = 6, height_svg = 5){
+create_qqplot <- function(dat, metabolite, interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
@@ -617,7 +633,7 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
     scale_color_metabocrates_discrete()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
@@ -632,14 +648,15 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 #' @importFrom reshape2 melt
 #' @importFrom ggiraph geom_tile_interactive
 #' 
-#' @param metabolites_to_display A vector of names or number of metabolites to
-#' display. If a number is provided, the first metabolites are selected.
-#' Defaults to "all".
+#' @param type Default to `completed`, which creates a heatmap of correlations
+#' between the metabolites after imputation. If `both`, then correlations
+#' between the metabolites before and after imputation are shown.
 #' @param threshold A numeric value specifying the minimum absolute correlation
 #' to display (only metabolites specified in metabolites_to_display are taken
 #' into account).
-#' @param width_svg Width of plot in inches.
-#' @param height_svg Height of plot in inches.
+#' @param metabolites_to_display A vector of names or number of metabolites to
+#' display. If a number is provided, the first metabolites are selected.
+#' Defaults to `all`.
 #' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples
@@ -647,31 +664,57 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE,
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
 #' print(create_correlations_heatmap(dat))
+#' print(create_correlations_heatmap(dat, type = "both"))
 #' 
 #' @export
 
-create_correlations_heatmap <- function(dat, threshold = 0.3,
+create_correlations_heatmap <- function(dat, type = "completed",
+                                        threshold = 0.3,
                                         metabolites_to_display = "all",
-                                        width_svg = 6, height_svg = 5,
                                         interactive = TRUE){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
+  filter_data <- function(dat){
+    dat %>%
+      filter(`sample type` == "Sample") %>%
+      select(all_of(setdiff(attr(dat, "metabolites"),
+                            unlist(attr(dat, "removed"))))) %>%
+      mutate(across(everything(), as.numeric)) %>%
+      select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
+  }
+  
   filtered_dat <- attr(dat, "completed") %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(setdiff(attr(dat, "metabolites"),
-                          unlist(attr(dat, "removed"))))) %>%
-    select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
+    filter_data()
   
-  if(all(is.numeric(metabolites_to_display)))
-    metabolites_to_display <- colnames(filtered_dat)[1:metabolites_to_display]
+  if(type == "both"){
+    filtered_dat_observed <- dat %>%
+      filter_data()
+    
+    metabo_to_disp_filtered <- intersect(colnames(filtered_dat),
+                                         colnames(filtered_dat_observed))
+  }else{
+    filtered_dat_observed <- NULL
+    metabo_to_disp_filtered <- colnames(filtered_dat)
+  }
+
+  if(length(metabolites_to_display) == 1 && is.numeric(metabolites_to_display))
+    metabo_to_disp_filtered <-
+      metabo_to_disp_filtered[1:min(metabolites_to_display,
+                                    length(metabo_to_disp_filtered))]
+  else if(all(is.character(metabolites_to_display)) & all(metabolites_to_display != "all"))
+    metabo_to_disp_filtered <- intersect(metabo_to_disp_filtered,
+                                         metabolites_to_display)
+  else if(is.null(metabolites_to_display))
+    return(NULL)
   
-  if(all(metabolites_to_display == "all"))
-    metabolites_to_display <- colnames(filtered_dat)
+  if(type == "both")
+    filtered_dat_observed <- filtered_dat_observed %>%
+      select(all_of(metabo_to_disp_filtered))
   
   plt_dat <- filtered_dat %>%
-    select(all_of(metabolites_to_display)) %>%
-    cor(use = "na.or.complete") %>%
+    select(all_of(metabo_to_disp_filtered)) %>%
+    cor(y = filtered_dat_observed, use = "pairwise.complete.obs") %>%
     melt()
   
   to_display <- plt_dat %>%
@@ -688,25 +731,36 @@ create_correlations_heatmap <- function(dat, threshold = 0.3,
   plt <- plt_dat %>%
     rowwise() %>%
     filter(all(c(Var1, Var2) %in% to_display)) %>%
-    mutate(tooltip = paste0("Metabolite 1: ", Var2,
-                            "<br>Metabolite 2: ", Var1,
-                            "<br>Correlation coefficient:", round(value, 3))) %>%
+    mutate(tooltip = paste0(ifelse(type == "both",
+                                   "Metabolite after imputation: ",
+                                   "Metabolite 1: "),
+                            Var1,
+                            ifelse(type == "both",
+                                   "<br>Metabolite before imputation: ",
+                                   "<br>Metabolite 2: "),
+                            Var2,
+                            "<br>Correlation coefficient: ", round(value, 3))) %>%
     ggplot(aes(x = Var1, y = Var2, fill = value, tooltip = tooltip)) +
     geom_tile_interactive() +
     scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
     scale_y_discrete(limits = rev, labels = function(x) str_trunc(x, 10)) +
-    labs(x = "Metabolite", y = "Metabolite") +
+    labs(x = ifelse(type == "both",
+                    "Metabolites after imputation",
+                    "Metabolites"),
+         y = ifelse(type == "both",
+                    "Metabolites before imputation",
+                    "Metabolites")) +
     metabocrates_theme() +
     theme(axis.text.x = element_text(angle = 90)) +
     scale_fill_metabocrates_continuous()
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
          options = list(
            opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                         opacity = 0.9),
            opts_toolbar(saveaspng = FALSE),
-           opts_sizing(rescale = FALSE)
+           opts_zoom(min = 0.5, max = 5)
          ))
   else plt
 }
@@ -770,7 +824,6 @@ create_density_with_lod <- function(dat, metabolite_name) {
 #' 
 #' @export
 create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
-                                         width_svg = 6, height_svg = 5,
                                          interactive = TRUE){
   p_b_codes <- dat %>%
     filter(`sample type` == "Sample") %>%
@@ -819,12 +872,12 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
     scale_color_manual(values = values)
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                           opacity = 0.9),
              opts_toolbar(saveaspng = FALSE),
-             opts_sizing(rescale = FALSE)
+             opts_zoom(min = 0.5, max = 5)
            ))
   else plt
 }
@@ -858,18 +911,17 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @export
 pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
-  data <- attr(dat, "completed") %>%
+  filt_dat <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(setdiff(attr(dat, "metabolites"),
                           unlist(attr(dat, "removed"))))) %>%
-    select(where(~ n_distinct(na.omit(.)) > 1))
+    select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+    na.omit() %>%
+    select(where(~ var(.) > 0))
   
-  data <- data[complete.cases(data),
-               sapply(data, function(col) var(col, na.rm = TRUE) > 0)]
+  pca_result <- prcomp(filt_dat, scale. = TRUE, center = TRUE)
   
-  pca_result <- prcomp(data, scale. = TRUE, center = TRUE)
-  
-  variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+  variance_explained <- pca_result[["sdev"]]^2 / sum(pca_result[["sdev"]]^2)
   
   cumulative_variance <- cumsum(variance_explained)
   
@@ -877,8 +929,13 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
     Component = paste0("PC", 1:length(variance_explained)),
     Variance_Explained = variance_explained,
     Cumulative_Variance = cumulative_variance
-  ) %>%
-    filter(Component %in% Component[1:(max(which(Cumulative_Variance <= threshold))+1)])
+  )
+  
+  if(max(variance_df[["Cumulative_Variance"]]) > threshold)
+    variance_df <- filter(
+      variance_df,
+      Component %in% Component[1:(min(which(Cumulative_Variance > threshold)))]
+    )
   
   if(!is.null(max_num)){
     variance_df <- variance_df %>%
@@ -941,8 +998,7 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
 #' @export
 
 create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
-                            threshold = NULL, width_svg = 6, height_svg = 5,
-                            interactive = TRUE){
+                            threshold = NULL, interactive = TRUE){
   if(type == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
   
@@ -1004,8 +1060,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   if(type == "biplot"){
     plt <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
-      mutate(Variable = pca_metabolites,
-             `Variance explained` = pca_res[["sdev"]]) %>%
+      mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
       ggplot() +
       geom_segment_interactive(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
@@ -1044,7 +1099,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   }
   
   if(interactive)
-    girafe(ggobj = plt, width_svg = width_svg, height_svg = height_svg,
+    girafe(ggobj = plt,
            options = list(
              opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                           opacity = 0.9),

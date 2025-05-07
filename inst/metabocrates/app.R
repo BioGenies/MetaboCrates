@@ -12,15 +12,20 @@ library(shinyhelper)
 
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
-source("app_supplementary/ui_supp.R")
+source("app_supplementary/about_module.R")
 source("app_supplementary/plot_with_button_module.R")
 source("app_supplementary/table_with_button_module.R")
 source("app_supplementary/update_inputs_module.R")
 source("app_supplementary/download_module.R")
 
+options(
+  shiny.maxRequestSize=100*1024^2,
+  spinner.color = "#54F3D3"
+)
+
 panels_vec <- c("About", "Uploading data", "Group selection",
-                "Filtering", "Completing",  "Quality control", "Summary", 
-                "Download")
+                "Filtering", "Completing",  "Quality control",
+                "Outlier detection", "Summary", "Download")
 
 
 ui <- navbarPage(
@@ -44,10 +49,18 @@ ui <- navbarPage(
       white-space: normal;
       line-height: 1.2;
     }
+    div.dataTables_processing {
+      background-color: white;
+    }
+  .full-height {
+    min-height: 80vh;
+    background-color: #f8f5f0;
+    border-right: 1px solid #ccc;
+  }
   ")),
   
   tabPanel("About",
-           ui_content_about()
+           about_UI("content_about")
   ),
   
   tabPanel(
@@ -64,6 +77,7 @@ ui <- navbarPage(
         ),
         nav_btns_UI("Uploading data"),
         column(3,
+               class = "full-height",
                style = "background-color:#f8f5f0; border-right: 1px solid",
                br(),
                h4("Upload new data"),
@@ -89,12 +103,7 @@ ui <- navbarPage(
                  style = "material-flat",
                  color = "success",
                  icon = HTML("<i class='fa-solid fa-upload fa-bounce'></i>")
-               ),
-               br(),
-               br(),
-               br(),
-               br(),
-               br()
+               )
         ),
         column(9,
                column(6,
@@ -102,14 +111,14 @@ ui <- navbarPage(
                       h4("You can see metabolomics matrix and LOD table below:"),
                       br()),
                column(6, align = "right", 
-                      h2("Uploading data (step 1/7)"),
+                      h2("Uploading data (step 1/8)"),
                       h3("next: Group selection")),
                column(12, 
                       tabsetPanel(
                         tabPanel(
                           "Data summary",
                           br(),
-                          htmlOutput("raw_data_summary"),
+                          withSpinner(htmlOutput("raw_data_summary")),
                         ),
                         tabPanel(
                           "Compounds matrix",
@@ -152,12 +161,13 @@ ui <- navbarPage(
                ),
                column(4,
                       column(12, align = "right", 
-                             h2("Group selection (step 2/7)"),
+                             h2("Group selection (step 2/8)"),
                              h3("next: Filtering"),
                              br()),
                ),
                column(2,
-                      style = "background-color:#f8f5f0; border-right: 1px solid; height: 400px",
+                      class = "full-height",
+                      style = "background-color:#f8f5f0; border-right: 1px solid",
                       br(),
                       br(),
                       div(htmlOutput("columns_info"))
@@ -179,6 +189,7 @@ ui <- navbarPage(
       tabPanel("Filtering",
                nav_btns_UI("Filtering"),
                column(4,
+                      class = "full-height",
                       style = "background-color:#f8f5f0; border-right: 1px solid",
                       br(),
                       h4("Provide threshold."),
@@ -190,7 +201,8 @@ ui <- navbarPage(
                         label = "threshold [%]",
                         value = 80,
                         min = 0,
-                        max = 100
+                        max = 100,
+                        step = 5
                       ),
                       br(),
                       
@@ -232,17 +244,11 @@ ui <- navbarPage(
                       br(),
                       br(),
                       column(12, h4("Removed metabolites:")),
-                      column(12, htmlOutput("LOD_removed_txt")),
-                      br(),
-                      br(),
-                      br(),
-                      br(),
-                      br(),
-                      br()
+                      column(12, htmlOutput("LOD_removed_txt"))
                       
                ),
                column(8, align = "right",
-                      h2("Compounds filtering (step 3/7)"),
+                      h2("Compounds filtering (step 3/8)"),
                       h3("next: Completing")
                ),
                column(8,
@@ -267,10 +273,7 @@ ui <- navbarPage(
                         ),
                         tabPanel("Venn diagram",
                                  column(12,
-                                        br(),
-                                        h4("Provide a group with up to 4 levels to see Venn diagram."),
-                                        br(),
-                                        plot_with_button_UI("venn_diagram")
+                                        uiOutput("venn_diagram_ui")
                                   )
                         )
                       )
@@ -279,138 +282,190 @@ ui <- navbarPage(
       ),
       #################
       tabPanel("Completing",
-               nav_btns_UI("Completing"),        
-               column(3,
-                      style = "background-color:#f8f5f0; border-right: 1px solid",
-                      h3("Select methods for data imputation."),
-                      br(),
-                      h4("< LOD values"),
-                      selectInput(
-                        inputId = 'LOD_method',
-                        label = "< LOD imputation method",
-                        choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none"),
-                      ),
-                      selectInput(
-                        inputId = 'LOD_type',
-                        label = "Type of < LOD values",
-                        choices = c("OP", "calc"),
-                      ),
-                      br(),
-                      h4("< LLOQ values"),
-                      selectInput(
-                        inputId = 'LLOQ_method',
-                        label = "< LLOQ imputation method",
-                        choices = c("limit", "none"),
-                      ),
-                      br(),
-                      h4("> ULOQ values"),
-                      selectInput(
-                        inputId = 'ULOQ_method',
-                        label = "> ULOQ imputation method",
-                        choices = c("limit", "third quartile", "none"),
-                      ),
-                      br(),
-                      br(),
-                      column(5, align = "center",
-                             actionButton(inputId = "complete_btn",
-                                          label = "Complete data")),
-                      column(4, align = "center", offset = 1,
-                             actionButton("complete_undo_btn", label = "Undo")),
-                      br()
-               ),
-               column(9,
-                      column(12, align = "right", 
-                             h2("Gaps completing (step 4/7)",
-                                h3("next: Quality control"))),
-                      column(12, 
-                             tabsetPanel(id = "imputation_tabset",
-                                         tabPanel("Metabolomic matrix",
-                                                  br(),
-                                                  table_with_button_UI("completed_tbl")
-                                         ),
-                                         tabPanel("Table of limits",
-                                                  br(),
-                                                  table_with_button_UI("LOD_tbl")
-                                         ),
-                                         tabPanel("Missing values heatmap",
-                                                  br(),
-                                                  column(11,
-                                                         selectInput("pb_codes_heatmap",
-                                                                     label = "Select plate bar code",
-                                                                     choices = character(0))
-                                                  ),
-                                                  column(11,
-                                                    plot_with_button_UI("missing_heatmap")
-                                                  )
-                                         ),
-                                         tabPanel("Single metabolite distribution",
-                                                  br(),
-                                                  conditionalPanel(
-                                                    condition = "input.dist_plt_type == 'Histogram'",
-                                                    h4("Histogram includes all values before imputation (observed) and only those that were missing and then completed (only imputed values).",
-                                                             style = "font-size:16px;")
-                                                  ),
-                                                  br(),
-                                                  column(5,
-                                                         selectInput("sing_metabo_dist",
-                                                                     "Metabolite",
-                                                                     choices = character(0))
-                                                  ),
-                                                  column(6, offset = 1,
-                                                         radioButtons("dist_plt_type",
-                                                                      "Plot type",
-                                                                      choices = c("Histogram", "Density", "Beeswarm", "Boxplot", "Q-Q plot"),
-                                                                      inline = TRUE)
-                                                  ),
-                                                  br(),
-                                                  column(9, offset = 1,
-                                                         plot_with_button_UI("dist_plt")
-                                                  )
-                                         ),
-                                         tabPanel("Correlations heatmap",
-                                                  br(),
-                                                  h4("Only up to 10 metabolites are visible. Download the plot to see all chosen metabolites."),
-                                                  column(4,
-                                                         h5("Select metabolites", style = "font-weight: bold")
-                                                  ),
-                                                  column(8,
-                                                         h5("Absolute correlation threshold [%]", style = "font-weight: bold")
-                                                  ),
-                                                  column(4,
-                                                         pickerInput("corr_heatmap_metabolites",
-                                                                     choices = character(0),
-                                                                     options = pickerOptions(
-                                                                       actionsBox = TRUE,
-                                                                       selectedTextFormat = "count > 3",
-                                                                       liveSearch = TRUE
-                                                                     ),
-                                                                     multiple = TRUE),
-                                                  ),
-                                                  column(8,
-                                                         numericInput(
-                                                           inputId = "corr_threshold",
-                                                           label = NULL,
-                                                           value = 0.3,
-                                                           min = 0,
-                                                           max = 1,
-                                                           step = 0.05
-                                                         ),
-                                                  ),
-                                                  column(10,
-                                                    plot_with_button_UI("corr_heatmap")
-                                                  )
-                                         )
-                             ),
-                      )
-               )
-               
+               nav_btns_UI("Completing"),
+               tabsetPanel(id = "imputation_tabset",
+                           tabPanel("Data completing",
+                                    column(3,
+                                           class = "full-height",
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           h3("Select methods for data imputation"),
+                                           br(),
+                                           h4("< LOD values"),
+                                           selectInput(inputId = 'LOD_method',
+                                                       label = "< LOD imputation method",
+                                                       choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none")
+                                           ),
+                                           selectInput(inputId = 'LOD_type',
+                                                       label = "Type of < LOD values",
+                                                       choices = c("OP", "calc")
+                                           ),
+                                           br(),
+                                           h4("< LLOQ values"),
+                                           selectInput(
+                                             inputId = 'LLOQ_method',
+                                             label = "< LLOQ imputation method",
+                                             choices = c("limit", "none")
+                                           ),
+                                           br(),
+                                           h4("> ULOQ values"),
+                                           selectInput(
+                                             inputId = 'ULOQ_method',
+                                             label = "> ULOQ imputation method",
+                                             choices = c("limit", "third quartile", "none")
+                                           ),
+                                           br(),
+                                           br(),
+                                           column(5, align = "center",
+                                                  actionButton(inputId = "complete_btn",
+                                                               label = "Complete data")
+                                           ),
+                                           column(4, align = "center", offset = 1,
+                                                  actionButton("complete_undo_btn", label = "Undo"),
+                                                  br()
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/8)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    column(9,
+                                           br(),
+                                           table_with_button_UI("completed_tbl")
+                                    )
+                           ),
+                           tabPanel("Table of limits",
+                                    column(12, align = "right",
+                                           h2("Gaps completing (step 4/8)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    br(),
+                                    column(9, offset = 1,
+                                           table_with_button_UI("LOD_tbl")      
+                                    )
+                           ),
+                           tabPanel("Missing values heatmap",
+                                   column(3,
+                                          class = "full-height",
+                                          style = "background-color:#f8f5f0; border-right: 1px solid",
+                                          br(),
+                                          br(),
+                                          br(),
+                                          br(),
+                                          selectInput("pb_codes_heatmap",
+                                                      label = "Select plate bar code",
+                                                      choices = character(0)
+                                          ),
+                                          br(),
+                                          checkboxInput("missing_heatmap_colors",
+                                                        label = HTML("<b>Show colors</b>")
+                                          )
+                                   ),
+                                   column(9, align = "right",
+                                          h2("Gaps completing (step 4/8)"),
+                                          h3("next: Quality control")
+                                   ),
+                                   column(9,
+                                          plot_with_button_UI("missing_heatmap")
+                                   )
+                           ),
+                           tabPanel("Single metabolite distribution",
+                                    column(3,
+                                           class = "full-height",
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           selectInput("sing_metabo_dist",
+                                                       "Metabolite",
+                                                       choices = character(0)
+                                           ),
+                                           br(),
+                                           radioButtons("dist_plt_type",
+                                                        "Plot type",
+                                                        choices = c("Histogram", "Density", "Beeswarm", "Boxplot", "Q-Q plot"),
+                                                        inline = TRUE
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.dist_plt_type == 'Histogram'",
+                                             tagList(
+                                               br(),
+                                               numericInput("hist_bins",
+                                                            "Number of bins",
+                                                            value = 30,
+                                                            min = 5,
+                                                            max = 100,
+                                                            step = 5
+                                               ),
+                                               br(),
+                                               checkboxInput("hist_type",
+                                                             HTML("<b>Show only imputed values</b>")
+                                               )
+                                             )
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/8)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    conditionalPanel(
+                                      condition = "input.hist_type",
+                                      tagList(
+                                        br(),
+                                        column(7, offset = 1,
+                                               h4("Histogram shows all values before imputation (observed) and only those that were missing and then completed (only imputed values)."),
+                                               br()
+                                        )
+                                      )
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("dist_plt")
+                                    )
+                           ),
+                           tabPanel("Correlations heatmap",
+                                    column(3,
+                                           class = "full-height",
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           h5("Select metabolites", style = "font-weight: bold"),
+                                           pickerInput("corr_heatmap_metabolites_both",
+                                                       choices = character(0),
+                                                       options = pickerOptions(
+                                                         actionsBox = TRUE, 
+                                                         selectedTextFormat = "count > 3",
+                                                         liveSearch = TRUE
+                                                       ),
+                                                       multiple = TRUE
+                                           ),
+                                           br(),
+                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
+                                           numericInput(
+                                             inputId = "corr_threshold_both",
+                                             label = NULL,
+                                             value = 0.3,
+                                             min = 0,
+                                             max = 1,
+                                             step = 0.05
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Gaps completing (step 4/8)"),
+                                           h3("next: Quality control")
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("corr_heatmap_both")
+                                    )
+                           )
+                )
       ),
       #################
       tabPanel("Quality control",
                nav_btns_UI("Quality control"),
-               tabsetPanel(
-                 tabPanel("Remove metabolites",
                           column(4,
+                                 class = "full-height",
                                  style = "background-color:#f8f5f0; border-right: 1px solid",
                                  h4("Provide threshold."),
                                  h5("All metabolites for which the coefficient of variation
@@ -421,6 +476,7 @@ ui <- navbarPage(
                                    label = "threshold [%]",
                                    value = 20,
                                    min = 0,
+                                   step = 5
                                  ),
                                  column(8, 
                                  h4("The following metabolites will be removed:"),
@@ -467,89 +523,135 @@ ui <- navbarPage(
                                  actionButton("CV_undo_btn", label = "Undo")),
                    ),
                    column(8, align = "right",
-                          h2("Quality control (step 5/7)"),
-                          h3("next: Summary")
+                          h2("Quality control (step 5/8)"),
+                          h3("next: Outlier detection")
                    ),
                    column(6, offset = 1,
                                             br(),
                                             br(),
-                                            table_with_button_UI("CV_tbl"))
-                 ),
-                 tabPanel("PCA",
-                          column(3,
-                                 style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
-                                 br(),
-                                 br(),
-                                 br(),
-                                 br(),
-                                 radioButtons("PCA_type",
-                                              label = "Select PCA plot type",
-                                              choices = c("sample type", "biplot", "variance"),
-                                              inline = TRUE),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `sample type`",
-                                   checkboxGroupInput(
-                                     inputId = "PCA_types",
-                                     label = "Select types to display",
-                                     choices = character(0),
-                                     inline = TRUE
-                                   )
-                                   
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `biplot`",
-                                   numericInput(
-                                     inputId = "PCA_threshold",
-                                     label = "Absolute correlation threshold [%]",
-                                     value = 30,
-                                     min = 0,
-                                     max = 100)
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `variance`",
-                                   numericInput(
-                                     inputId = "PCA_variance_threshold",
-                                     label = "Cumulative variance threshold [%]",
-                                     value = 80,
-                                     min = 0,
-                                     max = 100)
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `variance`",
-                                   numericInput("PCA_variance_max_num",
-                                                label = "maximum number of principal components",
-                                                value = 5,
-                                                min = 1)
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.PCA_type == `variance`",
-                                   checkboxInput("PCA_variance_cum",
-                                                label = "Include cumulative variance")
-                                 )
-                          ),
-                          column(9, align = "right",
-                                 h2("Quality control (step 5/7)"),
-                                 h3("next: Summary")
-                          ),
-                          column(9, align = "center",
-                           conditionalPanel(
-                              condition = "input.PCA_type == `biplot`",
-                              h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
-                              br()
-                            )
-                          ),
-                          column(7, offset = 1,
-                                 uiOutput("cond_pca_plt")
-                          )
-                 )
-        )
-              
+                                            table_with_button_UI("CV_tbl")
+                   )
+      ),
+      #######
+      tabPanel("Outlier detection",
+               nav_btns_UI("Outlier detection"),
+               tabsetPanel(id = "outlier_detection",
+                           tabPanel("PCA",
+                                    column(3,
+                                           class = "full-height",
+                                           style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           radioButtons("PCA_type",
+                                                        label = "Select PCA plot type",
+                                                        choices = c("sample type", "biplot", "variance"),
+                                                        inline = TRUE),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `sample type`",
+                                             checkboxGroupInput(
+                                               inputId = "PCA_types",
+                                               label = "Select types to display",
+                                               choices = character(0),
+                                               inline = TRUE
+                                             )
+                                             
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `biplot`",
+                                             numericInput(
+                                               inputId = "PCA_threshold",
+                                               label = "Absolute correlation threshold [%]",
+                                               value = 30,
+                                               min = 0,
+                                               max = 100,
+                                               step = 5
+                                              )
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `variance`",
+                                             numericInput(
+                                               inputId = "PCA_variance_threshold",
+                                               label = "Cumulative variance threshold [%]",
+                                               value = 80,
+                                               min = 0,
+                                               max = 100,
+                                               step = 5
+                                              )
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `variance`",
+                                             numericInput("PCA_variance_max_num",
+                                                          label = "maximum number of principal components",
+                                                          value = 5,
+                                                          min = 1)
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `variance`",
+                                             checkboxInput("PCA_variance_cum",
+                                                           label = "Include cumulative variance")
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Outlier detection (step 6/8)"),
+                                           h3("next: Summary")
+                                    ),
+                                    column(9, align = "center",
+                                           conditionalPanel(
+                                             condition = "input.PCA_type == `biplot`",
+                                             h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
+                                             br()
+                                           )
+                                    ),
+                                    column(7, offset = 1,
+                                           uiOutput("cond_pca_plt")
+                                    )
+                           ),
+                           tabPanel("Heatmap of correlations after imputation",
+                                    column(3,
+                                           class = "full-height",
+                                           style = "background-color:#f8f5f0; border-right: 1px solid",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           h5("Select metabolites", style = "font-weight: bold"),
+                                           pickerInput("corr_heatmap_metabolites",
+                                                       choices = character(0),
+                                                       options = pickerOptions(
+                                                         actionsBox = TRUE, 
+                                                         selectedTextFormat = "count > 3",
+                                                         liveSearch = TRUE
+                                                       ),
+                                                       multiple = TRUE
+                                           ),
+                                           br(),
+                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
+                                           numericInput(
+                                             inputId = "corr_threshold",
+                                             label = NULL,
+                                             value = 0.3,
+                                             min = 0,
+                                             max = 1,
+                                             step = 0.05
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Outlier detection (step 6/8)"),
+                                           h3("next: Summary")
+                                    ),
+                                    column(9,
+                                           plot_with_button_UI("corr_heatmap")
+                                    )
+                           )
+               )
       ),
       #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
                column(12, align = "right", 
-                      h2("Summary (step 6/7)"),
+                      h2("Summary (step 7/8)"),
                       h3("next: Download")
                ),
                fluidRow(
@@ -597,7 +699,7 @@ ui <- navbarPage(
            column(9,
                   h2("Here you can download your results at any step of your work!")
            ),
-           column(3, align = "right", h2("Download (step 7/7)")),
+           column(3, align = "right", h2("Download (step 8/8)")),
            br(),
            br(),
            br(),
@@ -610,14 +712,13 @@ ui <- navbarPage(
            download_UI("download_tables"),
            download_UI("download_zip"),
            download_UI("download_pdf")
-  )
+  ),
+  column(12, div(style = "height: 120px;"))
 )
 
 
 ################################################################################
 ################################################################################
-options(shiny.maxRequestSize=100*1024^2)
-
 server <- function(input, output, session) {
   
   #### helpers
@@ -648,12 +749,19 @@ server <- function(input, output, session) {
   callModule(nav_btns_SERVER, id = "Quality control", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Quality control")
   
+  callModule(nav_btns_SERVER, id = "Outlier detection", parent_session = session, 
+             panels_vec = panels_vec, panel_id = "Outlier detection")
+  
   callModule(nav_btns_SERVER, "Summary", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Summary")
   
   callModule(nav_btns_SERVER, "Download", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Download")
   
+  
+  ##### about
+  
+  about_SERVER("content_about")
   
   ##### uploading data
   
@@ -710,7 +818,7 @@ server <- function(input, output, session) {
   ## example data
   
   observeEvent(input[["example_dat"]], {
-    path <- get_example_data("small_biocrates_example.xls")
+    path <- get_example_data("Submission_1.xlsx")
     dat[["metabocrates_dat"]] <- read_data(path)
   }, ignoreInit = TRUE)
   
@@ -1050,9 +1158,7 @@ server <- function(input, output, session) {
                                    attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])))
     
     plot_NA_percent(dat[["metabocrates_dat_group"]], 
-                    type = input[["NA_percent_plt_type"]],
-                    height_svg = max(metabo_num * 22, 400)/96,
-                    width_svg = 11)
+                    type = input[["NA_percent_plt_type"]])
     
   })
   
@@ -1072,7 +1178,7 @@ server <- function(input, output, session) {
   venn_plt <- reactive({
     req(input[["filtering_threshold"]])
     req(dat[["metabocrates_dat_group"]])
-    req(attr(dat[["metabocrates_dat_group"]], "group"))
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group"))) return(NULL)
     
     group_len <- dat[["metabocrates_dat_group"]] %>%
       filter(`sample type` == "Sample") %>%
@@ -1081,46 +1187,35 @@ server <- function(input, output, session) {
       unique() %>%
       length()
     
-    if(!(group_len %in% 2:5))
-      req(NULL)
+    if(!(group_len %in% 2:4))
+      return(NULL)
     
     create_venn_diagram(dat[["metabocrates_dat_group"]], input[["filtering_threshold"]]/100)
   })
   
+  output[["venn_diagram_ui"]] <- renderUI({
+    req(venn_plt)
+    
+    tagList(
+      br(),
+      if(is.null(venn_plt())){
+        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram")
+      }
+      else{
+        h4("This Venn diagram illustrates how many metabolites have missing
+           value ratios above the threshold across the different group levels") 
+      },
+      if(!is.null(venn_plt())){
+        tagList(
+          br(),
+          plot_with_button_UI("venn_diagram"))
+      }
+    )
+  })
+  
   plot_with_button_SERVER("venn_diagram", venn_plt)
   
-  corr_heatmap_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites"]])
-    req(input[["corr_threshold"]])
-    
-    if(is.null(input[["corr_heatmap_metabolites"]]))
-      NULL
-    else if(length(input[["corr_heatmap_metabolites"]]) > 10)
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  threshold = input[["corr_threshold"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]][1:10],
-                                  width_svg = 10, height_svg = 6)
-    else
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  threshold = input[["corr_threshold"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]],
-                                  width_svg = 10, height_svg = 6)
-  })
   
-  full_corr_heatmap_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites"]])
-    
-    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                threshold = input[["corr_threshold"]],
-                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
-                                interactive = FALSE)
-  })
-  
-  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
   
   ######### imputation
   
@@ -1147,11 +1242,13 @@ server <- function(input, output, session) {
                              attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))) {
-      dat_to_display <- dat[["metabocrates_dat_group"]] %>% 
+      dat_to_display <- dat[["metabocrates_dat_group"]] %>%
+        filter(`sample type` == "Sample") %>%
         select(all_of(metabolites)) %>%
         mutate_all(display_short)
     } else {
-      dat_to_display <- attr(dat[["metabocrates_dat_group"]], "completed") %>% 
+      dat_to_display <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        filter(`sample type` == "Sample") %>%
         select(all_of(metabolites)) %>% 
         mutate_all(as.numeric) %>% 
         mutate_all(round, 5) 
@@ -1194,7 +1291,8 @@ server <- function(input, output, session) {
     req(input[["pb_codes_heatmap"]])
     
     plot_heatmap(dat[["metabocrates_dat_group"]],
-                 plate_bar_code = input[["pb_codes_heatmap"]])
+                 plate_bar_code = input[["pb_codes_heatmap"]],
+                 show_colors = input[["missing_heatmap_colors"]])
   })
   
   missing_heatmap_height <- reactive({
@@ -1215,21 +1313,20 @@ server <- function(input, output, session) {
     switch(input[["dist_plt_type"]],
            "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                   input[["sing_metabo_dist"]],
-                                                  width_svg = 10, height_svg = 6),
+                                                  histogram_type = ifelse(input[["hist_type"]],
+                                                                          "imputed",
+                                                                          "all"),
+                                                  bins = input[["hist_bins"]]),
            "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "density",
-                                                width_svg = 10, height_svg = 6),
+                                                type = "density"),
            "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                 input[["sing_metabo_dist"]],
-                                                type = "beeswarm",
-                                                width_svg = 10, height_svg = 6),
+                                                type = "beeswarm"),
            "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]],
-                                      width_svg = 10, height_svg = 6),
+                                      input[["sing_metabo_dist"]]),
            "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]],
-                                      width_svg = 10, height_svg = 6)
+                                      input[["sing_metabo_dist"]])
        )
   })
   
@@ -1261,13 +1358,40 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
   
+  corr_heatmap_both_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites_both"]])
+    req(input[["corr_threshold_both"]])
+    
+    if(is.null(input[["corr_heatmap_metabolites_both"]]))
+      NULL
+    else
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  threshold = input[["corr_threshold_both"]],
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites_both"]],
+                                  type = "both")
+  })
+  
+  full_corr_heatmap_both_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites_both"]])
+    
+    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                threshold = input[["corr_threshold"]],
+                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
+                                type = "both",
+                                interactive = FALSE)
+  })
+  
+  plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt, full_plt = full_corr_heatmap_both_plt)
+  
   ######## Quality control
   
   observeEvent(input[["run"]], {
     if(input[["run"]] == "Quality control"){
       
     if(is.null(dat[["metabocrates_dat_group"]])){
-      print("NO")
       dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
     }
       
@@ -1392,6 +1516,7 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("CV_tbl", CV_tbl)
   
+  ######### Outlier detection
   
   PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
@@ -1413,8 +1538,7 @@ server <- function(input, output, session) {
                       type = ifelse(input[["PCA_type"]] == "sample type",
                                     "sample_type", input[["PCA_type"]]),
                       types_to_display = types_to_display,
-                      threshold = input[["PCA_threshold"]]/100,
-                      width_svg = 10, height_svg = 6)
+                      threshold = input[["PCA_threshold"]]/100)
     }
   })
   
@@ -1464,6 +1588,32 @@ server <- function(input, output, session) {
       plot_with_button_UI("PCA_plt")
     }
   })
+  
+  corr_heatmap_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites"]])
+    req(input[["corr_threshold"]])
+    
+    if(is.null(input[["corr_heatmap_metabolites"]]))
+      NULL
+    else
+      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                  threshold = input[["corr_threshold"]],
+                                  metabolites_to_display =
+                                    input[["corr_heatmap_metabolites"]])
+  })
+  
+  full_corr_heatmap_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["corr_heatmap_metabolites"]])
+    
+    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
+                                threshold = input[["corr_threshold"]],
+                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
+                                interactive = FALSE)
+  })
+  
+  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
   
   ######## Summary
   

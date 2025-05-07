@@ -32,8 +32,12 @@ Suggests:
 Imports: dplyr,
          ggbeeswarm,
          ggfortify,
+         ggiraph,
          ggplot2,
+         ggpubr,
          ggvenn,
+         logspline,
+         openxlsx,
          readxl,
          reshape2,
          scales,
@@ -41,8 +45,6 @@ Imports: dplyr,
          stringr,
          tidyr,
          tools,
-         ggiraph,
-         openxlsx,
          zip
 Depends: 
     R (>= 2.10)
