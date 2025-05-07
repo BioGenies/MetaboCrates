@@ -315,15 +315,6 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
 
 create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
                              bins, type){
-  if(all(is.na(uncomp_metabo_vals[[metabolite]])))
-    fill_vals <- c("Only imputed values" = "#54F3D3")
-  
-  else if(all(is.na(comp_metabo_vals[[metabolite]])))
-    fill_vals <- c("Observed" = "#2B2A29")
-  
-  else fill_vals <- c("Only imputed values" = "#54F3D3",
-                      "Observed" = "#2B2A29")
-  
   if(type == "imputed"){
     comp_metabo_vals <- comp_metabo_vals %>%
       bind_cols("Observed" = uncomp_metabo_vals[[metabolite]]) %>%
@@ -332,6 +323,19 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
     fill_name <- "Only imputed values"
   }else
     fill_name <- "Completed"
+  
+  if(all(is.na(uncomp_metabo_vals[[metabolite]])))
+    fill_vals <- c("Only imputed values" = "#54F3D3")
+  
+  else if(all(is.na(comp_metabo_vals[[metabolite]])))
+    fill_vals <- c("Observed" = "#2B2A29")
+  
+  else
+    fill_vals <- c("Only imputed values" = "#54F3D3",
+                   "Observed" = "#2B2A29")
+  
+  if(type == "all" && !all(is.na(comp_metabo_vals[[metabolite]])))
+    names(fill_vals)[1] <- "Completed"
   
    comp_metabo_vals %>%
     ggplot() +
