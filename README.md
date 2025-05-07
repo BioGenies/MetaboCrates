@@ -66,15 +66,17 @@ MetaboCrates::
 - [x] all summary info in excel
 - [x] info panel to markdown
 - [ ] information to impute data to see plots
-- [ ] adjustable correlations plot size
+- [ ] ?adjustable correlations plot size?
 - [ ] disable picking columns in tables
 - [x] new imputation panel layout
 - [ ] scaled random imputation
 - [ ] ?colored column height?
-- [ ] ?fix report?
+- [ ] fix report
 - [ ] ?correct logspline imputation?
 - [ ] legends to the top
 - [ ] downloading check
 - [ ] color of spinners in DT
 - [x] spinners color
 - [ ] spinners placement
+- [ ] distinguished pca for grupy
+- [ ] Maria data check
