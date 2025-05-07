@@ -227,6 +227,7 @@ plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
   if(interactive)
     girafe(
       ggobj = plt,
+      height_svg = 4 + length(unique(filtered_dat[["metabolite"]]))/20,
       options = list(
         opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                      opacity = 0.9),
@@ -734,7 +735,7 @@ create_correlations_heatmap <- function(dat, type = "completed",
                                    "<br>Metabolite before imputation: ",
                                    "<br>Metabolite 2: "),
                             Var2,
-                            "<br>Correlation coefficient:", round(value, 3))) %>%
+                            "<br>Correlation coefficient: ", round(value, 3))) %>%
     ggplot(aes(x = Var1, y = Var2, fill = value, tooltip = tooltip)) +
     geom_tile_interactive() +
     scale_x_discrete(labels = function(x) str_trunc(x, 10)) +
