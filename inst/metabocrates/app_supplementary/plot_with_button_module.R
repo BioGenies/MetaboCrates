@@ -3,9 +3,9 @@ plot_with_button_UI <- function(id){
   
   plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt",
                       "corr_heatmap_both")) {
-    ggiraph::girafeOutput(ns("plot"))
+    withSpinner(ggiraph::girafeOutput(ns("plot")))
   } else
-    plotOutput(ns("plot"))
+    withSpinner(plotOutput(ns("plot")))
   
   fluidRow(
     column(11,
