@@ -38,12 +38,14 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
       output[["download"]] <- downloadHandler(
         filename = "project.rds",
         content = function(file) {
+          
           if(is.null(dat[["metabocrates_dat_group"]]))
             download_dat <- dat[["metabocrates_dat"]]
           else
             download_dat <- dat[["metabocrates_dat_group"]]
           
           saveRDS(download_dat, file)
+          
         }
       )
     }else if(id == "download_matrix"){
@@ -375,6 +377,9 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
         output[["download"]] <- downloadHandler(
           filename = "report.pdf",
           content = function(file){
+            showModal(modalDialog("Creating report", footer = NULL))
+            on.exit(removeModal())
+            
             params <- list("filtering_threshold",
                            "LOD_method",
                            "LLOQ_method",
@@ -409,6 +414,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                               output_file = file,
                               envir = new.env(parent = globalenv()),
                               params = params_lst)
+            
           }
         )
     }
