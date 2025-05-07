@@ -50,33 +50,33 @@ MetaboCrates::
 - [x] all metabolites allowed on correlation heatmap
 - [x] correlation heatmap check on big screen + helper
 - [ ] NA ratios plot reactive height
-- [ ] multiple grouping column
-- [ ] group plot change
-- [ ] group counts table
+- [ ] !multiple grouping column!
+- [ ] !group plot change!
+- [ ] !group counts table!
 - [x] group levels to character
 - [x] extra space on the bottom
 - [x] colors to missing heatmap
 - [ ] extra space under missing heatmap
 - [x] venn description
-- [ ] download buttons
+- [ ] !download buttons!
 - [x] histogram change
 - [x] PCA plots and correlations heatmap to new panel
 - [x] correlations heatmap before and after imputation
 - [x] thresholds steps to 5%
 - [x] all summary info in excel
 - [x] info panel to markdown
-- [ ] information to impute data to see plots
+- [x] information to impute data to see plots
 - [ ] ?adjustable correlations plot size?
 - [ ] disable picking columns in tables
 - [x] new imputation panel layout
 - [ ] scaled random imputation
-- [ ] ?colored column height?
-- [ ] fix report
+- [ ] colored column height
+- [ ] ?fix report?
 - [ ] ?correct logspline imputation?
 - [ ] legends to the top
 - [ ] downloading check
 - [ ] color of spinners in DT
 - [x] spinners color
-- [ ] spinners placement
-- [ ] distinguished pca for grupy
-- [ ] Maria data check
+- [x] spinners placement
+- [ ] spinners delay
+- [ ] distinguished pca for group

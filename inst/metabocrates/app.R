@@ -135,7 +135,7 @@ ui <- navbarPage(
                           ),
                           column(8,
                                  br(),
-                                 plot_with_button_UI("mv_types_plt")
+                                 uiOutput("mv_types_plt_ui")
                           )
                           
                         )
@@ -262,14 +262,17 @@ ui <- navbarPage(
                         tabPanel("Ratios visualization",
                                  br(),
                                  br(),
-                                 radioButtons("NA_percent_plt_type", 
-                                              "Choose plot type",
-                                              choiceValues = c("joint", "NA_type"),
-                                              selected = "joint",
-                                              choiceNames = c("Joint ratios", "Show NA type"),
-                                              inline = TRUE),
+                                 radioButtons(
+                                   "NA_percent_plt_type", 
+                                   "Choose plot type",
+                                   choiceValues = c("joint", "NA_type"),
+                                   selected = "joint",
+                                   choiceNames = c("Joint ratios", "Show NA type"),
+                                   inline = TRUE
+                                 ),
                                  column(12,
-                                        plot_with_button_UI("NA_ratios_plt"))
+                                        uiOutput("NA_ratios_plt_ui")
+                                 )
                         ),
                         tabPanel("Venn diagram",
                                  column(12,
@@ -419,7 +422,7 @@ ui <- navbarPage(
                                       )
                                     ),
                                     column(9,
-                                           plot_with_button_UI("dist_plt")
+                                           uiOutput("dist_plt_ui")
                                     )
                            ),
                            tabPanel("Correlations heatmap",
@@ -456,7 +459,7 @@ ui <- navbarPage(
                                            h3("next: Quality control")
                                     ),
                                     column(9,
-                                           plot_with_button_UI("corr_heatmap_both")
+                                           uiOutput("corr_heatmap_both_ui")
                                     )
                            )
                 )
@@ -890,11 +893,22 @@ server <- function(input, output, session) {
   mv_types_plt_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
     
-    plot_mv_types(dat[["metabocrates_dat"]])
+    if(nrow(attr(dat[["metabocrates_dat"]], "NA_info")[["counts"]]) == 0)
+      NULL
+    else
+      plot_mv_types(dat[["metabocrates_dat"]])
+  })
+  
+  output[["mv_types_plt_ui"]] <- renderUI({
+    tagList(
+      if(is.null(mv_types_plt_reactive()))
+        h4("No missing values found.")
+      else
+        plot_with_button_UI("mv_types_plt")
+    )
   })
   
   plot_with_button_SERVER("mv_types_plt", mv_types_plt_reactive)
-  
   
   ######### groups selection
   
@@ -1092,7 +1106,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
     
     if(length(removed) == 0)
-      HTML("None.")
+      HTML("None")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
@@ -1146,20 +1160,23 @@ server <- function(input, output, session) {
     
   })
   
-  
   table_with_button_SERVER("NA_ratios_tbl", NA_ratios_tbl)
   
   NA_ratios_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["NA_percent_plt_type"]])
     
-    metabo_num <- length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                 c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                                   attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])))
+    metabo_to_display <- attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios_type"]] %>% 
+      filter(!(metabolite %in% c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                                 attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))) %>%
+      filter(NA_frac != 0) %>%
+      nrow()
     
-    plot_NA_percent(dat[["metabocrates_dat_group"]], 
-                    type = input[["NA_percent_plt_type"]])
-    
+    if(metabo_to_display == 0)
+      NULL 
+    else
+      plot_NA_percent(dat[["metabocrates_dat_group"]], 
+                      type = input[["NA_percent_plt_type"]])
   })
   
   NA_ratios_plt_full <- reactive({
@@ -1169,11 +1186,17 @@ server <- function(input, output, session) {
     plot_NA_percent(dat[["metabocrates_dat_group"]], 
                     type = input[["NA_percent_plt_type"]],
                     interactive = FALSE)
-    
+  })
+  
+  output[["NA_ratios_plt_ui"]] <- renderUI({
+    if(is.null(NA_ratios_plt()))
+      h4("No missing values found.")
+    else
+      plot_with_button_UI("NA_ratios_plt")
   })
   
   plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt,
-                          NA_ratios_plt_height, full_plt = NA_ratios_plt_full)
+                          full_plt = NA_ratios_plt_full)
   
   venn_plt <- reactive({
     req(input[["filtering_threshold"]])
@@ -1194,8 +1217,6 @@ server <- function(input, output, session) {
   })
   
   output[["venn_diagram_ui"]] <- renderUI({
-    req(venn_plt)
-    
     tagList(
       br(),
       if(is.null(venn_plt())){
@@ -1307,27 +1328,28 @@ server <- function(input, output, session) {
   
   dist_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(attr(dat[["metabocrates_dat_group"]], "completed"))
-    req(input[["sing_metabo_dist"]])
     
-    switch(input[["dist_plt_type"]],
-           "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
+      NULL
+    else
+      switch(input[["dist_plt_type"]],
+             "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                    input[["sing_metabo_dist"]],
+                                                    histogram_type = ifelse(input[["hist_type"]],
+                                                                            "imputed",
+                                                                            "all"),
+                                                    bins = input[["hist_bins"]]),
+             "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                   input[["sing_metabo_dist"]],
-                                                  histogram_type = ifelse(input[["hist_type"]],
-                                                                          "imputed",
-                                                                          "all"),
-                                                  bins = input[["hist_bins"]]),
-           "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
-                                                input[["sing_metabo_dist"]],
-                                                type = "density"),
-           "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
-                                                input[["sing_metabo_dist"]],
-                                                type = "beeswarm"),
-           "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]]),
-           "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]])
-       )
+                                                  type = "density"),
+             "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
+                                                   input[["sing_metabo_dist"]],
+                                                   type = "beeswarm"),
+             "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
+                                        input[["sing_metabo_dist"]]),
+             "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
+                                        input[["sing_metabo_dist"]])
+      )
   })
   
   full_dist_plt <- reactive({
@@ -1356,11 +1378,17 @@ server <- function(input, output, session) {
        )
   })
   
+  output[["dist_plt_ui"]] <- renderUI({
+    if(is.null(dist_plt()))
+      h4("Complete data to see plots.")
+    else
+      plot_with_button_UI("dist_plt")
+  })
+  
   plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
   
   corr_heatmap_both_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites_both"]])
     req(input[["corr_threshold_both"]])
     
     if(is.null(input[["corr_heatmap_metabolites_both"]]))
@@ -1384,21 +1412,27 @@ server <- function(input, output, session) {
                                 interactive = FALSE)
   })
   
+  output[["corr_heatmap_both_ui"]] <- renderUI({
+    if(is.null(corr_heatmap_both_plt()))
+      h4("Complete data to see heatmap.")
+    else
+      plot_with_button_UI("corr_heatmap_both")
+  })
+  
   plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt, full_plt = full_corr_heatmap_both_plt)
   
   ######## Quality control
   
   observeEvent(input[["run"]], {
-    if(input[["run"]] == "Quality control"){
+    if(input[["run"]] %in% c("Quality control", "Outlier detection")){
+      if(is.null(dat[["metabocrates_dat_group"]])){
+        dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
+      }
       
-    if(is.null(dat[["metabocrates_dat_group"]])){
-      dat[["metabocrates_dat_group"]] <- dat[["metabocrates_dat"]]
-    }
-      
-    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
-     sendSweetAlert(session,
-                     title = "Incompleted data - automatic imputation",
-                     text = HTML("<div style='text-align: left;'>
+      if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
+        sendSweetAlert(session,
+                       title = "Incompleted data - automatic imputation",
+                       text = HTML("<div style='text-align: left;'>
                        Quality control requires imputed data.<br>
                        Automatic imputation has been applied using<br>
                        - LOD method: <b>halfmin</b>,<br>
@@ -1406,30 +1440,30 @@ server <- function(input, output, session) {
                        - LLOQ method: <b>limit</b>,<br>
                        - ULOQ method: <b>third quartile</b>.<br>
                        You can go back anytime to modify the imputation."),
-                     type = "warning",
-                     html = TRUE)
-    
-      updateSelectInput(session, "LOD_method",
-                        selected = "halfmin")
-    
-      updateSelectInput(session, "LLOQ_method",
-                        selected = "limit")
-    
-      updateSelectInput(session, "ULOQ_method",
-                        selected = "third quartile")
-    
-      updateSelectInput(session, "LOD_type",
-                        selected = "calc")
-    
-      dat[["metabocrates_dat_group"]] <-
-        complete_data(dat[["metabocrates_dat_group"]],
-                      LOD_method = "halfmin",
-                      LLOQ_method = "limit",
-                      ULOQ_method = "third quartile",
-                      LOD_type = "calc")
-    
-      update_inputs_SERVER("complete_update", session, input, dat)
-    }
+                       type = "warning",
+                       html = TRUE)
+        
+        updateSelectInput(session, "LOD_method",
+                          selected = "halfmin")
+        
+        updateSelectInput(session, "LLOQ_method",
+                          selected = "limit")
+        
+        updateSelectInput(session, "ULOQ_method",
+                          selected = "third quartile")
+        
+        updateSelectInput(session, "LOD_type",
+                          selected = "calc")
+        
+        dat[["metabocrates_dat_group"]] <-
+          complete_data(dat[["metabocrates_dat_group"]],
+                        LOD_method = "halfmin",
+                        LLOQ_method = "limit",
+                        ULOQ_method = "third quartile",
+                        LOD_type = "calc")
+        
+        update_inputs_SERVER("complete_update", session, input, dat)
+      }
       
       dat[["metabocrates_dat_group"]] <-
         calculate_CV(dat[["metabocrates_dat_group"]])
@@ -1460,7 +1494,7 @@ server <- function(input, output, session) {
                                      input[["CV_to_remove"]]))
     
     if(length(to_remove_CV_display) == 0)
-      HTML("None.")
+      HTML("None")
     else {
       HTML(paste0(to_remove_CV_display, collapse = ", "))
     }
@@ -1472,7 +1506,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]
     
     if(length(removed) == 0)
-      HTML("None.")
+      HTML("None")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
