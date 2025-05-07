@@ -20,8 +20,7 @@ source("app_supplementary/download_module.R")
 
 options(
   shiny.maxRequestSize=100*1024^2,
-  spinner.color = "#54F3D3",
-  spinner.type = 1
+  spinner.color = "#54F3D3"
 )
 
 panels_vec <- c("About", "Uploading data", "Group selection",
@@ -51,7 +50,12 @@ ui <- navbarPage(
       line-height: 1.2;
     }
     div.dataTables_processing {
-    background-color: white;
+      background-color: white;
+    }
+  .full-height {
+    min-height: 80vh;
+    background-color: #f8f5f0;
+    border-right: 1px solid #ccc;
   }
   ")),
   
@@ -73,6 +77,7 @@ ui <- navbarPage(
         ),
         nav_btns_UI("Uploading data"),
         column(3,
+               class = "full-height",
                style = "background-color:#f8f5f0; border-right: 1px solid",
                br(),
                h4("Upload new data"),
@@ -98,12 +103,7 @@ ui <- navbarPage(
                  style = "material-flat",
                  color = "success",
                  icon = HTML("<i class='fa-solid fa-upload fa-bounce'></i>")
-               ),
-               br(),
-               br(),
-               br(),
-               br(),
-               br()
+               )
         ),
         column(9,
                column(6,
@@ -118,7 +118,7 @@ ui <- navbarPage(
                         tabPanel(
                           "Data summary",
                           br(),
-                          htmlOutput("raw_data_summary"),
+                          withSpinner(htmlOutput("raw_data_summary")),
                         ),
                         tabPanel(
                           "Compounds matrix",
@@ -166,7 +166,8 @@ ui <- navbarPage(
                              br()),
                ),
                column(2,
-                      style = "background-color:#f8f5f0; border-right: 1px solid; height: 400px",
+                      class = "full-height",
+                      style = "background-color:#f8f5f0; border-right: 1px solid",
                       br(),
                       br(),
                       div(htmlOutput("columns_info"))
@@ -188,6 +189,7 @@ ui <- navbarPage(
       tabPanel("Filtering",
                nav_btns_UI("Filtering"),
                column(4,
+                      class = "full-height",
                       style = "background-color:#f8f5f0; border-right: 1px solid",
                       br(),
                       h4("Provide threshold."),
@@ -242,13 +244,7 @@ ui <- navbarPage(
                       br(),
                       br(),
                       column(12, h4("Removed metabolites:")),
-                      column(12, htmlOutput("LOD_removed_txt")),
-                      br(),
-                      br(),
-                      br(),
-                      br(),
-                      br(),
-                      br()
+                      column(12, htmlOutput("LOD_removed_txt"))
                       
                ),
                column(8, align = "right",
@@ -290,6 +286,7 @@ ui <- navbarPage(
                tabsetPanel(id = "imputation_tabset",
                            tabPanel("Data completing",
                                     column(3,
+                                           class = "full-height",
                                            style = "background-color:#f8f5f0; border-right: 1px solid",
                                            h3("Select methods for data imputation"),
                                            br(),
@@ -348,6 +345,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Missing values heatmap",
                                    column(3,
+                                          class = "full-height",
                                           style = "background-color:#f8f5f0; border-right: 1px solid",
                                           br(),
                                           br(),
@@ -372,6 +370,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Single metabolite distribution",
                                     column(3,
+                                           class = "full-height",
                                            style = "background-color:#f8f5f0; border-right: 1px solid",
                                            br(),
                                            br(),
@@ -425,6 +424,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Correlations heatmap",
                                     column(3,
+                                           class = "full-height",
                                            style = "background-color:#f8f5f0; border-right: 1px solid",
                                            br(),
                                            br(),
@@ -465,6 +465,7 @@ ui <- navbarPage(
       tabPanel("Quality control",
                nav_btns_UI("Quality control"),
                           column(4,
+                                 class = "full-height",
                                  style = "background-color:#f8f5f0; border-right: 1px solid",
                                  h4("Provide threshold."),
                                  h5("All metabolites for which the coefficient of variation
@@ -537,6 +538,7 @@ ui <- navbarPage(
                tabsetPanel(id = "outlier_detection",
                            tabPanel("PCA",
                                     column(3,
+                                           class = "full-height",
                                            style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
                                            br(),
                                            br(),
@@ -608,6 +610,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Heatmap of correlations after imputation",
                                     column(3,
+                                           class = "full-height",
                                            style = "background-color:#f8f5f0; border-right: 1px solid",
                                            br(),
                                            br(),
