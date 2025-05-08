@@ -902,11 +902,19 @@ server <- function(input, output, session) {
   output[["mv_types_plt_ui"]] <- renderUI({
     tagList(
       if(is.null(mv_types_plt_reactive()))
-        h4("No missing values found.")
+        HTML('<div style="text-align: left; background-color: #e5fbf7;
+                 padding: 8px 10px; border-left: 4px solid #00d2a3;
+                 border-radius: 4px; font-size: 14px; width: 100%;">
+                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                 No missing values found.
+                 </div>'
+        )
       else
         plot_with_button_UI("mv_types_plt")
     )
   })
+  
+  outputOptions(output, "mv_types_plt_ui", suspendWhenHidden = FALSE)
   
   plot_with_button_SERVER("mv_types_plt", mv_types_plt_reactive)
   
@@ -1190,10 +1198,18 @@ server <- function(input, output, session) {
   
   output[["NA_ratios_plt_ui"]] <- renderUI({
     if(is.null(NA_ratios_plt()))
-      h4("No missing values found.")
+      HTML('<div style="text-align: left; background-color: #e5fbf7;
+                 padding: 8px 10px; border-left: 4px solid #00d2a3;
+                 border-radius: 4px; font-size: 14px; width: 100%;">
+                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                 No missing values found.
+                 </div>'
+      )
     else
       plot_with_button_UI("NA_ratios_plt")
   })
+  
+  outputOptions(output, "NA_ratios_plt_ui", suspendWhenHidden = FALSE)
   
   plot_with_button_SERVER("NA_ratios_plt", NA_ratios_plt,
                           full_plt = NA_ratios_plt_full)
@@ -1380,10 +1396,18 @@ server <- function(input, output, session) {
   
   output[["dist_plt_ui"]] <- renderUI({
     if(is.null(dist_plt()))
-      h4("Complete data to see plots.")
+      HTML('<div style="text-align: left; background-color: #e5fbf7;
+                 padding: 8px 10px; border-left: 4px solid #00d2a3;
+                 border-radius: 4px; font-size: 14px; width: 100%;">
+                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                 Complete data to see plots.
+                 </div>'
+      )
     else
       plot_with_button_UI("dist_plt")
   })
+  
+  outputOptions(output, "dist_plt_ui", suspendWhenHidden = FALSE)
   
   plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
   
@@ -1414,10 +1438,18 @@ server <- function(input, output, session) {
   
   output[["corr_heatmap_both_ui"]] <- renderUI({
     if(is.null(corr_heatmap_both_plt()))
-      h4("Complete data to see heatmap.")
+      HTML('<div style="text-align: left; background-color: #e5fbf7;
+                 padding: 8px 10px; border-left: 4px solid #00d2a3;
+                 border-radius: 4px; font-size: 14px; width: 100%;">
+                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                 Complete data to see heatmap.
+                 </div>'
+      )
     else
       plot_with_button_UI("corr_heatmap_both")
   })
+  
+  outputOptions(output, "corr_heatmap_both_ui", suspendWhenHidden = FALSE)
   
   plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt, full_plt = full_corr_heatmap_both_plt)
   

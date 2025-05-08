@@ -572,7 +572,7 @@ create_boxplot <- function(dat, metabolite, interactive = TRUE){
                              nrow(comp_metabo_vals)))) %>%
     ggplot(aes(x = Type, y = get(metabolite),
                fill = Type, color = Type)) +
-    geom_boxplot(alpha = 0.4) +
+    geom_boxplot(alpha = 0.4, outlier.alpha = 1) +
     labs(x = metabolite, y = "Value") +
     metabocrates_theme() +
     scale_fill_metabocrates_discrete() +
