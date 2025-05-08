@@ -94,21 +94,21 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
         updateNumericInput(main_session, inputId = "PCA_variance_max_num",
                            max = length(metabolites()),
                            value = min(c(5, length(metabolites()))))
-          
-        updateSelectInput(main_session, inputId = "sing_metabo_dist",
-                          choices = metabolites())
-          
+        
         uncomplete_metabolites <- reactive({
           req(dat[["metabocrates_dat_group"]])
-            
+          
           attr(dat[["metabocrates_dat_group"]], "completed") %>%
-          filter(`sample type` == "Sample") %>%
-          select(all_of(metabolites())) %>%
-          select(where(~ is.na(sd(., na.rm = TRUE)) | sd(., na.rm = TRUE) == 0))
+            filter(`sample type` == "Sample") %>%
+            select(all_of(metabolites())) %>%
+            select(where(~ is.na(sd(., na.rm = TRUE)) | sd(., na.rm = TRUE) == 0))
         })
         
         aval_metabos <- setdiff(metabolites(),
                                 names(uncomplete_metabolites()))
+          
+        updateSelectInput(main_session, inputId = "sing_metabo_dist",
+                          choices = aval_metabos)
           
         updatePickerInput(main_session, inputId = "corr_heatmap_metabolites",
                           choices = aval_metabos,
