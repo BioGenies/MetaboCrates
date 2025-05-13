@@ -106,11 +106,7 @@ ui <- navbarPage(
                )
         ),
         column(9,
-               column(6,
-                      h3("Dataset preview"),
-                      h4("You can see metabolomics matrix and LOD table below:"),
-                      br()),
-               column(6, align = "right", 
+               column(12, align = "right", 
                       h2("Uploading data (step 1/8)"),
                       h3("next: Group selection")),
                column(12, 
@@ -145,45 +141,47 @@ ui <- navbarPage(
       #############
       tabPanel("Group selection",
                nav_btns_UI("Group selection"),
-               column(8,
-                      div(style = "background-color:#f8f5f0; border-right: 1px solid"),
-                      column(2,
-                             h2("(optional)"),
-                      ),
-                      column(10,
-                             br(),
-                             h4("Select column containing grouping variable from the table.
-             Click again to unselect."),
-                             h5("A proper group column should contain names of groups. It 
-                    can't contain missing values (NA's) for samples."),
-                             br()
-                      )
+               tabsetPanel(
+                 tabPanel("Group selection",
+                          column(3,
+                                 class = "full-height",
+                                 style = "background-color:#f8f5f0; border-right: 1px solid",
+                                 br(),
+                                 h4("Click to select one or more rows in the table to choose columns for grouping (optional)."),
+                                 uiOutput("selected_info"),
+                                 br(),
+                                 column(6, align = "center",
+                                        actionButton("add_group",
+                                                     "Apply"
+                                        )
+                                 ),
+                                 column(6, align = "center",
+                                        actionButton("remove_group",
+                                                     "Undo"
+                                        )
+                                 ),
+                                 br(),
+                                 br(),
+                                 br(),
+                                 uiOutput("group_info")
+                          ),
+                          column(9, align = "right", 
+                                 h2("Group selection (step 2/8)"),
+                                 h3("next: Filtering"),
+                          ),
+                          column(7, offset = 1,
+                                 br(),
+                                 table_with_button_UI("group_columns")
+                          )
                ),
-               column(4,
-                      column(12, align = "right", 
-                             h2("Group selection (step 2/8)"),
-                             h3("next: Filtering"),
-                             br()),
-               ),
-               column(2,
-                      class = "full-height",
-                      style = "background-color:#f8f5f0; border-right: 1px solid",
-                      br(),
-                      br(),
-                      div(htmlOutput("columns_info"))
-               ),
-               column(10,
-                      column(6,
-                             br(),
-                             table_with_button_UI("group_columns")
-                      ),
-                      column(6,
-                             br(),
-                             div(htmlOutput("selected_group")),
-                             br(),
-                             plot_with_button_UI("groups_plt")
-                      )
+               tabPanel("Group summary",
+                        column(12, align = "right",
+                               h2("Group selection (step 2/8)"),
+                               h3("next: Filtering"),
+                        ),
+                        uiOutput("groups_plt_ui")
                )
+          )
       ),
       ####################
       tabPanel("Filtering",
@@ -781,14 +779,22 @@ server <- function(input, output, session) {
     validate(need(tools::file_ext(path) %in% c("xlsx", "xls"),
                   paste("Please upload an xlsx or xls file!")))
     
-    uploaded_data <- try({read_data(path)})
-    
-    if(inherits(uploaded_data, "try-error")) {
-      sendSweetAlert(session, "Error!", "Check validity of your file!", 
-                     type = "error")
-      dat[["metabocrates_dat"]] <- NULL
-      req(NULL)
-    }
+    tryCatch(
+      uploaded_data <- read_data(path),
+      error = function(e){
+        if(e[["message"]] == "Found duplicated column names."){
+          sendSweetAlert(session, "Error!",
+                         "Column names have to be unique, ignoring case!", 
+                         type = "error")
+        }else{
+          sendSweetAlert(session, "Error!", "Check validity of your file!", 
+                         type = "error")
+        }
+        
+        dat[["metabocrates_dat"]] <- NULL
+        req(NULL)
+      }
+    )
     
     dat[["metabocrates_dat"]] <- uploaded_data
     
@@ -843,11 +849,11 @@ server <- function(input, output, session) {
     
     info_txt <- paste0(
       "<h4> Data summary:</h4><br/>",
-      "<b>Compounds:</b> ", n_cmp, ", <br/>  <br/> ",
-      "<b>Samples:</b> ", n_smp, ", <br/> <br/>  ",
-      "<b>Sample Types:</b> ",  paste0(sample_types, collapse = ", "), ", <br/>  <br/> ",
-      "<b>Material: </b>", paste0(unique(pull(uploaded_dat, "material")), collapse = ", "), ", <br/> <br/>  ",
-      "<b>OP: </b>", paste0(unique(pull(uploaded_dat, "op")), collapse = ", "), ", <br/>  <br/> ",
+      "<b>Compounds:</b> ", n_cmp, ". <br/>  <br/> ",
+      "<b>Samples:</b> ", n_smp, ". <br/> <br/>  ",
+      "<b>Sample Types:</b> ",  paste0(sample_types, collapse = ", "), ". <br/>  <br/> ",
+      "<b>Material: </b>", paste0(unique(pull(uploaded_dat, "material")), collapse = ", "), ". <br/> <br/>  ",
+      "<b>OP: </b>", paste0(unique(pull(uploaded_dat, "op")), collapse = ", "), ". <br/>  <br/> ",
       "<b>Plate Bar Code: </b>", paste0(unique(pull(uploaded_dat, "plate bar code")), collapse = ", ")
     )
     
@@ -855,7 +861,7 @@ server <- function(input, output, session) {
                              attr(dat[["metabocrates_dat"]], "removed")[["QC"]])
     
     info_txt_removed <- ifelse(is.null(removed_metabolites), ".",
-                               paste0(", <br/> <br/> <b>Removed metabolites: </b>",
+                               paste0(". <br/> <br/> <b>Removed metabolites: </b>",
                                       paste0(removed_metabolites, collapse = ", "), "."))
     
     HTML(paste0(info_txt, info_txt_removed))
@@ -892,6 +898,7 @@ server <- function(input, output, session) {
   
   mv_types_plt_reactive <- reactive({
     req(dat[["metabocrates_dat"]])
+    req(input[["run"]] == "Uploading data")
     
     if(nrow(attr(dat[["metabocrates_dat"]], "NA_info")[["counts"]]) == 0)
       NULL
@@ -933,23 +940,31 @@ server <- function(input, output, session) {
                        "run number", "injection number", "measurement time"))) %>% 
       filter(`sample type` == "Sample") %>% 
       select(-`sample type`, -`species`) %>%
-      select(where(~ !any(is.na(.))))
+      select(where(~ !any(is.na(.)))) %>%
+      mutate(across(everything(), as.character)) %>%
+      tidyr::pivot_longer(everything(),
+                          names_to = "column name",
+                          values_to = "value") %>%
+      group_by(`column name`) %>%
+      summarise(`unique levels` = n_distinct(value),
+                `values` = paste0(unique(value), collapse = ", "))
     
     if(!is.null(attr(dat[["metabocrates_dat"]], "group"))){
-      group_ind <- which(names(dat[["group_candidates"]]) == attr(dat[["metabocrates_dat"]], "group"))
+      group_ind <- match(attr(dat[["metabocrates_dat"]], "group"),
+                         dat[["group_candidates"]][["column name"]])
       
-      dat[["group_candidates"]] %>% 
-      custom_datatable(scrollY = 300,
-                       paging = TRUE,
-                       selection = list(mode = "single",
-                                        target = "column",
-                                        selected = group_ind-1))
+      dat[["group_candidates"]] %>%
+        custom_datatable(scrollY = 300,
+                         paging = TRUE,
+                         selection = list(mode = "multiple",
+                                          target = "row",
+                                          selected = group_ind))
     }else{
       dat[["group_candidates"]] %>% 
         custom_datatable(scrollY = 300,
                          paging = TRUE,
-                         selection = list(mode = "single",
-                                          target = "column"))
+                         selection = list(mode = "multiple",
+                                          target = "row"))
     }
   })
   
@@ -957,11 +972,11 @@ server <- function(input, output, session) {
   
   last_selected_group <- reactiveVal(NULL)
   
-  observeEvent(input[["group_columns-table_columns_selected"]], {
+  observeEvent(input[["add_group"]], {
     req(dat[["metabocrates_dat"]])
     req(dat[["metabocrates_dat_group"]])
     
-    if(is.null(input[["group_columns-table_columns_selected"]])){
+    if(is.null(input[["group_columns-table_rows_selected"]])){
       attr(dat[["metabocrates_dat_group"]], "group") <- NULL
     
       if(!is.null(last_selected_group())){
@@ -976,98 +991,184 @@ server <- function(input, output, session) {
         last_selected_group(attr(dat[["metabocrates_dat"]], "group"))
     
       group_candidates <- dat[["group_candidates"]]
-      group_name <- colnames(group_candidates)[input[["group_columns-table_columns_selected"]] + 1]
+      group_names <- group_candidates[["column name"]][input[["group_columns-table_rows_selected"]]]
     
       group_col_samples <- dat[["metabocrates_dat"]] %>% 
-        filter(`sample type` == "Sample") %>% 
-        pull(group_name)
+        filter(`sample type` == "Sample") %>%
+        rowwise() %>%
+        mutate(group_tmp = if (any(is.na(across(all_of(group_names))))) {
+          NA
+        } else {
+          do.call(paste, c(across(all_of(group_names)), sep = ", "))
+        }) %>%
+        pull(group_tmp)
     
       if (!is.null(last_selected_group()) && 
-          group_name == last_selected_group()) {
+          setequal(group_names, last_selected_group())) {
         req(NULL)
       }
     
       if (group_col_samples %>% is.na() %>% any()) {
         sendSweetAlert(session = session,
-                       title = "Invalid group: missing group labels",
-                       text = "Make sure that all samples have non-missing group name!",
+                       title = "Invalid group: missing group levels",
+                       text = "Make sure that all samples have non-missing values in all grouping columns!",
                        type = "error")
       }
     
       if (any(table(group_col_samples) < 2)) {
         sendSweetAlert(session = session,
-                       title = "Invalid group: too many groups",
-                       text = "We require at least 2 observations per group.",
+                       title = "Invalid group: too many levels",
+                       text = "We require at least 2 observations per group level.",
                        type = "error")
       }
       
       if (length(unique(group_col_samples)) == 1) {
         sendSweetAlert(session = session,
-                       title = "Single group",
-                       text = "Provided column contains only one unique label.",
+                       title = "Single group level",
+                       text = "Provided grouping results in only one unique group level.",
                        type = "warning")
       } else {
         sendSweetAlert(session = session,
                        title = "Great!",
-                       text = paste0("Group ", group_name, " selected!"),
+                       text = "Grouping successfully applied!",
                        type = "success")
       }
   
-      dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat_group"]], group_name)
+      dat[["metabocrates_dat_group"]] <- add_group(dat[["metabocrates_dat_group"]], group_names)
     
-      last_selected_group(group_name)
+      last_selected_group(group_names)
     }
     
       update_inputs_SERVER("group_update", session, input, dat)
-    }, ignoreNULL = FALSE)
+  }, ignoreNULL = FALSE)
   
-  output[["columns_info"]] <- renderUI({
-    req(dat[["group_candidates"]])
+  observeEvent(input[["remove_group"]], {
+    attr(dat[["metabocrates_dat_group"]], "group") <- NULL
     
-    counts <- dat[["group_candidates"]] %>%
-      summarise(across(everything(), n_distinct)) %>%
-      unlist() %>%
-      as.integer()
-    
-    HTML(
-      paste0("<span style = 'font-size:15px; font-weight: bold;'>",
-             "Found ",
-             ncol(dat[["group_candidates"]]),
-             " possible grouping columns.</br></br>Unique levels per column</span></br><span style='font-size:15px'>",
-             paste0(colnames(dat[["group_candidates"]]), ": ", counts, collapse = "</br>"),
-             "</span>")
-    )
-  })
-  
-  output[["selected_group"]] <- renderUI({
-    req(dat[["metabocrates_dat_group"]])
-    
-    group_name <- attr(dat[["metabocrates_dat_group"]], "group")
-
-    if (is.null(group_name)){
-      req(NULL)
+    if(!is.null(last_selected_group())){
+      last_selected_group(NULL)
+      dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]], "LOD")
+      dat[["metabocrates_dat_group"]] <- unremove_all(dat[["metabocrates_dat_group"]], "QC")
+      attr(dat[["metabocrates_dat_group"]], "completed") <- NULL
     }
     
-    group_col_samples <- dat[["metabocrates_dat"]] %>% 
-      filter(`sample type` == "Sample") %>% 
-      pull(group_name)
+    update_inputs_SERVER("remove_group_update", session, input, dat)
+  })
+  
+  output[["selected_info"]] <- renderUI({
+    if (is.null(input[["group_columns-table_rows_selected"]])) {
+     selected_columns_str <- "none."
+    } else {
+      selected_columns <- dat[["group_candidates"]][["column name"]][input[["group_columns-table_rows_selected"]]]
+      selected_columns_str <- paste0(paste0(selected_columns, collapse = ", "), ".")
+    }
     
-    HTML(
-      paste0("<span style = 'font-size:18px; font-weight: bold;'>Selected group:</span><span style='font-size:17px'> ",
-             group_name, "</span>")
+    tagList(
+      h5(paste0("Found ", nrow(dat[["group_candidates"]]), " possible grouping columns.")),
+      br(),
+      br(),
+      h4("Selected columns: "),
+      h5(selected_columns_str)
     )
   })
+  
+  output[["group_info"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    if (is.null(attr(dat[["metabocrates_dat_group"]], "group")))
+      group_columns <- "none."
+    else
+      group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
+                                     collapse = ", "), ".")
+    
+    tagList(
+      h4("Grouping columns: "),
+      h5(group_columns)
+    )
+  })
+  
+  output[["grouping_columns_summary"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    if (is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
+      group_columns <- "none."
+      total_num <- 0
+    }
+    else{
+      group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
+                                     collapse = ",\n"), ".")
+      total_num <- length(attr(dat[["metabocrates_dat_group"]], "group"))
+    }
+    
+    tagList(
+      h4("Grouping columns: "),
+      h5(group_columns),
+      br(),
+      br(),
+      h5(paste0("Total number of unique levels: ", total_num, "."))
+    )
+  })
+  
+  group_table_DT <- reactive({
+    req(attr(dat[["metabocrates_dat_group"]], "group"))
+    
+    dat[["metabocrates_dat_group"]] %>%
+      filter(`sample type` == "Sample") %>%
+      mutate(Level = do.call(paste,
+                             c(across(all_of(attr(dat[["metabocrates_dat_group"]], "group"))),
+                               sep = ", "))) %>%
+      group_by(Level) %>%
+      summarise(Count = n_distinct(Level)) %>%
+      rename(all_of(setNames("Level",
+                      paste0(attr(dat[["metabocrates_dat_group"]], "group"), collapse = ", ")))) %>%
+      custom_datatable(scrollY = 300, paging = TRUE)
+  })
+  
+  table_with_button_SERVER("group_table", group_table_DT)
   
   groups_plt_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
+    req(input[["grouping_column"]])
     
     if(!is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      plot_groups(dat[["metabocrates_dat_group"]])
+      plot_groups(dat[["metabocrates_dat_group"]],
+                  grouping_column = input[["grouping_column"]])
   })
   
+  plot_with_button_SERVER("groups_plt", groups_plt_reactive) 
   
-  plot_with_button_SERVER("groups_plt", groups_plt_reactive)
+  output[["groups_plt_ui"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["run"]] == "Group selection")
+    
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group")))
+      column(10,
+             HTML('<div style="text-align: left; background-color: #e5fbf7;
+                 padding: 8px 10px; border-left: 4px solid #00d2a3;
+                 border-radius: 4px; font-size: 14px; width: 100%;">
+                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                 Apply grouping to see the summary.
+                 </div>'
+             )
+      )
+    else
+      tagList(
+        column(4, offset = 1,
+               br(),
+               br(),
+               table_with_button_UI("group_table")
+        ),
+        column(6,
+               selectInput("grouping_column",
+                           label = "Choose grouping column",
+                           choices = attr(dat[["metabocrates_dat_group"]], "group")
+               ),
+               plot_with_button_UI("groups_plt") 
+        )
+      )
+  })
   
+  outputOptions(output, "groups_plt_ui", suspendWhenHidden = FALSE)
   
   ######### filtering
   
@@ -1101,7 +1202,7 @@ server <- function(input, output, session) {
                                   input[["LOD_to_remove"]]))
     
     if(length(ro_remove_display) == 0)
-      HTML("None.")
+      HTML("none.")
     else {
       HTML(paste0(ro_remove_display, collapse = ", "))
     }
@@ -1114,7 +1215,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
     
     if(length(removed) == 0)
-      HTML("None")
+      HTML("none.")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
@@ -1148,10 +1249,9 @@ server <- function(input, output, session) {
   NA_ratios_tbl <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    NA_table_type <- 
-      ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "group")), 
-             "NA_ratios_type",
-             "NA_ratios_group")
+    NA_table_type <- ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "group")),
+                            "NA_ratios_type",
+                            "NA_ratios_group")
     
     dt <- attr(dat[["metabocrates_dat_group"]], "NA_info")[[NA_table_type]] %>% 
       filter(!(metabolite %in% c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
@@ -1162,9 +1262,11 @@ server <- function(input, output, session) {
     
     if(NA_table_type == "NA_ratios_group")
       dt <- rename(dt,
-                   all_of(setNames("grouping_column", attr(dat[["metabocrates_dat_group"]], "group"))))
+                   all_of(setNames("grouping_column",
+                                   paste0(attr(dat[["metabocrates_dat_group"]], "group"), collapse = ", "))))
       
-      dt %>% custom_datatable(scrollY = 300, paging = TRUE)
+      dt %>% custom_datatable(scrollY = 300,
+                              paging = TRUE)
     
   })
   
@@ -1190,6 +1292,7 @@ server <- function(input, output, session) {
   NA_ratios_plt_full <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["NA_percent_plt_type"]])
+    req(input[["run"]] == "Filtering")
     
     plot_NA_percent(dat[["metabocrates_dat_group"]], 
                     type = input[["NA_percent_plt_type"]],
@@ -1236,7 +1339,13 @@ server <- function(input, output, session) {
     tagList(
       br(),
       if(is.null(venn_plt())){
-        h4("Provide a group with more than 1 and up to 4 levels to see Venn diagram")
+        HTML('<div style="text-align: left; background-color: #e5fbf7;
+                  padding: 8px 10px; border-left: 4px solid #00d2a3;
+                  border-radius: 4px; font-size: 14px; width: 100%;">
+                  <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                  Provide a group with more than 1 and up to 4 levels to see Venn diagram.
+                  </div>'
+        )
       }
       else{
         h4("This Venn diagram illustrates how many metabolites have missing
@@ -1265,8 +1374,7 @@ server <- function(input, output, session) {
                 attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]])) %>%
       mutate(across(everything(), display_short)) %>%
       custom_datatable(scrollY = 300,
-                       paging = TRUE,
-                       selection = list(mode = "single", target = "column"))
+                       paging = TRUE)
   })
   
   table_with_button_SERVER("LOD_tbl", LOD_tbl_reactive)
@@ -1395,6 +1503,8 @@ server <- function(input, output, session) {
   })
   
   output[["dist_plt_ui"]] <- renderUI({
+    req(input[["run"]] == "Completing")
+    
     if(is.null(dist_plt()))
       HTML('<div style="text-align: left; background-color: #e5fbf7;
                  padding: 8px 10px; border-left: 4px solid #00d2a3;
@@ -1437,7 +1547,10 @@ server <- function(input, output, session) {
   })
   
   output[["corr_heatmap_both_ui"]] <- renderUI({
-    if(is.null(corr_heatmap_both_plt()))
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["run"]] == "Completing")
+    
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
       HTML('<div style="text-align: left; background-color: #e5fbf7;
                  padding: 8px 10px; border-left: 4px solid #00d2a3;
                  border-radius: 4px; font-size: 14px; width: 100%;">
@@ -1451,7 +1564,8 @@ server <- function(input, output, session) {
   
   outputOptions(output, "corr_heatmap_both_ui", suspendWhenHidden = FALSE)
   
-  plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt, full_plt = full_corr_heatmap_both_plt)
+  plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt,
+                          full_plt = full_corr_heatmap_both_plt)
   
   ######## Quality control
   
@@ -1526,7 +1640,7 @@ server <- function(input, output, session) {
                                      input[["CV_to_remove"]]))
     
     if(length(to_remove_CV_display) == 0)
-      HTML("None")
+      HTML("none.")
     else {
       HTML(paste0(to_remove_CV_display, collapse = ", "))
     }
@@ -1538,7 +1652,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]
     
     if(length(removed) == 0)
-      HTML("None")
+      HTML("none.")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
@@ -1750,12 +1864,15 @@ server <- function(input, output, session) {
     
     HTML(paste0(
       "<div style='font-size: 16px;'>",
-      "<br><br><b>Grouping column: </b>",
+      "<br><br><b>Grouping columns: </b>",
       ifelse(is.null(attr(dat[["metabocrates_dat_group"]], "group")),
              "none",
-             paste0(attr(dat[["metabocrates_dat_group"]], "group"),
+             paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
+                           collapse = ', '),
                     "<br><b>Levels:</b><br>",
-                    paste0(sort(unique(attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios_group"]][["grouping_column"]])),
+                    paste0("<span style='margin-left: 2em;'>",
+                           sort(unique(attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios_group"]][["grouping_column"]])),
+                           "</span>",
                            collapse = "<br>")
                     )
              ),

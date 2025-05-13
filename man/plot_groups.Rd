@@ -4,10 +4,14 @@
 \alias{plot_groups}
 \title{Barplot of groups sizes}
 \usage{
-plot_groups(dat)
+plot_groups(dat, grouping_column = 1)
 }
 \arguments{
-\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function.}
+
+\item{grouping_column}{a \code{character} string specifying the name of
+the grouping column, or a \code{numeric} value indicating its position within
+the \code{group} attribute, whose levels should be displayed.}
 }
 \description{
 Barplot of groups sizes

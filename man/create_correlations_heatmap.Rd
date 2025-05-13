@@ -35,5 +35,6 @@ path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
 print(create_correlations_heatmap(dat))
+print(create_correlations_heatmap(dat, type = "both"))
 
 }

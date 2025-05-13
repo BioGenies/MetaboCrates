@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_funs.R
 \name{scale_color_metabocrates_continuous}
 \alias{scale_color_metabocrates_continuous}
-\title{Metabocrates scale color continuous}
+\title{MetaboCrates scale color continuous}
 \usage{
 scale_color_metabocrates_continuous()
 }
 \description{
-Metabocrates scale color continuous
+MetaboCrates scale color continuous
 }
 \keyword{internal}

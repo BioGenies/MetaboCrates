@@ -11,7 +11,7 @@ get_LOD_to_remove(dat, threshold = 0.8, use_group = TRUE)
 }
 \description{
 Returns metabolite names having more NA values in each group
-than the given threshold.
+level than the given threshold.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

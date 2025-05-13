@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_funs.R
 \name{scale_color_metabocrates_discrete}
 \alias{scale_color_metabocrates_discrete}
-\title{Metabocrates scale color}
+\title{MetaboCrates scale color}
 \usage{
 scale_color_metabocrates_discrete(n = 12, ...)
 }
 \description{
-Metabocrates scale color
+MetaboCrates scale color
 }
 \keyword{internal}

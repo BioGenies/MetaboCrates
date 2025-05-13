@@ -100,26 +100,27 @@ validate_raw_data <- function(raw_data) {
     stop("Provided metabolites do not match LOD table!")
   
   # Validate groups
-  group_name <- attr(raw_data, "group")
+  group_names <- attr(raw_data, "group")
   
-  if(!is.null(group_name)) {
-    if(!(group_name %in% colnames(raw_data)))
+  if(!is.null(group_names)) {
+    if(!all(group_names %in% colnames(raw_data)))
       stop(
-        paste0("Provided group:", group_name, " is not contained in the data.")
+        paste0("At least one of the provided grouping columns: ", group_name,
+               " is not contained in the data.")
       )
     
     samples_data <- raw_data %>% 
       filter(`sample type` == "Sample")
     
-    if(any(is.na(samples_data[[group_name]])))
-      stop("Grouping column should not contain any NA's!")
+    if(any(is.na(samples_data[, group_names])))
+      stop("Grouping columns should not contain any NA's!")
     
     counts <- samples_data %>% 
-      group_by(get(group_name)) %>% 
+      group_by(across(all_of(group_names))) %>% 
       summarise(count = n()) %>% 
       pull(count)
     if(any(counts < 2))
-      stop("Some of groups have less than 2 observations.")
+      stop("Some group levels have less than 2 observations.")
   }
   
   raw_data
@@ -142,12 +143,12 @@ validate_raw_data <- function(raw_data) {
 #' @param metabolites a \code{\link{character}}, vector of metabolites names 
 #' contained in the data.
 #' 
-#' @param group a \code{NULL} indicating no grouping column in the data or
-#' a \code{\link{character}} name of column with groups. Default to NA. The code 
-#' will throw an error in the case when:
+#' @param group a \code{NULL} indicating no grouping or
+#' a vector of \code{\link{character}} names of group columns. Default to NULL.
+#' The code will throw an error in the case when:
 #' - column of such a name won't be contained in the dataset,
 #' - there will be NA's in the grouping column,
-#' - one of the groups will have less than 2 observations.
+#' - any group will have less than 2 observations.
 #' 
 #' @return \code{\link{raw_data}} object metabolomics matrix with the following 
 #' attributes:
@@ -183,7 +184,7 @@ raw_data <- function(metabolomics_matrix,
     filter(`sample type` == "Sample") %>% 
     pull(count)
   
-  grouping_variable_tmp <- group
+  grouping_variables_tmp <- group
   miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
   
   NA_ratios_type <- metabolomics_matrix %>% 
@@ -204,14 +205,21 @@ raw_data <- function(metabolomics_matrix,
     ungroup()
   
   
-  if(!is.null(grouping_variable_tmp)) {
+  if(!is.null(grouping_variables_tmp)) {
     
-    grouping_column <- metabolomics_matrix[[grouping_variable_tmp]]
+    grouping_column <- metabolomics_matrix %>%
+      filter(`sample type` == "Sample") %>%
+      mutate(group_tmp = do.call(paste,
+                                 c(across(all_of(grouping_variables_tmp)),
+                                   sep = ", "))) %>%
+      select(group_tmp) %>%
+      unlist()
+    
     group_levels <- na.omit(unique(grouping_column))
     
     NA_ratios_group <- metabolomics_matrix %>% 
-      mutate(grouping_column = grouping_column) %>% 
       filter(`sample type` == "Sample") %>% 
+      mutate(grouping_column = grouping_column) %>% 
       select(any_of(metabolites), grouping_column) %>% 
       group_by(grouping_column) %>% 
       mutate(group_size = n()) %>%

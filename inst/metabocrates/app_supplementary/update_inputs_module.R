@@ -61,15 +61,17 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                        choices = metabolites(), 
                        selected = CV_to_remove())
     }else{
-      if(id == "group_update"){
+      if(id %in% c("group_update", "remove_group_update")){
         if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
           pca_choices <- c("sample type", "group", "biplot", "variance")
           na_choice_vals <- c("joint", "NA_type", "group")
           na_choice_names <- c("Joint ratios", "Show NA type", "Show groups")
+          grouping_columns <- attr(dat[["metabocrates_dat_group"]], "group")
         }else{
           pca_choices <- c("sample type", "biplot", "variance")
           na_choice_vals <- c("joint", "NA_type")
           na_choice_names <- c("Joint ratios", "Show NA type")
+          grouping_columns <- character(0)
         }
           
         updateRadioButtons(main_session, inputId = "PCA_type",
@@ -80,6 +82,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                            choiceValues = na_choice_vals,
                            choiceNames = na_choice_names,
                            inline = TRUE)
+        
+        updateSelectInput(inputId = "grouping_column",
+                          choices = grouping_columns)
       }
         
       updateMultiInput(main_session, "LOD_to_remove", choices = metabolites())

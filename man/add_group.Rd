@@ -4,13 +4,14 @@
 \alias{add_group}
 \title{Specify group in the Biocrates data}
 \usage{
-add_group(raw_data, group_name)
+add_group(raw_data, group_names)
 }
 \arguments{
 \item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{group_name}{a character name of a column from the data containing group.}
+\item{group_names}{a single character string or character vector
+specifying the names of the columns to group the data by.}
 }
 \value{
 \code{\link{raw_data}} object.
