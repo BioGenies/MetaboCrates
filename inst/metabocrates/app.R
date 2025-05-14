@@ -1118,7 +1118,7 @@ server <- function(input, output, session) {
                              c(across(all_of(attr(dat[["metabocrates_dat_group"]], "group"))),
                                sep = ", "))) %>%
       group_by(Level) %>%
-      summarise(Count = n_distinct(Level)) %>%
+      summarise(Count = n()) %>%
       rename(all_of(setNames("Level",
                       paste0(attr(dat[["metabocrates_dat_group"]], "group"), collapse = ", ")))) %>%
       custom_datatable(scrollY = 300, paging = TRUE)
