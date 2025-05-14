@@ -966,7 +966,7 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
     ) +
     metabocrates_theme()
   
-  if(cumulative)
+  if(cumulative){
     plt +
       geom_line(aes(y = Cumulative_Variance, color = "cumulative variance"),
                 group = 1) +
@@ -975,8 +975,8 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
                  linetype = "dashed") +
       scale_color_manual(name = NULL,
                          values = c("cumulative variance" = "#54F3D3",
-                                    "threshold" = "red"))
-  else
+                                    "threshold" = "red")) 
+  }else
     plt
     
 }

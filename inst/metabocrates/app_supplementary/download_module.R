@@ -270,13 +270,13 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
             },
             "venn_diagram.pdf" = {
               if(is.null(attr(download_dat, "group")))
+                NULL
+              else{
                 lvls_count <- dat[["metabocrates_dat_group"]] %>%
                   filter(`sample type` == "Sample") %>%
                   select(all_of(attr(dat[["metabocrates_dat_group"]], "group"))) %>%
-                  summarise(across(attr(dat[["metabocrates_dat_group"]], "group")),
-                            n_distinct) %>%
-                  unlist()
-              
+                  n_distinct()
+                
                 if(lvls_count > 5) NULL
                 else
                   create_venn_diagram(
@@ -284,7 +284,8 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                     ifelse(is.null(main_input[["filtering_threshold"]]),
                            0.8,
                            main_input[["filtering_threshold"]]/100)
-                 )
+                  )
+              }
             },
             "missing_values_heatmap.pdf" = plot_heatmap(download_dat),
             "PCA_plot_sample_type.pdf" = {
@@ -356,7 +357,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                            main_input[["corr_heatmap_metabolites"]]),
                   interactive = FALSE
                 )
-            },
+            }
           )
           
           plot_files <- c()
