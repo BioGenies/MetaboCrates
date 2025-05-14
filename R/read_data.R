@@ -40,6 +40,10 @@ read_data <- function(path) {
   
   metabolites <- colnames(dat)[(last_col + 1):ncol(dat)]
   
+  if(length(unique(tolower(colnames(dat)))) != ncol(dat)){
+    stop("Found duplicated column names.")
+  }
+  
   dat <- dat %>% rename_with(tolower, !all_of(metabolites))
   
   LOD_table <- dat %>%

@@ -20,13 +20,13 @@ meaning calculated from samples and op, received from operator.
 \item{metabolites}{a \code{\link{character}}, vector of metabolites names
 contained in the data.}
 
-\item{group}{a \code{NULL} indicating no grouping column in the data or
-a \code{\link{character}} name of column with groups. Default to NA. The code
-will throw an error in the case when:
+\item{group}{a \code{NULL} indicating no grouping or
+a vector of \code{\link{character}} names of group columns. Default to NULL.
+The code will throw an error in the case when:
 \itemize{
 \item column of such a name won't be contained in the dataset,
 \item there will be NA's in the grouping column,
-\item one of the groups will have less than 2 observations.
+\item any group will have less than 2 observations.
 }}
 }
 \value{

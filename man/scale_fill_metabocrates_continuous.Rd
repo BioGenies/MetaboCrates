@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_funs.R
 \name{scale_fill_metabocrates_continuous}
 \alias{scale_fill_metabocrates_continuous}
-\title{Metabocrates scale fill continuous}
+\title{MetaboCrates scale fill continuous}
 \usage{
 scale_fill_metabocrates_continuous()
 }
 \description{
-Metabocrates scale fill continuous
+MetaboCrates scale fill continuous
 }
 \keyword{internal}

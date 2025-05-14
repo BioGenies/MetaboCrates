@@ -3,7 +3,8 @@
 #' 
 #' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
 #' function.
-#' @param group_name a character name of a column from the data containing group.
+#' @param group_names a single character string or character vector
+#' specifying the names of the columns to group the data by.
 #' 
 #' @return \code{\link{raw_data}} object.
 #' 
@@ -17,21 +18,21 @@
 #' @export
 #'
 
-add_group <- function(raw_data, group_name) {
+add_group <- function(raw_data, group_names) {
   
-  if(!(group_name %in% colnames(raw_data)))
-    stop(paste0("Provided column: ", group_name, 
+  if(!all(group_names %in% colnames(raw_data)))
+    stop(paste0("Some of the provided column: ", group_names, 
                 " can't be found in your data!"))
   
   if(!is.null(attr(raw_data, "group")))
-    warning("You already have group defined in your data. It will be replaced!")
+    warning("You already have grouping defined in your data. It will be replaced!")
   
-  attr(raw_data, "group") <- group_name
+  attr(raw_data, "group") <- group_names
   
   raw_data(as.data.frame(raw_data), 
            LOD_table = attr(raw_data, "LOD_table"), 
            metabolites = attr(raw_data, "metabolites"),
-           group = group_name)
+           group = group_names)
   
 }
 
@@ -67,11 +68,13 @@ get_info <- function(raw_data){
   
   if(!is.null(attr(raw_data, "group"))){
     group_lvls <- raw_data %>%
-      select(!!sym(attr(raw_data, "group"))) %>%
-      unique()
-    info_str <- paste0(info_str, "\nAdded group \"", 
-                       attr(raw_data, "group"), "\" contains ", 
-                       nrow(group_lvls), " levels.")
+      select(all_of(attr(raw_data, "group"))) %>%
+      unique() %>%
+      nrow()
+    
+    info_str <- paste0(info_str, "\nGroupping by: \"", 
+                       attr(raw_data, "group"), "\" (", 
+                       nrow(group_lvls), " levels).")
   }
   
   info_str
@@ -81,8 +84,8 @@ get_info <- function(raw_data){
 
 #' Get metabolites to remove
 #'
-#' @description Returns metabolite names having more NA values in each group 
-#' than the given threshold.
+#' @description Returns metabolite names having more NA values in each group
+#' level than the given threshold.
 #' 
 #' @inheritParams add_group
 #' 
@@ -99,8 +102,8 @@ get_info <- function(raw_data){
 get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
   
   if(is.null(attr(dat, "group")) & use_group) {
-    message("No group to use! It will be ignored. 
-If you want to use group provide it with add_group function first.")
+    message("No group to use! It will be ignored.
+            If you want to use group provide it with add_group function first.")
     use_group <- FALSE
   }
 

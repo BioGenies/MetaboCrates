@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_funs.R
 \name{scale_fill_metabocrates_discrete}
 \alias{scale_fill_metabocrates_discrete}
-\title{Metabocrates scale fill discrete}
+\title{MetaboCrates scale fill discrete}
 \usage{
 scale_fill_metabocrates_discrete(n = 12, ...)
 }
 \description{
-Metabocrates scale fill discrete
+MetaboCrates scale fill discrete
 }
 \keyword{internal}

@@ -1,1 +1,1 @@
-The zip file contains all plots from the application, except those fir a single metabolite.
+The zip file contains all plots from the application, except those for a single metabolite.

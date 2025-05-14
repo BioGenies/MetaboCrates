@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_funs.R
 \name{metabocrates_palette}
 \alias{metabocrates_palette}
-\title{Metabocrates ggplot palette}
+\title{MetaboCrates ggplot palette}
 \usage{
 metabocrates_palette(n)
 }
 \description{
-Metabocrates ggplot palette
+MetaboCrates ggplot palette
 }
 \keyword{internal}

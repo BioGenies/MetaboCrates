@@ -1,4 +1,4 @@
-#' Metabocrates ggplot theme
+#' MetaboCrates ggplot theme
 #' 
 #' @keywords internal
 
@@ -16,7 +16,7 @@ metabocrates_theme <- function(){
   )
 }
 
-#' Metabocrates ggplot palette
+#' MetaboCrates ggplot palette
 #' 
 #' @keywords internal
 
@@ -28,7 +28,7 @@ metabocrates_palette <- function(n){
   else colorRampPalette(colors)(n)
 }
 
-#' Metabocrates scale color
+#' MetaboCrates scale color
 #' 
 #' @keywords internal
 
@@ -36,7 +36,7 @@ scale_color_metabocrates_discrete <- function(n = 12, ...){
   scale_color_manual(values = metabocrates_palette(n), ...)
 }
 
-#' Metabocrates scale fill discrete
+#' MetaboCrates scale fill discrete
 #' 
 #' @keywords internal
 
@@ -44,7 +44,7 @@ scale_fill_metabocrates_discrete <- function(n = 12, ...){
   scale_fill_manual(values = metabocrates_palette(n), ...)
 }
 
-#' Metabocrates scale color continuous
+#' MetaboCrates scale color continuous
 #' 
 #' @keywords internal
 
@@ -54,7 +54,7 @@ scale_color_metabocrates_continuous <- function(){
                         high = "#2B2A29")
 }
 
-#' Metabocrates scale fill continuous
+#' MetaboCrates scale fill continuous
 #' 
 #' @keywords internal
 
@@ -69,7 +69,10 @@ scale_fill_metabocrates_continuous <- function(){
 #' 
 #' @import ggplot2
 #' 
-#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function
+#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' @param grouping_column a `character` string specifying the name of
+#' the grouping column, or a `numeric` value indicating its position within
+#' the `group` attribute, whose levels should be displayed.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -79,20 +82,30 @@ scale_fill_metabocrates_continuous <- function(){
 #' 
 #' @export
 
-plot_groups <- function(dat){
+plot_groups <- function(dat, grouping_column = 1){
   if(is.null(attr(dat, "group"))){
     stop("No groups column specified in data. You can add grouping using add_group() function.")
   }
   
+  if(is.numeric(grouping_column) &&
+     length(attr(dat, "group")) > grouping_column){
+    stop("The given position is out of range for the grouping columns.") 
+  }else if(is.character(grouping_column) &&
+     !(grouping_column %in% attr(dat, "group"))){
+    stop("The specified grouping column name does not exist in the group attribute.") 
+  }
+  
+  if(is.numeric(grouping_column))
+    grouping_column <- attr(dat, "group")[grouping_column]
+  
   group_dat <- dat %>%
     filter(`sample type` == "Sample") %>%
-    group_by(group = get(attr(dat, "group"))) %>%
-    mutate(group = as.character(group)) %>%
+    group_by(across(all_of(grouping_column))) %>%
     summarise(Count = n())
   
-  ggplot(group_dat, aes(x = group, y = Count)) +
+  ggplot(group_dat, aes(x = Count, y = reorder(get(grouping_column), Count))) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
-    labs(x = "Level", y = "Count") +
+    labs(x = "Count", y = grouping_column) +
     geom_label(aes(label = Count)) +
     metabocrates_theme()
 }
@@ -206,7 +219,6 @@ plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
                mutate(tooltip = paste0("Group level: ", grouping_column,
                                        "<br>NA Fraction: ",
                                        round(NA_frac * 100, 1), " %"),
-                      grouping_column = as.character(grouping_column),
                       NA_frac = NA_frac/length(unique(grouping_column)))
              
              ggplot(dat_group,
@@ -954,7 +966,7 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
     ) +
     metabocrates_theme()
   
-  if(cumulative)
+  if(cumulative){
     plt +
       geom_line(aes(y = Cumulative_Variance, color = "cumulative variance"),
                 group = 1) +
@@ -963,8 +975,8 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
                  linetype = "dashed") +
       scale_color_manual(name = NULL,
                          values = c("cumulative variance" = "#54F3D3",
-                                    "threshold" = "red"))
-  else
+                                    "threshold" = "red")) 
+  }else
     plt
     
 }
@@ -1032,9 +1044,18 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   
   if(type == "group"){
     mod_dat <- mod_dat %>%
-      filter(`sample type` == "Sample") %>%
-      select(where(~ n_distinct(.) > 1)) %>%
-      mutate(group = as.factor(get(attr(dat, "group"))))
+      filter(`sample type` == "Sample")
+    
+    metabo_to_remove <- mod_dat %>%
+      select(any_of(attr(dat, "metabolites"))) %>%
+      select(where(~ n_distinct(.) == 1)) %>%
+      colnames()
+    
+    mod_dat <- mod_dat %>%
+      select(!all_of(metabo_to_remove)) %>%
+      mutate(group = do.call(paste,
+                             c(across(all_of(attr(dat, "group"))),
+                               sep = ", ")))
   }else{
     mod_dat <- rename(mod_dat, sample_type = `sample type`)
   }
@@ -1183,8 +1204,11 @@ create_venn_diagram <- function(dat, threshold){
   if(is.null(attr(dat, "group"))){
     stop("No group specified.")
   }
+    
   
-  if(length(unique(dat[[attr(dat, "group")]])) > 5){
+  if(length(unique(
+      attr(dat, "NA_info")[["NA_ratios_group"]][["grouping_column"]]
+    )) > 5){
     stop("Group has more than 4 levels.")
   }
   

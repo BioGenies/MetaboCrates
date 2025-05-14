@@ -2,11 +2,11 @@
 % Please edit documentation in R/plot_funs.R
 \name{metabocrates_theme}
 \alias{metabocrates_theme}
-\title{Metabocrates ggplot theme}
+\title{MetaboCrates ggplot theme}
 \usage{
 metabocrates_theme()
 }
 \description{
-Metabocrates ggplot theme
+MetaboCrates ggplot theme
 }
 \keyword{internal}
