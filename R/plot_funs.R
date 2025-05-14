@@ -1037,6 +1037,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   
   mod_dat <- attr(dat, "completed") %>%
     select(all_of(c(attr(dat, "metabolites"), "tmp_id"))) %>%
+    select(where(~ n_distinct(na.omit(.)) > 1)) %>%
     na.omit() %>%
     select(where(~ n_distinct(.) > 1)) %>%
     left_join(completed_with_tooltips)
