@@ -74,7 +74,7 @@ MetaboCrates::
 - [ ] ?fix report?
 - [ ] ?correct logspline imputation?
 - [ ] legends to the top
-- [ ] downloading check !!!
+- [x] downloading check !!!
 - [ ] color of spinners in DT
 - [x] spinners color
 - [ ] ?DT spinners color?
@@ -89,3 +89,5 @@ MetaboCrates::
 - [ ] automatic imputation methods
 - [ ] group PCA to another panel
 - [ ] different color with different histogram type
+- [ ] shorter message window when downloading
+- [ ] fix removing metabolites

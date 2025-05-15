@@ -88,7 +88,7 @@ plot_groups <- function(dat, grouping_column = 1){
   }
   
   if(is.numeric(grouping_column) &&
-     length(attr(dat, "group")) > grouping_column){
+     length(attr(dat, "group")) < grouping_column){
     stop("The given position is out of range for the grouping columns.") 
   }else if(is.character(grouping_column) &&
      !(grouping_column %in% attr(dat, "group"))){
@@ -729,11 +729,21 @@ create_correlations_heatmap <- function(dat, type = "completed",
     cor(y = filtered_dat_observed, use = "pairwise.complete.obs") %>%
     melt()
   
-  to_display <- plt_dat %>%
+  if(type == "completed")
+    to_display <- plt_dat %>%
     group_by(Var1) %>%
     filter(Var1 != Var2) %>%
     filter(abs(value) >= threshold) %>%
     select(Var1) %>%
+    unlist() %>%
+    as.vector() %>%
+    unique()
+  else
+    to_display <- plt_dat %>%
+    group_by(Var1, Var2) %>%
+    filter(Var1 != Var2) %>%
+    filter(abs(value) >= threshold) %>%
+    select(Var1, Var2) %>%
     unlist() %>%
     as.vector() %>%
     unique()
@@ -1213,7 +1223,7 @@ create_venn_diagram <- function(dat, threshold){
   }
   
   NA_metabo_group <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
-    filter(!(metabolite %in% unlist(attr(dat, "removed")))) %>% 
+    filter(!(metabolite %in% unlist(attr(dat, "removed")))) %>%
     pivot_wider(names_from = "grouping_column", values_from = "NA_frac") %>%
     mutate(across(!metabolite, ~ .x >= threshold)) %>%
     select(!metabolite)
@@ -1221,7 +1231,8 @@ create_venn_diagram <- function(dat, threshold){
   if(length(NA_metabo_group) == 0) return(NULL)
   
   ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
-         fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group))) +
+         fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group)),
+         set_name_size = 3) +
     scale_fill_metabocrates_discrete() +
     scale_color_metabocrates_discrete()
 }

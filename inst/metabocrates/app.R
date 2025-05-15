@@ -1114,13 +1114,8 @@ server <- function(input, output, session) {
     
     dat[["metabocrates_dat_group"]] %>%
       filter(`sample type` == "Sample") %>%
-      mutate(Level = do.call(paste,
-                             c(across(all_of(attr(dat[["metabocrates_dat_group"]], "group"))),
-                               sep = ", "))) %>%
-      group_by(Level) %>%
+      group_by(across(all_of(attr(dat[["metabocrates_dat_group"]], "group")))) %>%
       summarise(Count = n()) %>%
-      rename(all_of(setNames("Level",
-                      paste0(attr(dat[["metabocrates_dat_group"]], "group"), collapse = ", ")))) %>%
       custom_datatable(scrollY = 300, paging = TRUE)
   })
   
