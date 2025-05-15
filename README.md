@@ -40,9 +40,6 @@ If you have successfully installed the package, run the GUI in your web browser 
 ```
 MetaboCrates::
 ```
-
-## TODO
-
 - [x] report
 - [x] fix PCA plot
 - [x] fix biplot
@@ -91,3 +88,4 @@ MetaboCrates::
 - [ ] different color with different histogram type
 - [ ] shorter message window when downloading
 - [ ] fix removing metabolites
+
