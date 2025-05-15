@@ -110,7 +110,16 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               else sheet <- i
               
               addWorksheet(wb_file, sheet)
-              writeData(wb_file, sheet, attr(download_dat, "NA_info")[[i]])
+              
+              if(i == "NA_ratios_group"){
+                NA_table <- attr(download_dat, "NA_info")[[i]] %>%
+                  tidyr::separate(grouping_column,
+                                  into = attr(download_dat, "group"),
+                                  sep = ",")
+                
+                writeData(wb_file, sheet, NA_table)
+              }else
+                writeData(wb_file, sheet, attr(download_dat, "NA_info")[[i]])
             }
           }
           
@@ -129,16 +138,16 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
           if(!is.null(attr(download_dat, "group"))){
             addWorksheet(wb_file, "group")
             
-            writeData(wb_file, "group", "Name:")
-            writeData(wb_file, "group", startCol = 2,
+            writeData(wb_file, "group", "Grouping columns")
+            writeData(wb_file, "group", startRow = 2,
                       attr(download_dat, "group"))
             
             group_tab <- download_dat %>%
-              group_by(!!sym(attr(download_dat, "group"))) %>%
-              summarise(Counts = n()) %>%
-              rename("Levels" = all_of(attr(download_dat, "group")))
+              filter(`sample type` == "Sample") %>%
+              group_by(across(all_of(attr(download_dat, "group")))) %>%
+              summarise(Counts = n())
             
-            writeData(wb_file, "group", startRow = 3,
+            writeData(wb_file, "group", startCol = 3,
                       group_tab)
           }
           
@@ -221,6 +230,9 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
       output[["download"]] <- downloadHandler(
         filename = "all_plots.zip",
         content = function(file){
+          showModal(modalDialog("Creating file", footer = NULL))
+          on.exit(removeModal())
+          
           if(is.null(dat[["metabocrates_dat_group"]]))
             download_dat <- dat[["metabocrates_dat"]]
           else
@@ -229,7 +241,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
           tmp_dir <- tempdir()
             
           plots_lst <- list(
-            "groups_sizes_barplot.pdf" = {
+            "group_barplot.pdf" = {
               if(is.null(attr(download_dat, "group")))
                 NULL
               else
@@ -255,15 +267,8 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               else
                 create_correlations_heatmap(
                   download_dat,
-                  threshold = ifelse(
-                    is.null(main_input[["corr_threshold"]]),
-                    0.3,
-                    main_input[["corr_threshold"]]
-                  ),
-                  metabolites_to_display =
-                    ifelse(is.null(main_input[["corr_heatmap_metabolites"]]),
-                           "all",
-                           main_input[["corr_heatmap_metabolites"]]),
+                  threshold = main_input[["corr_threshold"]],
+                  metabolites_to_display =main_input[["corr_heatmap_metabolites"]],
                   type = "both",
                   interactive = FALSE
                 )
@@ -279,12 +284,8 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                 
                 if(lvls_count > 5) NULL
                 else
-                  create_venn_diagram(
-                    download_dat,
-                    ifelse(is.null(main_input[["filtering_threshold"]]),
-                           0.8,
-                           main_input[["filtering_threshold"]]/100)
-                  )
+                  create_venn_diagram(download_dat,
+                                      main_input[["filtering_threshold"]]/100)
               }
             },
             "missing_values_heatmap.pdf" = plot_heatmap(download_dat),
@@ -292,36 +293,25 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
-                if(is.null(main_input[["PCA_types"]]))
-                  create_PCA_plot(download_dat, type = "sample_type",
-                                  interactive = FALSE)
-                else
-                  create_PCA_plot(download_dat, type = "sample_type",
-                                  types_to_display = main_input[["PCA_types"]],
-                                  interactive = FALSE)
+                create_PCA_plot(download_dat, type = "sample_type",
+                                types_to_display = main_input[["PCA_types"]],
+                                interactive = FALSE)
             },
             "PCA_plot_group.pdf" = {
-              if(is.null(attr(download_dat, "completed")))
+              if(is.null(attr(download_dat, "completed")) ||
+                 is.null(attr(download_dat, "group")))
                 NULL
-              else{
-                if(is.null(attr(download_dat, "group")))
-                  NULL
-                else
-                  create_PCA_plot(download_dat, type = "group",
-                                  interactive = FALSE)
-              }
+              else
+                create_PCA_plot(download_dat, type = "group",
+                                interactive = FALSE)
             },
             "biplot.pdf" = {
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
-                create_PCA_plot(
-                  download_dat, type = "biplot",
-                  threshold = ifelse(is.null(main_input[["PCA_threshold"]]),
-                                     0.8,
-                                     main_input[["PCA_threshold"]]/100),
-                  interactive = FALSE
-                )
+                create_PCA_plot(download_dat, type = "biplot",
+                                threshold = main_input[["PCA_threshold"]]/100,
+                                interactive = FALSE)
             },
             "variance_explained_plot.pdf" = {
               if(is.null(attr(download_dat, "completed")))
@@ -329,15 +319,9 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               else
                 pca_variance(
                   download_dat,
-                  threshold = ifelse(is.null(main_input[["PCA_variance_threshold"]]),
-                                     0.8,
-                                     main_input[["PCA_variance_threshold"]]/100),
-                  max_num = ifelse(is.null(main_input[["PCA_variance_max_num"]]),
-                                   5,
-                                   main_input[["PCA_variance_max_num"]]),
-                  cumulative = ifelse(is.null(main_input[["PCA_variance_cum"]]),
-                                      TRUE,
-                                      main_input[["PCA_variance_cum"]])
+                  threshold = main_input[["PCA_variance_threshold"]]/100,
+                  max_num = main_input[["PCA_variance_max_num"]],
+                  cumulative = main_input[["PCA_variance_cum"]]
                 )
             },
             "correlations_heatmap_after_imputation.pdf" = {
@@ -346,27 +330,55 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               else
                 create_correlations_heatmap(
                   download_dat,
-                  threshold = ifelse(
-                    is.null(main_input[["corr_threshold"]]),
-                    0.3,
-                    main_input[["corr_threshold"]]
-                  ),
-                  metabolites_to_display =
-                    ifelse(is.null(main_input[["corr_heatmap_metabolites"]]),
-                           "all",
-                           main_input[["corr_heatmap_metabolites"]]),
+                  threshold = main_input[["corr_threshold"]],
+                  metabolites_to_display = main_input[["corr_heatmap_metabolites"]],
                   interactive = FALSE
                 )
             }
           )
           
           plot_files <- c()
+          
+          metabo_num <- length(setdiff(attr(download_dat, "metabolites"),
+                                       unlist(attr(download_dat, "removed"))))
+          na_metabo_num <- attr(download_dat, "NA_info")[["NA_ratios_type"]] %>%
+            filter(NA_frac > 0 &
+                   !(metabolite %in% unlist(attr(download_dat, "removed")))) %>%
+            select(metabolite) %>%
+            n_distinct()
+          
           for(name in names(plots_lst)){
             plot_obj <- plots_lst[[name]]
             if(!is.null(plot_obj)){
               file_path <- file.path(tmp_dir, name)
+              
+              if(name %in% c("missing_values_counts.pdf",
+                             "missing_values_counts_type.pdf",
+                             "missing_values_counts_group.pdf")){
+                plt_height <- max(na_metabo_num * 0.2, 7)
+                plt_width <- 14
+              }else if(name == "missing_values_heatmap.pdf"){
+                plt_height <- download_dat %>%
+                  filter(`sample type` == "Sample") %>%
+                  select(`plate bar code`) %>%
+                  n_distinct()
+                plt_height <- max(plt_height * metabo_num * 0.2, 7)
+                
+                plt_width <- download_dat %>%
+                  filter(`sample type` == "Sample") %>%
+                  group_by(`plate bar code`) %>%
+                  summarise(n = n()) %>%
+                  select(n) %>%
+                  max()
+                plt_width <- max(plt_width * 0.175, 14)
+              }else{
+                plt_height <- 7
+                plt_width <- 14
+              }
+              
               ggplot2::ggsave(file_path, plot = plot_obj,
-                              width = 14, height = 7, device = "pdf")
+                              width = plt_width, height = plt_height,
+                              device = "pdf", limitsize = FALSE)
               plot_files <- c(plot_files, file_path)
             }
           }
