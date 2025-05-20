@@ -2,19 +2,15 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_groups}
 \alias{plot_groups}
-\title{Barplot of groups sizes}
+\title{Barplot of levels sizes}
 \usage{
-plot_groups(dat, grouping_column = 1)
+plot_groups(dat)
 }
 \arguments{
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function.}
-
-\item{grouping_column}{a \code{character} string specifying the name of
-the grouping column, or a \code{numeric} value indicating its position within
-the \code{group} attribute, whose levels should be displayed.}
 }
 \description{
-Barplot of groups sizes
+Barplot of levels sizes
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

@@ -4,7 +4,13 @@
 \alias{pca_variance}
 \title{Plot of Variance Explained by Principal Components}
 \usage{
-pca_variance(dat, threshold, max_num = NULL, cumulative = TRUE)
+pca_variance(
+  dat,
+  threshold,
+  type = "sample_type",
+  max_num = NULL,
+  cumulative = TRUE
+)
 }
 \arguments{
 \item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
@@ -13,6 +19,10 @@ The data should be completed and filtered to include only samples of type
 
 \item{threshold}{A value indicating the maximum cumulative variance
 of components to display.}
+
+\item{type}{A character specifying which rows to consider. Default is
+"sample_type" and all rows are used. When "group", only observations
+with type sample are considered.}
 
 \item{max_num}{An optional parameter indicating the maximum number
 of components to display.}
@@ -31,6 +41,6 @@ the cumulative variance explained by the components.
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
-pca_variance(dat, 0.8, 5)
+pca_variance(dat, 0.8, max_num = 5)
 
 }

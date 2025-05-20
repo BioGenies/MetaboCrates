@@ -7,6 +7,7 @@
 create_PCA_plot(
   dat,
   type = "sample_type",
+  group_by = "sample_type",
   types_to_display = "all",
   threshold = NULL,
   interactive = TRUE
@@ -14,9 +15,11 @@ create_PCA_plot(
 }
 \arguments{
 \item{type}{A character denoting which type of PCA plot should be created.
-Default is "sample_type", which makes a plot for quality control. Type
-"group" creates a PCA plot with respect to the groups of samples with type
-'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.}
+Default to "scatter". Type "biplot" shows eigenvectors.}
+
+\item{group_by}{Character; default to "sample_type", which makes a plot for
+quality control. When set as "group", a PCA plot with respect to the groups
+of samples with type 'Sample' is created.}
 
 \item{types_to_display}{A vector of sample type names specifying which types
 should be shown on the plot when type = "sample_type". Defaults to all.}
@@ -36,6 +39,7 @@ create_PCA_plot(dat)
 create_PCA_plot(dat, type = "biplot", threshold = 0.3)
 dat <- add_group(dat, "group")
 dat <- complete_data(dat, "limit", "limit", "limit")
-create_PCA_plot(dat, type = "group")
+create_PCA_plot(dat, group_by = "group")
+create_PCA_plot(dat, type = "biplot", group_by = "group", threshold = 0.3)
 
 }
