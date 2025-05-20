@@ -65,14 +65,11 @@ scale_fill_metabocrates_continuous <- function(){
   )
 }
 
-#' Barplot of groups sizes
+#' Barplot of levels sizes
 #' 
 #' @import ggplot2
 #' 
 #' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function.
-#' @param grouping_column a `character` string specifying the name of
-#' the grouping column, or a `numeric` value indicating its position within
-#' the `group` attribute, whose levels should be displayed.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -82,30 +79,22 @@ scale_fill_metabocrates_continuous <- function(){
 #' 
 #' @export
 
-plot_groups <- function(dat, grouping_column = 1){
+plot_groups <- function(dat){
   if(is.null(attr(dat, "group"))){
     stop("No groups column specified in data. You can add grouping using add_group() function.")
   }
   
-  if(is.numeric(grouping_column) &&
-     length(attr(dat, "group")) < grouping_column){
-    stop("The given position is out of range for the grouping columns.") 
-  }else if(is.character(grouping_column) &&
-     !(grouping_column %in% attr(dat, "group"))){
-    stop("The specified grouping column name does not exist in the group attribute.") 
-  }
-  
-  if(is.numeric(grouping_column))
-    grouping_column <- attr(dat, "group")[grouping_column]
-  
-  group_dat <- dat %>%
+  dat %>%
     filter(`sample type` == "Sample") %>%
-    group_by(across(all_of(grouping_column))) %>%
-    summarise(Count = n())
-  
-  ggplot(group_dat, aes(x = Count, y = reorder(get(grouping_column), Count))) +
+    rowwise() %>%
+    mutate(group_tmp = do.call(paste,
+                               c(across(all_of(attr(dat, "group"))),
+                                 sep = ",\n"))) %>%
+    group_by(group_tmp) %>%
+    summarise(Count = n()) %>%
+    ggplot(aes(x = Count, y = reorder(group_tmp, Count))) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
-    labs(x = "Count", y = grouping_column) +
+    labs(x = "Count", y = paste0(attr(dat, "group"), collapse = ", ")) +
     geom_label(aes(label = Count)) +
     metabocrates_theme()
 }

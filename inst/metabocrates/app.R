@@ -1039,7 +1039,7 @@ server <- function(input, output, session) {
       last_selected_group(group_names)
     }
     
-      update_inputs_SERVER("group_update", session, input, dat)
+    update_inputs_SERVER("group_update", session, input, dat)
   }, ignoreNULL = FALSE)
   
   observeEvent(input[["remove_group"]], {
@@ -1057,7 +1057,7 @@ server <- function(input, output, session) {
   
   output[["selected_info"]] <- renderUI({
     if (is.null(input[["group_columns-table_rows_selected"]])) {
-     selected_columns_str <- "none."
+     selected_columns_str <- "none"
     } else {
       selected_columns <- dat[["group_candidates"]][["column name"]][input[["group_columns-table_rows_selected"]]]
       selected_columns_str <- paste0(paste0(selected_columns, collapse = ", "), ".")
@@ -1076,7 +1076,7 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     if (is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      group_columns <- "none."
+      group_columns <- "none"
     else
       group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
                                      collapse = ", "), ".")
@@ -1091,7 +1091,7 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     if (is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
-      group_columns <- "none."
+      group_columns <- "none"
       total_num <- 0
     }
     else{
@@ -1122,12 +1122,9 @@ server <- function(input, output, session) {
   table_with_button_SERVER("group_table", group_table_DT)
   
   groups_plt_reactive <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["grouping_column"]])
+    req(attr(dat[["metabocrates_dat_group"]], "group"))
     
-    if(!is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      plot_groups(dat[["metabocrates_dat_group"]],
-                  grouping_column = input[["grouping_column"]])
+    plot_groups(dat[["metabocrates_dat_group"]])
   })
   
   plot_with_button_SERVER("groups_plt", groups_plt_reactive) 
@@ -1149,15 +1146,11 @@ server <- function(input, output, session) {
     else
       tagList(
         column(4, offset = 1,
-               br(),
-               br(),
                table_with_button_UI("group_table")
         ),
         column(6,
-               selectInput("grouping_column",
-                           label = "Choose grouping column",
-                           choices = attr(dat[["metabocrates_dat_group"]], "group")
-               ),
+               br(),
+               br(),
                plot_with_button_UI("groups_plt") 
         )
       )
@@ -1197,7 +1190,7 @@ server <- function(input, output, session) {
                                   input[["LOD_to_remove"]]))
     
     if(length(ro_remove_display) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(ro_remove_display, collapse = ", "))
     }
@@ -1210,7 +1203,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
     
     if(length(removed) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
@@ -1635,7 +1628,7 @@ server <- function(input, output, session) {
                                      input[["CV_to_remove"]]))
     
     if(length(to_remove_CV_display) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(to_remove_CV_display, collapse = ", "))
     }
@@ -1647,7 +1640,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]
     
     if(length(removed) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
