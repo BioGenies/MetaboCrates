@@ -90,4 +90,4 @@ MetaboCrates::
 - [ ] group PCA to another panel
 - [ ] different color with different histogram type
 - [ ] shorter message window when downloading
-- [ ] fix removing metabolites
+- [x] fix removing metabolites
