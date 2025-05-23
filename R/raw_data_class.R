@@ -166,7 +166,7 @@ validate_raw_data <- function(raw_data) {
 #' - \code{removed}: a list of removed metabolites
 #' - \code{plate bar code}: each measurement has two plate bar codes depending on the method used
 #' 
-#' @keywords internal
+#' @export
 
 raw_data <- function(metabolomics_matrix, 
                      LOD_table, 
