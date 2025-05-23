@@ -9,8 +9,9 @@ value is derived from the \code{LOD_table} attribute of the \code{dat} object.}
 create_density_with_lod(dat, metabolite_name)
 }
 \arguments{
-\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function. The
-data should contain the metabolite values and LOD information.}
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type
+"Sample".}
 
 \item{metabolite_name}{A character string specifying the name of the
 metabolite for which the histogram should be created.}

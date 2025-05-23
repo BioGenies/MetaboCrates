@@ -7,7 +7,14 @@
 create_qqplot(dat, metabolite, interactive = TRUE)
 }
 \arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type
+"Sample".}
+
 \item{metabolite}{A name of metabolite of interest.}
+
+\item{interactive}{logical indicating whether the plot should be interactive.
+If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 Qqplots of individual metabolite values before and after imputation

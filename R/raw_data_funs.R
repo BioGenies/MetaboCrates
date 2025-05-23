@@ -87,9 +87,9 @@ get_info <- function(raw_data){
 #' @description Returns metabolite names having more NA values in each group
 #' level than the given threshold.
 #' 
-#' @inheritParams add_group
-#' 
+#' @param dat words
 #' @param threshold Percentage value.
+#' @param use_group logical...
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -287,7 +287,7 @@ calculate_CV <- function(dat){
 #' than the given threshold.
 #' 
 #' @param dat object with CV attribute
-#' @param threshold
+#' @param threshold words
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")

@@ -14,8 +14,6 @@ function accepts either "joint", "NA_type" or "group".
 Default type is "joint", which creates plot of missing values percents
 in each metabolite. Types "NA_type" and "group" add the division into
 all missing values types and levels in grouping column respectively.}
-
-\item{interactive}{If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 Barplot of missing values percents

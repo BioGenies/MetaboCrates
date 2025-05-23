@@ -12,7 +12,7 @@ plot_heatmap(
 )
 }
 \arguments{
-\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}}.}
+\item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
 
 \item{plate_bar_code}{A single plate bar code for selecting observations to
 include in the plot. If NULL (default), a grid of plots is returned, where

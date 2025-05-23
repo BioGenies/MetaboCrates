@@ -7,7 +7,11 @@
 get_LOD_to_remove(dat, threshold = 0.8, use_group = TRUE)
 }
 \arguments{
+\item{dat}{words}
+
 \item{threshold}{Percentage value.}
+
+\item{use_group}{logical...}
 }
 \description{
 Returns metabolite names having more NA values in each group

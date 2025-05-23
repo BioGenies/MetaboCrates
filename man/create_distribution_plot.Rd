@@ -14,6 +14,10 @@ create_distribution_plot(
 )
 }
 \arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type
+"Sample".}
+
 \item{metabolite}{A name of metabolite of interest.}
 
 \item{type}{A type of the plot. Can be "histogram" (default), "density"
@@ -23,6 +27,9 @@ or "beeswarm".}
 
 \item{histogram_type}{If \code{all} (default), the histogram displays all values
 after imputation. If \code{imputed}, it shows only the values that were imputed.}
+
+\item{interactive}{logical indicating whether the plot should be interactive.
+If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 This function creates density plots of metabolite values before and after
