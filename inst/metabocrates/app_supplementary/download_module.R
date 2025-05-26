@@ -289,39 +289,63 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               }
             },
             "missing_values_heatmap.pdf" = plot_heatmap(download_dat),
-            "PCA_plot_sample_type.pdf" = {
+            "sample_type_PCA_plot.pdf" = {
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
-                create_PCA_plot(download_dat, type = "sample_type",
-                                types_to_display = main_input[["PCA_types"]],
+                create_PCA_plot(download_dat, group_by = "sample_type",
+                                types_to_display = main_input[["sample_type_PCA_types"]],
                                 interactive = FALSE)
             },
-            "PCA_plot_group.pdf" = {
+            "group_PCA_plot.pdf" = {
               if(is.null(attr(download_dat, "completed")) ||
                  is.null(attr(download_dat, "group")))
                 NULL
               else
-                create_PCA_plot(download_dat, type = "group",
+                create_PCA_plot(download_dat, group_by = "group",
                                 interactive = FALSE)
             },
-            "biplot.pdf" = {
+            "sample_type_biplot.pdf" = {
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
                 create_PCA_plot(download_dat, type = "biplot",
-                                threshold = main_input[["PCA_threshold"]]/100,
+                                group_by = "sample_type",
+                                threshold = main_input[["sample_type_PCA_threshold"]]/100,
                                 interactive = FALSE)
             },
-            "variance_explained_plot.pdf" = {
+            "group_biplot.pdf" = {
+              if(is.null(attr(download_dat, "completed")) ||
+                 is.null(attr(download_dat, "group")))
+                NULL
+              else
+                create_PCA_plot(download_dat, type = "biplot",
+                                group_by = "group",
+                                threshold = main_input[["group_PCA_threshold"]]/100,
+                                interactive = FALSE)
+            },
+            "sample_type_variance_explained_plot.pdf" = {
               if(is.null(attr(download_dat, "completed")))
                 NULL
               else
                 pca_variance(
                   download_dat,
-                  threshold = main_input[["PCA_variance_threshold"]]/100,
-                  max_num = main_input[["PCA_variance_max_num"]],
-                  cumulative = main_input[["PCA_variance_cum"]]
+                  threshold = main_input[["sample_type_PCA_variance_threshold"]]/100,
+                  max_num = main_input[["sample_type_PCA_variance_max_num"]],
+                  cumulative = main_input[["sample_type_PCA_variance_cum"]]
+                )
+            },
+            "group_variance_explained_plot.pdf" = {
+              if(is.null(attr(download_dat, "completed")) ||
+                 is.null(attr(download_dat, "group")))
+                NULL
+              else
+                pca_variance(
+                  download_dat,
+                  type = "group",
+                  threshold = main_input[["group_PCA_variance_threshold"]]/100,
+                  max_num = main_input[["group_PCA_variance_max_num"]],
+                  cumulative = main_input[["group_PCA_variance_cum"]]
                 )
             },
             "correlations_heatmap_after_imputation.pdf" = {
@@ -401,11 +425,15 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                            "corr_threshold",
                            "corr_heatmap_metabolites",
                            "cv_threshold",
-                           "PCA_types",
-                           "PCA_threshold",
-                           "PCA_variance_threshold",
-                           "PCA_variance_max_num",
-                           "PCA_variance_cum",
+                           "sample_type_PCA_types",
+                           "sample_type_PCA_threshold",
+                           "sample_type_PCA_variance_threshold",
+                           "sample_type_PCA_variance_max_num",
+                           "sample_type_PCA_variance_cum",
+                           "group_PCA_threshold",
+                           "group_PCA_variance_threshold",
+                           "group_PCA_variance_max_num",
+                           "group_PCA_variance_cum",
                            "corr_threshold_both",
                            "corr_heatmap_metabolites_both")
             

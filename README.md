@@ -55,7 +55,7 @@ MetaboCrates::
 - [x] colors to missing heatmap
 - [ ] extra space under missing heatmap
 - [x] venn description
-- [ ] download buttons !!!
+- [x] download buttons !!!
 - [x] histogram change
 - [x] PCA plots and correlations heatmap to new panel
 - [x] correlations heatmap before and after imputation

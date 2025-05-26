@@ -949,7 +949,8 @@ pca_variance <- function(dat, threshold, type = "sample_type",
   cumulative_variance <- cumsum(variance_explained)
   
   variance_df <- data.frame(
-    Component = paste0("PC", 1:length(variance_explained)),
+    Component = factor(paste0("PC", 1:length(variance_explained)),
+                       levels = paste0("PC", 1:length(variance_explained))),
     Variance_Explained = variance_explained,
     Cumulative_Variance = cumulative_variance
   )

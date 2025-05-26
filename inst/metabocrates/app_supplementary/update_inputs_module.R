@@ -134,7 +134,7 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                             style = rep("color: black;", length(metabolites()))
                           ))
           
-        if(is.null(main_input[["PCA_types"]])){
+        if(is.null(main_input[["sample_type_PCA_types"]])){
           types <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
             select(all_of(c(attr(dat[["metabocrates_dat_group"]], "metabolites"), "tmp_id"))) %>%
             select(where(~ n_distinct(na.omit(.)) > 1)) %>%
@@ -145,9 +145,10 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
             select("sample type") %>%
             unlist()
           
-          updateCheckboxGroupInput(main_session, inputId = "PCA_types",
-                            choices = unique(types),
-                            selected = unique(types))
+          updateCheckboxGroupInput(main_session,
+                                   inputId = "sample_type_PCA_types",
+                                   choices = unique(types),
+                                   selected = unique(types))
         }
       }
     }
