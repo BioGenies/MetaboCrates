@@ -1159,7 +1159,7 @@ server <- function(input, output, session) {
     }
     else{
       group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
-                                     collapse = ",\n"), ".")
+                                     collapse = ",\n"))
       total_num <- length(attr(dat[["metabocrates_dat_group"]], "group"))
     }
     
@@ -1168,7 +1168,7 @@ server <- function(input, output, session) {
       h5(group_columns),
       br(),
       br(),
-      h5(paste0("Total number of unique levels: ", total_num, "."))
+      h5(paste0("Total number of unique levels: ", total_num))
     )
   })
   
@@ -1635,7 +1635,7 @@ server <- function(input, output, session) {
                        - LOD method: <b>halfmin</b>,<br>
                        - LOD type: <b>calc</b>,<br>
                        - LLOQ method: <b>limit</b>,<br>
-                       - ULOQ method: <b>third quartile</b>.<br>
+                       - ULOQ method: <b>none</b>.<br>
                        You can go back anytime to modify the imputation."),
                        type = "warning",
                        html = TRUE)
@@ -1647,7 +1647,7 @@ server <- function(input, output, session) {
                           selected = "limit")
         
         updateSelectInput(session, "ULOQ_method",
-                          selected = "third quartile")
+                          selected = "none")
         
         updateSelectInput(session, "LOD_type",
                           selected = "calc")
