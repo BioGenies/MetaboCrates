@@ -1123,7 +1123,7 @@ server <- function(input, output, session) {
      selected_columns_str <- "none"
     } else {
       selected_columns <- dat[["group_candidates"]][["column name"]][input[["group_columns-table_rows_selected"]]]
-      selected_columns_str <- paste0(paste0(selected_columns, collapse = ", "), ".")
+      selected_columns_str <- paste0(paste0(selected_columns, collapse = ", "))
     }
     
     tagList(
@@ -1142,7 +1142,7 @@ server <- function(input, output, session) {
       group_columns <- "none"
     else
       group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
-                                     collapse = ", "), ".")
+                                     collapse = ", "))
     
     tagList(
       h4("Grouping columns: "),
@@ -1174,10 +1174,11 @@ server <- function(input, output, session) {
   
   group_table_DT <- reactive({
     req(attr(dat[["metabocrates_dat_group"]], "group"))
+    req(input[["group_table_column"]])
     
     dat[["metabocrates_dat_group"]] %>%
       filter(`sample type` == "Sample") %>%
-      group_by(across(all_of(attr(dat[["metabocrates_dat_group"]], "group")))) %>%
+      group_by(across(all_of(input[["group_table_column"]]))) %>%
       summarise(Count = n()) %>%
       custom_datatable(scrollY = 300, paging = TRUE)
   })
@@ -1209,9 +1210,13 @@ server <- function(input, output, session) {
     else
       tagList(
         column(4, offset = 1,
+               selectInput("group_table_column",
+                           label = "Select grouping column",
+                           choices = attr(dat[["metabocrates_dat_group"]], "group")),
                table_with_button_UI("group_table")
         ),
         column(6,
+               br(),
                br(),
                br(),
                plot_with_button_UI("groups_plt") 
