@@ -81,10 +81,10 @@ MetaboCrates::
 - [ ] plots descriptions
 - [x] handling data without missing values
 - [ ] missing heatmap colors
-- [ ] PCA plots for all sample types
+- [x] PCA plots for all sample types
 - [ ] change descriptions appearance
-- [ ] automatic imputation methods
-- [ ] group PCA to another panel
+- [x] automatic imputation methods
+- [x] group PCA to another panel
 - [ ] different color with different histogram type
 - [ ] shorter message window when downloading
 - [x] fix removing metabolites
