@@ -18,11 +18,15 @@ params:
   corr_threshold: NULL
   corr_heatmap_metabolites: "all"
   cv_threshold: NULL
-  PCA_types: "all"
-  PCA_threshold: NULL
-  PCA_variance_threshold: NULL
-  PCA_variance_max_num: NULL
-  PCA_variance_cum: TRUE
+  sample_type_PCA_types: "all"
+  sample_type_PCA_threshold: NULL
+  sample_type_PCA_variance_threshold: NULL
+  sample_type_PCA_variance_max_num: NULL
+  sample_type_PCA_variance_cum: TRUE
+  group_PCA_threshold: NULL
+  group_PCA_variance_threshold: NULL
+  group_PCA_variance_max_num: NULL
+  group_PCA_variance_cum: TRUE
   corr_threshold_both: NULL
   corr_heatmap_metabolites_both: "all"
   filtering_threshold_ex: FALSE
@@ -75,27 +79,26 @@ Plate bar codes (`r length(pb_codes)`): `r paste0(pb_codes, collapse = ", ")`.
 
 Initial missing values count was `r total_mv_count`.
 
-```{r, out.height="50%", out.width="70%", fig.cap="Counts of missing values by type.", fig.align='center'}
+```{r, fig.height=3, fig.width=6, fig.cap="Counts of missing values by type.", fig.align='center'}
 plot_mv_types(params[["dat"]])
 ```
 
 ```{r, results='asis', eval=!is.null(attr(params[["dat"]], "group"))}
 lvls_count <- params[["dat"]] %>%
   filter(`sample type` == "Sample") %>%
-  select(all_of(attr(params[["dat"]], "group"))) %>%
-  summarise(across(attr(params[["dat"]], "group"),
-                   n_distinct)) %>%
-  unlist()
+  group_by(across(all_of(attr(params[["dat"]], "group")))) %>%
+  summarise() %>%
+  nrow()
 
 cat("## Grouping")
-cat("  \n  \nGrouping column is *",
-    attr(params[["dat"]], "group"),
-    "*. It contains ",
+cat("  \n  \nThe data was grouped by *",
+    paste0(attr(params[["dat"]], "group"), collapse = ", "),
+    "*. The number of unique levels is ",
     lvls_count,
-    " unique levels.", sep = "")
+    ".", sep = "")
 ```
 
-```{r, out.height="50%", out.width = "70%", eval=!is.null(attr(params[["dat"]], "group")), fig.cap="The counts of elements in each level of the selected grouping column.", fig.pos="H", fig.align='center'}
+```{r, fig.height=4, fig.width = 5, eval=!is.null(attr(params[["dat"]], "group")), fig.cap="The counts of grouping levels.", fig.pos="H", fig.align='center'}
 plot_groups(params[["dat"]])
 ```
 
@@ -104,23 +107,24 @@ plot_groups(params[["dat"]])
 ```{r, results='asis', eval=params[["filtering_threshold_ex"]]}
 cat("Missing values threshold was set to ",
     params[["filtering_threshold"]],
-    "%.  \n", sep = "")
+    "%.  \n   \n", sep = "")
 
 LOD_to_remove <- setdiff(get_LOD_to_remove(params[["dat"]],
                                            threshold = params[["filtering_threshold"]]/100),
                          attr(params[["dat"]], "removed"))
 
 if(length(LOD_to_remove) == 0){
-  cat("There was no metabolite with missing values ratio above the threshold.  \n") 
+  cat("There was no metabolite with missing values ratio above the threshold.  \n   \n") 
 }else{
   cat("Metabolites with missing values ratio above the threshold",
       ifelse(is.null(attr(params[["dat"]], "group")),
              ": ",
              " in each level of the group: "),
       paste0(LOD_to_remove, collapse = ", "),
-      ".  \n", sep = "")
+      ".  \n   \n", sep = "")
 }
 ```
+
 ```{r, results='asis'}
 if(is.null(attr(params[["dat"]], "removed")[["LOD"]])){
   cat("No metabolite was removed based on the missing values ratio.  \n")
@@ -131,17 +135,17 @@ if(is.null(attr(params[["dat"]], "removed")[["LOD"]])){
 }
 ```
 
-```{r, out.height="40%", out.width="70%", eval=((params[["filtering_threshold_ex"]]) & !is.null(attr(params[["dat"]], "group"))), fig.cap="Venn diagram of metabolites with missing values ratio greater than the threshold in any group level.", fig.pos="H", fig.align='center'}
+```{r, fig.height=4, fig.width=4, eval=((params[["filtering_threshold_ex"]]) & !is.null(attr(params[["dat"]], "group"))), fig.cap="Venn diagram of metabolites with missing values ratio greater than the threshold in any group level.", fig.pos="H", fig.align='center'}
 if(lvls_count < 5)
-  create_venn_diagram(params[["dat"]], params[["filtering_threshold"]])
+  create_venn_diagram(params[["dat"]], params[["filtering_threshold"]]/100)
 ```
 
-```{r, out.height="50%", fig.cap="Missing values ratios in each metabolite (up to 10 metabolites wiht the highest ratios are visible); (a) total ratios; (b) ratios of missing values of each type.", fig.pos="H", fig.align='center'}
+```{r, fig.height=4, fig.cap="Missing values ratios in each metabolite (up to 10 metabolites wiht the highest ratios are visible); (a) total ratios; (b) ratios of missing values of each type.", fig.pos="H", fig.align='center'}
 NA_perc_plt <- plot_NA_percent(params[["dat"]],
                                interactive = FALSE)
 
 y_levels <- ggplot_build(NA_perc_plt)$layout$panel_params[[1]]$y$breaks
-cropped_lvls <- y_levels[(max(length(y_levels)-10, 1)):length(y_levels)]
+cropped_lvls <- y_levels[(max(length(y_levels)-9, 1)):length(y_levels)]
 
 NA_perc_plt_crop <- NA_perc_plt +
   ylim(cropped_lvls)
@@ -169,17 +173,24 @@ if(!is.null(attr(params[["dat"]], "completed"))){
 }
 ```
 
-```{r, out.height="50%", out.width="80%", fig.cap="Heatmap of missing values for each plate bar code (up to 10 first metabolites from the dataset are visible).", fig.pos="H", fig.align='center'}
+```{r, fig.height=4, fig.width=6, fig.cap="Heatmap of missing values for each plate bar code (up to 10 first metabolites from the dataset are visible).", fig.pos="H", fig.align='center'}
 aval_pb_codes <- params[["dat"]] %>%
   filter(`sample type` == "Sample") %>%
   select(`plate bar code`) %>%
   unlist() %>%
   unique()
 
+aval_metabolites <- setdiff(attr(params[["dat"]], "metabolites"),
+                            unlist(attr(params[["dat"]], "removed")))
+
 heatmap_plts <- lapply(aval_pb_codes, function(pb_code){
   plot_heatmap(params[["dat"]], pb_code,
-               include_title = TRUE) 
+               include_title = TRUE) +
+    ylim(aval_metabolites[1:min(10, length(aval_metabolites))])
 })
+
+NA_perc_plt_crop <- NA_perc_plt +
+  ylim(cropped_lvls)
 
 ggarrange(plotlist = heatmap_plts, ncol = min(length(heatmap_plts), 2))
 ```
@@ -194,7 +205,7 @@ cat("The absolute correlation threshold for the heatmap of correlations before a
     ".  \n", sep = "")
 ```
 
-```{r, eval=!is.null(attr(params[["dat"]], "completed")), out.height="70%", out.width="80%", fig.cap="Heatmap of correlations before and after imputation (up to 10 chosen metabolites visible).", fig.align='center', fig.pos="H"}
+```{r, eval=!is.null(attr(params[["dat"]], "completed"))}
 cor_heatmap_both <- create_correlations_heatmap(
   params[["dat"]],
   threshold = ifelse(is.null(params[["corr_threshold_both"]]),
@@ -207,14 +218,15 @@ cor_heatmap_both <- create_correlations_heatmap(
 )
 
 if(!is.null(cor_heatmap_both)){
-  cor_heatmap_cap_both <- "Correlations heatmap (up to 10 chosen metabolites visible)."
+  cor_heatmap_cap_both <- "Heatmap of correlations before and after imputation (up to 10 chosen metabolites visible)."
   cor_heatmap_results_both <- "show"
 }else{
   cor_heatmap_cap_both <- NULL
   cor_heatmap_results_both <- "asis"
 }
 ```
-```{r, eval=!is.null(attr(params[["dat"]], "completed")), out.height="50%", out.width="70%", fig.cap=cor_heatmap_cap_both, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results_both"), cor_heatmap_results_both, "show")}
+
+```{r, eval=!is.null(attr(params[["dat"]], "completed")), fig.height=4, fig.width=5, fig.cap=cor_heatmap_cap_both, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results_both"), cor_heatmap_results_both, "show")}
 if(is.null(cor_heatmap_cap_both)){
   cat("No metabolites to show on the heatmap.  \n  \n")
 }else
@@ -225,18 +237,18 @@ if(is.null(cor_heatmap_cap_both)){
 cat("## Quality control  \n  \n")
 cat("CV threshold was set to ",
     params[["cv_threshold"]],
-    "%.  \n", sep = "")
+    "%.  \n   \n", sep = "")
 
 CV_to_remove <- setdiff(get_CV_to_remove(params[["dat"]],
-                                         threshold = params[["cv_threshold"]]),
+                                         threshold = params[["cv_threshold"]]/100),
                         unlist(attr(params[["dat"]], "removed")))
 
 if(length(CV_to_remove) == 0){
-  cat("There were no metabolites with CV greater than the threshold.  \n")
+  cat("There were no metabolites with CV greater than the threshold.  \n   \n")
 }else{
   cat("Metabolites with CV greater than the threshold: ",
       paste0(CV_to_remove, collapse = ", "),
-      ".  \n", sep = "")
+      ".  \n   \n", sep = "")
 }
 
 if(!is.null(attr(params[["dat"]], "removed")[["QC"]])){
@@ -259,7 +271,7 @@ cat("The absolute correlation threshold for the heatmap of correlations after im
     ".  \n", sep = "")
 ```
 
-```{r, eval=!is.null(attr(params[["dat"]], "cv")), out.height="70%", out.width="80%", fig.cap="Heatmap of correlations after imputation (up to 10 chosen metabolites visible).", fig.align='center', fig.pos="H"}
+```{r, eval=!is.null(attr(params[["dat"]], "cv"))}
 cor_heatmap <- create_correlations_heatmap(
   params[["dat"]],
   threshold = ifelse(is.null(params[["corr_threshold"]]),
@@ -271,7 +283,7 @@ cor_heatmap <- create_correlations_heatmap(
 )
 
 if(!is.null(cor_heatmap)){
-  cor_heatmap_cap <- "Correlations heatmap (up to 10 chosen metabolites visible)."
+  cor_heatmap_cap <- "Heatmap of correlations after imputation (up to 10 chosen metabolites visible)."
   cor_heatmap_results <- "show"
 }else{
   cor_heatmap_cap <- NULL
@@ -279,76 +291,88 @@ if(!is.null(cor_heatmap)){
 }
 ```
 
-```{r, eval=!is.null(attr(params[["dat"]], "cv")), out.height="50%", out.width="70%", fig.cap=cor_heatmap_cap, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results"), cor_heatmap_results, "show")}
+```{r, eval=!is.null(attr(params[["dat"]], "cv")), fig.height=4, fig.width=5, fig.cap=cor_heatmap_cap, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results"), cor_heatmap_results, "show")}
 if(is.null(cor_heatmap_cap)){
   cat("No metabolites to show on the heatmap.  \n  \n")
 }else
   cor_heatmap
-
-pca_fig_cap <- paste0("PCA plot",
-                      ifelse(is.null(attr(params[["dat"]], "group")),
-                             " ",
-                             "s "),
-                      "with colors indicating ",
-                      ifelse(is.null(attr(params[["dat"]], "group")),
-                             "sample type.",
-                             "(a) sample type, (b) group levels."))
-```
-
-```{r, eval=!is.null(attr(params[["dat"]], "cv")), out.height="80%", out.width="90%", fig.cap=pca_fig_cap, fig.align='center'}
-pca_plt <- create_PCA_plot(
-  params[["dat"]],
-  type = "sample_type",
-  types_to_display = ifelse(is.null(params[["PCA_types"]]),
-                            "all",
-                            params[["PCA_types"]]),
-  interactive = FALSE)
-
-labels <- NULL
-
-if(!is.null(attr(params[["dat"]], "group"))){
-  pca_group_plt <- create_PCA_plot(params[["dat"]], type = "group",
-                                   interactive = FALSE)
-  pca_plt <- list(pca_plt, pca_group_plt)
-  labels <- "auto"
-}else
-  pca_plt <- list(pca_plt)
-
-ggarrange(plotlist = pca_plt, labels = labels, ncol = 1)
 ```
 
 ```{r, results = "asis", eval=!is.null(attr(params[["dat"]], "cv"))}
-if(!is.null(params[["PCA_threshold"]])){
-  cat("Biplot threshold was set to ",
-      params[["PCA_threshold"]],
-      "%.  \n", sep = "")
-}
-
-if(!is.null(params[["PCA_variance_threshold"]])){
-  cat("The cumulative PCA variance threhold was set to ",
-      params[["PCA_variance_threshold"]],
-      "%. ", sep = "")
-  cat("The maximum number of visible principal components was set to ",
-      params[["PCA_variance_max_num"]],
-      ".", sep = "") 
-}
+cat("For the biplot based on the PCA including all sample types, the threshold
+    was set to ",
+    params[["sample_type_PCA_threshold"]],
+    "%. ", sep = "")
+cat("For the plot of variance explained by each principal component, the
+    threshold was set to ",
+    params[["sample_type_PCA_variance_threshold"]],
+    "%. ", sep = "")
+cat("The maximum number of visible principal components was set to ",
+    params[["sample_type_PCA_variance_max_num"]],
+    ".", sep = "")
 ```
 
-```{r, eval=!is.null(attr(params[["dat"]], "cv")), out.height="90%", out.width="90%", fig.cap="Plots related to PCA; (a) biplot, showing which compounds are similar in terms of the variablity; (b) ratio of variance explained by each principal component.", fig.align='center'}
-biplot <- create_PCA_plot(params[["dat"]],
+```{r, eval=!is.null(attr(params[["dat"]], "cv")), fig.height = 7, fig.width = 5, fig.cap="Principal Component Analysis (PCA) including all sample types; (a) scatter plot with colors indicating sample types; (b) biplot  showing similarities among compounds based on their contribution to variability; (c) barplot showing the proprotion of variance explained by each principal component.", fig.align='center', fig.pos="H"}
+sample_pca_plt <- create_PCA_plot(
+  params[["dat"]],
+  group_by = "sample_type",
+  type = "scatterplot",
+  types_to_display = params[["sample_type_PCA_types"]],
+  interactive = FALSE)
+
+sample_biplot <- create_PCA_plot(params[["dat"]],
                           type = "biplot",
-                          threshold = params[["PCA_threshold"]]/100,
-                          types_to_display = params[["PCA_types"]],
+                          group_by = "sample_type",
+                          threshold = params[["sample_type_PCA_threshold"]]/100,
+                          types_to_display = params[["sample_type_PCA_types"]],
                           interactive = FALSE)
 
-pca_variance_plt <- pca_variance(params[["dat"]],
-                                 threshold = params[["PCA_variance_threshold"]]/100,
-                                 max_num = params[["PCA_variance_max_num"]],
-                                 cumulative = params[["PCA_variance_cum"]])
+sample_pca_variance_plt <- pca_variance(params[["dat"]],
+                                 type = "sample_type",
+                                 threshold = params[["sample_type_PCA_variance_threshold"]]/100,
+                                 max_num = params[["sample_type_PCA_variance_max_num"]],
+                                 cumulative = params[["sample_type_PCA_variance_cum"]])
 
-ggarrange(biplot, pca_variance_plt, labels = "auto", nrow = 2)
+ggarrange(sample_pca_plt, sample_biplot, sample_pca_variance_plt,
+          labels = "auto", ncol = 1)
 ```
 
+```{r, results = "asis", eval=(!is.null(attr(params[["dat"]], "cv")) & !is.null(attr(params[["dat"]], "group")))}
+cat("For the biplot based on the PCA including only samples, the threshold
+    was set to ",
+    params[["group_PCA_threshold"]],
+    "%. ", sep = "")
+cat("For the plot of variance explained by each principal component, the
+    threshold was set to ",
+    params[["group_PCA_variance_threshold"]],
+    "%. ", sep = "")
+cat("The maximum number of visible principal components was set to ",
+    params[["group_PCA_variance_max_num"]],
+    ".", sep = "")
+```
+
+```{r, eval=(!is.null(attr(params[["dat"]], "cv")) & !is.null(attr(params[["dat"]], "group"))), fig.height=7, fig.width=5, fig.cap="Principal Component Analysis (PCA) including only samples; (a) scatter plot with colors indicating group levels; (b) biplot  showing similarities among compounds based on their contribution to variability; (c) barplot shwoing the proprotion of variance explained by each principal component.", fig.align='center', fig.pos="H"}
+group_pca_plt <- create_PCA_plot(
+  params[["dat"]],
+  group_by = "group",
+  type = "scatterplot",
+  interactive = FALSE)
+
+group_biplot <- create_PCA_plot(params[["dat"]],
+                          type = "biplot",
+                          group_by = "group",
+                          threshold = params[["group_PCA_threshold"]]/100,
+                          interactive = FALSE)
+
+group_pca_variance_plt <- pca_variance(params[["dat"]],
+                                 type = "group",
+                                 threshold = params[["group_PCA_variance_threshold"]]/100,
+                                 max_num = params[["group_PCA_variance_max_num"]],
+                                 cumulative = params[["group_PCA_variance_cum"]])
+
+ggarrange(group_pca_plt, group_biplot, group_pca_variance_plt,
+          labels = "auto", ncol = 1)
+```
 
 
 

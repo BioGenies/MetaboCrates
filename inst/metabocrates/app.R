@@ -537,7 +537,7 @@ ui <- navbarPage(
       tabPanel("Outlier detection",
                nav_btns_UI("Outlier detection"),
                tabsetPanel(id = "outlier_detection",
-                           tabPanel("PCA",
+                           tabPanel("Sample type PCA",
                                     column(3,
                                            class = "full-height",
                                            style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
@@ -545,14 +545,14 @@ ui <- navbarPage(
                                            br(),
                                            br(),
                                            br(),
-                                           radioButtons("PCA_type",
+                                           radioButtons("sample_type_PCA_type",
                                                         label = "Select PCA plot type",
-                                                        choices = c("sample type", "biplot", "variance"),
+                                                        choices = c("scatterplot", "biplot", "variance"),
                                                         inline = TRUE),
                                            conditionalPanel(
-                                             condition = "input.PCA_type == `sample type`",
+                                             condition = "input.sample_type_PCA_type == `scatterplot`",
                                              checkboxGroupInput(
-                                               inputId = "PCA_types",
+                                               inputId = "sample_type_PCA_types",
                                                label = "Select types to display",
                                                choices = character(0),
                                                inline = TRUE
@@ -560,9 +560,9 @@ ui <- navbarPage(
                                              
                                            ),
                                            conditionalPanel(
-                                             condition = "input.PCA_type == `biplot`",
+                                             condition = "input.sample_type_PCA_type == `biplot`",
                                              numericInput(
-                                               inputId = "PCA_threshold",
+                                               inputId = "sample_type_PCA_threshold",
                                                label = "Absolute correlation threshold [%]",
                                                value = 30,
                                                min = 0,
@@ -571,9 +571,9 @@ ui <- navbarPage(
                                               )
                                            ),
                                            conditionalPanel(
-                                             condition = "input.PCA_type == `variance`",
+                                             condition = "input.sample_type_PCA_type == `variance`",
                                              numericInput(
-                                               inputId = "PCA_variance_threshold",
+                                               inputId = "sample_type_PCA_variance_threshold",
                                                label = "Cumulative variance threshold [%]",
                                                value = 80,
                                                min = 0,
@@ -582,15 +582,15 @@ ui <- navbarPage(
                                               )
                                            ),
                                            conditionalPanel(
-                                             condition = "input.PCA_type == `variance`",
-                                             numericInput("PCA_variance_max_num",
+                                             condition = "input.sample_type_PCA_type == `variance`",
+                                             numericInput("sample_type_PCA_variance_max_num",
                                                           label = "maximum number of principal components",
                                                           value = 5,
                                                           min = 1)
                                            ),
                                            conditionalPanel(
-                                             condition = "input.PCA_type == `variance`",
-                                             checkboxInput("PCA_variance_cum",
+                                             condition = "input.sample_type_PCA_type == `variance`",
+                                             checkboxInput("sample_type_PCA_variance_cum",
                                                            label = "Include cumulative variance")
                                            )
                                     ),
@@ -600,13 +600,76 @@ ui <- navbarPage(
                                     ),
                                     column(9, align = "center",
                                            conditionalPanel(
-                                             condition = "input.PCA_type == `biplot`",
+                                             condition = "input.sample_type_PCA_type == `biplot`",
                                              h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
                                              br()
                                            )
                                     ),
                                     column(7, offset = 1,
-                                           uiOutput("cond_pca_plt")
+                                           uiOutput("sample_type_cond_pca_plt")
+                                    )
+                           ),
+                           tabPanel("Group PCA",
+                                    column(3,
+                                           class = "full-height",
+                                           style = "background-color:#f8f5f0; border-right: 1px solid; height: 500px",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           radioButtons("group_PCA_type",
+                                                        label = "Select PCA plot type",
+                                                        choices = c("scatterplot", "biplot", "variance"),
+                                                        inline = TRUE
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.group_PCA_type == `biplot`",
+                                             numericInput(
+                                               inputId = "group_PCA_threshold",
+                                               label = "Absolute correlation threshold [%]",
+                                               value = 30,
+                                               min = 0,
+                                               max = 100,
+                                               step = 5
+                                             )
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.group_PCA_type == `variance`",
+                                             numericInput(
+                                               inputId = "group_PCA_variance_threshold",
+                                               label = "Cumulative variance threshold [%]",
+                                               value = 80,
+                                               min = 0,
+                                               max = 100,
+                                               step = 5
+                                             )
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.group_PCA_type == `variance`",
+                                             numericInput("group_PCA_variance_max_num",
+                                                          label = "maximum number of principal components",
+                                                          value = 5,
+                                                          min = 1)
+                                           ),
+                                           conditionalPanel(
+                                             condition = "input.group_PCA_type == `variance`",
+                                             checkboxInput("group_PCA_variance_cum",
+                                                           label = "Include cumulative variance")
+                                           )
+                                    ),
+                                    column(9, align = "right",
+                                           h2("Outlier detection (step 6/8)"),
+                                           h3("next: Summary")
+                                    ),
+                                    column(9, align = "center",
+                                           conditionalPanel(
+                                             condition = "input.group_PCA_type == `biplot`",
+                                             h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
+                                             br()
+                                           )
+                                    ),
+                                    column(7, offset = 1,
+                                           uiOutput("group_cond_pca_plt")
                                     )
                            ),
                            tabPanel("Heatmap of correlations after imputation",
@@ -1039,7 +1102,7 @@ server <- function(input, output, session) {
       last_selected_group(group_names)
     }
     
-      update_inputs_SERVER("group_update", session, input, dat)
+    update_inputs_SERVER("group_update", session, input, dat)
   }, ignoreNULL = FALSE)
   
   observeEvent(input[["remove_group"]], {
@@ -1057,10 +1120,10 @@ server <- function(input, output, session) {
   
   output[["selected_info"]] <- renderUI({
     if (is.null(input[["group_columns-table_rows_selected"]])) {
-     selected_columns_str <- "none."
+     selected_columns_str <- "none"
     } else {
       selected_columns <- dat[["group_candidates"]][["column name"]][input[["group_columns-table_rows_selected"]]]
-      selected_columns_str <- paste0(paste0(selected_columns, collapse = ", "), ".")
+      selected_columns_str <- paste0(paste0(selected_columns, collapse = ", "))
     }
     
     tagList(
@@ -1076,10 +1139,10 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     if (is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      group_columns <- "none."
+      group_columns <- "none"
     else
       group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
-                                     collapse = ", "), ".")
+                                     collapse = ", "))
     
     tagList(
       h4("Grouping columns: "),
@@ -1091,12 +1154,12 @@ server <- function(input, output, session) {
     req(dat[["metabocrates_dat_group"]])
     
     if (is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
-      group_columns <- "none."
+      group_columns <- "none"
       total_num <- 0
     }
     else{
       group_columns <- paste0(paste0(attr(dat[["metabocrates_dat_group"]], "group"),
-                                     collapse = ",\n"), ".")
+                                     collapse = ",\n"))
       total_num <- length(attr(dat[["metabocrates_dat_group"]], "group"))
     }
     
@@ -1105,16 +1168,17 @@ server <- function(input, output, session) {
       h5(group_columns),
       br(),
       br(),
-      h5(paste0("Total number of unique levels: ", total_num, "."))
+      h5(paste0("Total number of unique levels: ", total_num))
     )
   })
   
   group_table_DT <- reactive({
     req(attr(dat[["metabocrates_dat_group"]], "group"))
+    req(input[["group_table_column"]])
     
     dat[["metabocrates_dat_group"]] %>%
       filter(`sample type` == "Sample") %>%
-      group_by(across(all_of(attr(dat[["metabocrates_dat_group"]], "group")))) %>%
+      group_by(across(all_of(input[["group_table_column"]]))) %>%
       summarise(Count = n()) %>%
       custom_datatable(scrollY = 300, paging = TRUE)
   })
@@ -1122,12 +1186,9 @@ server <- function(input, output, session) {
   table_with_button_SERVER("group_table", group_table_DT)
   
   groups_plt_reactive <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["grouping_column"]])
+    req(attr(dat[["metabocrates_dat_group"]], "group"))
     
-    if(!is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      plot_groups(dat[["metabocrates_dat_group"]],
-                  grouping_column = input[["grouping_column"]])
+    plot_groups(dat[["metabocrates_dat_group"]])
   })
   
   plot_with_button_SERVER("groups_plt", groups_plt_reactive) 
@@ -1149,15 +1210,15 @@ server <- function(input, output, session) {
     else
       tagList(
         column(4, offset = 1,
-               br(),
-               br(),
+               selectInput("group_table_column",
+                           label = "Select grouping column",
+                           choices = attr(dat[["metabocrates_dat_group"]], "group")),
                table_with_button_UI("group_table")
         ),
         column(6,
-               selectInput("grouping_column",
-                           label = "Choose grouping column",
-                           choices = attr(dat[["metabocrates_dat_group"]], "group")
-               ),
+               br(),
+               br(),
+               br(),
                plot_with_button_UI("groups_plt") 
         )
       )
@@ -1197,7 +1258,7 @@ server <- function(input, output, session) {
                                   input[["LOD_to_remove"]]))
     
     if(length(ro_remove_display) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(ro_remove_display, collapse = ", "))
     }
@@ -1210,7 +1271,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
     
     if(length(removed) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
@@ -1579,7 +1640,7 @@ server <- function(input, output, session) {
                        - LOD method: <b>halfmin</b>,<br>
                        - LOD type: <b>calc</b>,<br>
                        - LLOQ method: <b>limit</b>,<br>
-                       - ULOQ method: <b>third quartile</b>.<br>
+                       - ULOQ method: <b>none</b>.<br>
                        You can go back anytime to modify the imputation."),
                        type = "warning",
                        html = TRUE)
@@ -1591,7 +1652,7 @@ server <- function(input, output, session) {
                           selected = "limit")
         
         updateSelectInput(session, "ULOQ_method",
-                          selected = "third quartile")
+                          selected = "none")
         
         updateSelectInput(session, "LOD_type",
                           selected = "calc")
@@ -1635,7 +1696,7 @@ server <- function(input, output, session) {
                                      input[["CV_to_remove"]]))
     
     if(length(to_remove_CV_display) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(to_remove_CV_display, collapse = ", "))
     }
@@ -1647,7 +1708,7 @@ server <- function(input, output, session) {
     removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]
     
     if(length(removed) == 0)
-      HTML("none.")
+      HTML("none")
     else {
       HTML(paste0(removed, collapse = ", "))
     }
@@ -1693,74 +1754,142 @@ server <- function(input, output, session) {
   
   ######### Outlier detection
   
-  PCA_plt <- reactive({
+  sample_type_PCA_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["PCA_type"]])
+    req(input[["sample_type_PCA_type"]])
     req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
-    if(input[["PCA_type"]] == "variance") req(NULL)
-    if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
+    if(input[["sample_type_PCA_type"]] == "variance") req(NULL)
+    if(input[["sample_type_PCA_type"]] == "biplot") req(input[["sample_type_PCA_threshold"]])
     
-    if(input[["PCA_type"]] == "sample type" && is.null(input[["PCA_types"]]))
+    if(input[["sample_type_PCA_type"]] == "scatterplot" && is.null(input[["sample_type_PCA_types"]]))
       NULL
     else{
-      if(input[["PCA_type"]] == "sample type")
-        types_to_display <- input[["PCA_types"]]
+      if(input[["sample_type_PCA_type"]] == "scatterplot")
+        types_to_display <- input[["sample_type_PCA_types"]]
       else types_to_display <- "all"
       
       create_PCA_plot(dat[["metabocrates_dat_group"]],
-                      type = ifelse(input[["PCA_type"]] == "sample type",
-                                    "sample_type", input[["PCA_type"]]),
+                      group_by = "sample_type",
+                      type = input[["sample_type_PCA_type"]],
                       types_to_display = types_to_display,
-                      threshold = input[["PCA_threshold"]]/100)
+                      threshold = input[["sample_type_PCA_threshold"]]/100)
     }
   })
   
-  PCA_plt_full <- reactive({
+  sample_type_PCA_plt_full <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["PCA_type"]])
+    req(input[["sample_type_PCA_type"]])
     req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
+    if(input[["sample_type_PCA_type"]] == "biplot") req(input[["sample_type_PCA_threshold"]])
+    if(input[["sample_type_PCA_type"]] == "scatterplot") req(input[["sample_type_PCA_types"]])
     
-    if(input[["PCA_type"]] == "biplot") req(input[["PCA_threshold"]])
-    if(input[["PCA_type"]] == "sample type") req(input[["PCA_types"]])
-    
-    if(input[["PCA_type"]] == "sample type")
-      types_to_display <- input[["PCA_types"]]
+    if(input[["sample_type_PCA_type"]] == "scatterplot")
+      types_to_display <- input[["sample_type_PCA_types"]]
     else types_to_display <- "all"
     
     create_PCA_plot(dat[["metabocrates_dat_group"]],
-                    type = ifelse(input[["PCA_type"]] == "sample type",
-                                  "sample_type", input[["PCA_type"]]),
+                    group_by = "sample_type",
+                    type = input[["sample_type_PCA_type"]],
                     types_to_display = types_to_display,
-                    threshold = input[["PCA_threshold"]]/100,
+                    threshold = input[["sample_type_PCA_threshold"]]/100,
                     interactive = FALSE
     )
   })
   
-  plot_with_button_SERVER("PCA_plt", PCA_plt, full_plt = PCA_plt_full)
+  plot_with_button_SERVER("sample_type_PCA_plt", sample_type_PCA_plt, full_plt = sample_type_PCA_plt_full)
   
-  PCA_variance_plt <- reactive({
+  sample_type_PCA_variance_plt <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["PCA_type"]])
-    if(input[["PCA_type"]] != "variance") req(NULL)
+    req(input[["sample_type_PCA_type"]])
+    if(input[["sample_type_PCA_type"]] != "variance") req(NULL)
     req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
     pca_variance(dat[["metabocrates_dat_group"]],
-                 threshold = input[["PCA_variance_threshold"]]/100,
-                 max_num = input[["PCA_variance_max_num"]],
-                 cumulative = input[["PCA_variance_cum"]])
+                 type = "sample_type",
+                 threshold = input[["sample_type_PCA_variance_threshold"]]/100,
+                 max_num = input[["sample_type_PCA_variance_max_num"]],
+                 cumulative = input[["sample_type_PCA_variance_cum"]])
   })
   
-  plot_with_button_SERVER("PCA_variance_plt", PCA_variance_plt)
+  plot_with_button_SERVER("sample_type_PCA_variance_plt", sample_type_PCA_variance_plt)
   
-  output[["cond_pca_plt"]] <- renderUI({
-    if(input[["PCA_type"]] == "variance"){
-      plot_with_button_UI("PCA_variance_plt")
+  output[["sample_type_cond_pca_plt"]] <- renderUI({
+    if(input[["sample_type_PCA_type"]] == "variance"){
+      plot_with_button_UI("sample_type_PCA_variance_plt")
     }else{
-      plot_with_button_UI("PCA_plt")
+      plot_with_button_UI("sample_type_PCA_plt")
+    }
+  })
+  
+  group_PCA_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["group_PCA_type"]])
+    req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                       unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
+    
+    if(input[["group_PCA_type"]] == "variance") req(NULL)
+    if(input[["group_PCA_type"]] == "biplot") req(input[["group_PCA_threshold"]])
+      
+      create_PCA_plot(dat[["metabocrates_dat_group"]],
+                      group_by = "group",
+                      type = input[["group_PCA_type"]],
+                      threshold = input[["group_PCA_threshold"]]/100)
+  })
+  
+  group_PCA_plt_full <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["group_PCA_type"]])
+    req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                       unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
+    
+    if(input[["group_PCA_type"]] == "biplot") req(input[["group_PCA_threshold"]])
+    if(input[["group_PCA_type"]] == "scatterplot") req(input[["group_PCA_types"]])
+    
+    create_PCA_plot(dat[["metabocrates_dat_group"]],
+                    group_by = "group",
+                    type = input[["group_PCA_type"]],
+                    threshold = input[["group_PCA_threshold"]]/100,
+                    interactive = FALSE
+    )
+  })
+  
+  plot_with_button_SERVER("group_PCA_plt", group_PCA_plt, full_plt = group_PCA_plt_full)
+  
+  group_PCA_variance_plt <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["group_PCA_type"]])
+    if(input[["group_PCA_type"]] != "variance") req(NULL)
+    req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                       unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
+    
+    pca_variance(dat[["metabocrates_dat_group"]],
+                 type = "group",
+                 threshold = input[["group_PCA_variance_threshold"]]/100,
+                 max_num = input[["group_PCA_variance_max_num"]],
+                 cumulative = input[["group_PCA_variance_cum"]])
+  })
+  
+  plot_with_button_SERVER("group_PCA_variance_plt", group_PCA_variance_plt)
+  
+  output[["group_cond_pca_plt"]] <- renderUI({
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group")))
+      HTML('<div style="text-align: left; background-color: #e5fbf7;
+                 padding: 8px 10px; border-left: 4px solid #00d2a3;
+                 border-radius: 4px; font-size: 14px; width: 100%;">
+                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
+                 Group data to see plots.
+                 </div>'
+      )
+    else{
+      if(input[["group_PCA_type"]] == "variance"){
+        plot_with_button_UI("group_PCA_variance_plt")
+      }else{
+        plot_with_button_UI("group_PCA_plt")
+      }
     }
   })
   

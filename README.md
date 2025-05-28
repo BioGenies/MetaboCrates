@@ -32,5 +32,3 @@ Execute following commands in the R console:
 ```
 devtools::install_github("BioGenies/MetaboCrates")
 ```
-
-

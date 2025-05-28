@@ -1,7 +1,8 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt", "PCA_plt",
+  plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt",
+                      "sample_type_PCA_plt", "group_PCA_plt",
                       "corr_heatmap_both")) {
     withSpinner(ggiraph::girafeOutput(ns("plot")))
   } else
@@ -39,7 +40,7 @@ plot_with_button_UI <- function(id){
                circle = TRUE, status = "primary", right = TRUE,
                icon = icon("download"), width = "300px",
                tooltip = tooltipOptions(title = "Click to download!",
-                                        placement = "left")
+                                        placement = "bottom")
              )
            )
            )
@@ -77,8 +78,10 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                       venn_diagram = "venn_diagram",
                       missing_heatmap = "missing_values_heatmap",
                       dist_plt = "distribution_plot",
-                      PCA_plt = "PCA_plot",
-                      PCA_variance = "variance_explained_plot",
+                      sample_type_PCA_plt = "sample_type_PCA_plot",
+                      group_type_PCA_plt = "group_PCA_plot",
+                      sample_type_PCA_variance = "sample_type_variance_explained_plot",
+                      group_PCA_variance = "group_variance_explained_plot",
                       corr_heatmap_both = "correlations_heatmap"),
                ".pdf")
       },

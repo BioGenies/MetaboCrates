@@ -1,25 +1,28 @@
 update_inputs_SERVER <- function(id, main_session, main_input, dat){
     metabolites <- reactive({
-      req(dat[["metabocrates_dat_group"]])
+      req(dat[["metabocrates_dat"]])
       
-      metabolites <- setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                             c(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
-                               attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]))
+      if(is.null(dat[["metabocrates_dat_group"]]))
+        dat_to_use <- dat[["metabocrates_dat"]]
+      else
+        dat_to_use <- dat[["metabocrates_dat_group"]]
+      
+      metabolites <- setdiff(attr(dat_to_use, "metabolites"),
+                             unlist(attr(dat_to_use, "removed")))
     })
     
-    LOD_to_remove <- reactive({
+    LOD_to_remove_dat <- reactive({
       req(dat[["metabocrates_dat_group"]])
-      req(main_input[["filtering_threshold"]])
       
       setdiff(
         get_LOD_to_remove(dat[["metabocrates_dat_group"]],
-                          main_input[["filtering_threshold"]]/100),
+                         main_input[["lod_threshold"]]/100),
         c(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
           attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]])
       )
     })
     
-    CV_to_remove <- reactive({
+    CV_to_remove_dat <- reactive({
       req(attr(dat[["metabocrates_dat_group"]], "cv"))
       
       setdiff(
@@ -42,6 +45,7 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
         unlist() %>%
         unique()
       
+      updateMultiInput(main_session, "LOD_to_remove", choices = metabolites())
       updateSelectInput(main_session, "LOD_type", choices = aval_LOD_types)
       updateSelectInput(main_session, "pb_codes_heatmap", choices = aval_pb_codes)
     }
@@ -59,7 +63,7 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
     }else if(id == "cv_update"){
       updateMultiInput(main_session, "CV_to_remove", 
                        choices = metabolites(), 
-                       selected = CV_to_remove())
+                       selected = CV_to_remove_dat())
     }else{
       if(id %in% c("group_update", "remove_group_update")){
         if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
@@ -73,6 +77,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
           na_choice_names <- c("Joint ratios", "Show NA type")
           grouping_columns <- character(0)
         }
+        
+        updateMultiInput(main_session, "LOD_to_remove",
+                         choices = metabolites())
           
         updateRadioButtons(main_session, inputId = "PCA_type",
                            choices = pca_choices,
@@ -87,12 +94,10 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                           choices = grouping_columns)
       }
         
-      updateMultiInput(main_session, "LOD_to_remove", choices = metabolites())
-        
       if(!is.null(attr(dat[["metabocrates_dat_group"]], "cv"))){
         updateMultiInput(main_session, "CV_to_remove",
                          choices = metabolites(),
-                         selected = CV_to_remove())
+                         selected = CV_to_remove_dat())
       }
         
       if(!is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
@@ -129,7 +134,7 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                             style = rep("color: black;", length(metabolites()))
                           ))
           
-        if(is.null(main_input[["PCA_types"]])){
+        if(is.null(main_input[["sample_type_PCA_types"]])){
           types <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
             select(all_of(c(attr(dat[["metabocrates_dat_group"]], "metabolites"), "tmp_id"))) %>%
             select(where(~ n_distinct(na.omit(.)) > 1)) %>%
@@ -140,9 +145,10 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
             select("sample type") %>%
             unlist()
           
-          updateCheckboxGroupInput(main_session, inputId = "PCA_types",
-                            choices = unique(types),
-                            selected = unique(types))
+          updateCheckboxGroupInput(main_session,
+                                   inputId = "sample_type_PCA_types",
+                                   choices = unique(types),
+                                   selected = unique(types))
         }
       }
     }

@@ -65,14 +65,11 @@ scale_fill_metabocrates_continuous <- function(){
   )
 }
 
-#' Barplot of groups sizes
+#' Barplot of levels sizes
 #' 
 #' @import ggplot2
 #' 
 #' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function.
-#' @param grouping_column a `character` string specifying the name of
-#' the grouping column, or a `numeric` value indicating its position within
-#' the `group` attribute, whose levels should be displayed.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -82,30 +79,22 @@ scale_fill_metabocrates_continuous <- function(){
 #' 
 #' @export
 
-plot_groups <- function(dat, grouping_column = 1){
+plot_groups <- function(dat){
   if(is.null(attr(dat, "group"))){
     stop("No groups column specified in data. You can add grouping using add_group() function.")
   }
   
-  if(is.numeric(grouping_column) &&
-     length(attr(dat, "group")) < grouping_column){
-    stop("The given position is out of range for the grouping columns.") 
-  }else if(is.character(grouping_column) &&
-     !(grouping_column %in% attr(dat, "group"))){
-    stop("The specified grouping column name does not exist in the group attribute.") 
-  }
-  
-  if(is.numeric(grouping_column))
-    grouping_column <- attr(dat, "group")[grouping_column]
-  
-  group_dat <- dat %>%
+  dat %>%
     filter(`sample type` == "Sample") %>%
-    group_by(across(all_of(grouping_column))) %>%
-    summarise(Count = n())
-  
-  ggplot(group_dat, aes(x = Count, y = reorder(get(grouping_column), Count))) +
+    rowwise() %>%
+    mutate(group_tmp = do.call(paste,
+                               c(across(all_of(attr(dat, "group"))),
+                                 sep = ",\n"))) %>%
+    group_by(group_tmp) %>%
+    summarise(Count = n()) %>%
+    ggplot(aes(x = Count, y = reorder(group_tmp, Count))) +
     geom_bar(stat = "identity", fill = "#2B2A29") +
-    labs(x = "Count", y = grouping_column) +
+    labs(x = "Count", y = paste0(attr(dat, "group"), collapse = ", ")) +
     geom_label(aes(label = Count)) +
     metabocrates_theme()
 }
@@ -290,22 +279,39 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
       pivot_longer(!Sample,
                    names_to = "Metabolite", values_to = "Value")
     
-  plt_dat <- plt_dat %>%
-    rowwise() %>%
-    mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
-           Missing = case_when(
-             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & show_colors ~ Value,
-             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & !show_colors ~ "True",
-             Value %in% c("NA", "∞") | is.na(Value) ~ "True",
-             TRUE ~ "False"
-           ))
+  if(!show_colors){
+    plt_dat <- plt_dat %>%
+      rowwise() %>%
+      mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+             Value = case_when(
+               Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞") |
+                 is.na(Value) ~ "True",
+               TRUE ~ "False"
+             )
+      )
+  }else{
+    plt_dat <- plt_dat %>%
+      rowwise() %>%
+      mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+             Value = case_when(
+               !(Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞")) &
+                 !is.na(Value) ~ "Valid",
+               is.na(Value) ~ "NA",
+               .default = Value
+             )
+      )
+  }
   
   plt <- plt_dat %>%
-    ggplot(aes(x = Sample, y = Metabolite, fill = Missing)) +
+    ggplot(aes(x = Sample, y = Metabolite, fill = Value)) +
     geom_tile(color = "white") +
-    scale_fill_manual(values = c("False" = "#BBBBBB", "True" = "#2B2A29",
-                                 "< LOD" = "#A28CA1", "< LLOQ" = "#B2D1DE",
-                                 "> ULOQ"  = "#7FB1C5")) +
+    scale_fill_manual(values = c("Valid" = "#b8de81", "NA" = "#feea7f",
+                                 "∞" = "#F1DABF", "< LOD" = "#a28aa2",
+                                 "< LLOQ" = "#B3D2DD", "> ULOQ"  = "#81b2c6",
+                                 "False" = "#BBBBBB", "True" = "#2B2A29"),
+                      name = ifelse(show_colors,
+                                    "Value type",
+                                    "Is missing")) +
     scale_y_discrete(limits = rev) +
     metabocrates_theme() +
     theme(legend.justification.right = "top")
@@ -933,6 +939,9 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @param threshold A value indicating the maximum cumulative variance
 #' of components to display.
+#' @param type A character specifying which rows to consider. Default is
+#' "sample_type" and all rows are used. When "group", only observations
+#' with type sample are considered.
 #' @param max_num An optional parameter indicating the maximum number
 #' of components to display.
 #' @param cumulative A logical value indicating if the cumulative variance
@@ -942,12 +951,21 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' pca_variance(dat, 0.8, 5)
+#' pca_variance(dat, 0.8, max_num = 5)
 #'
 #' @export
-pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
-  filt_dat <- attr(dat, "completed") %>%
-    filter(`sample type` == "Sample") %>%
+pca_variance <- function(dat, threshold, type = "sample_type",
+                         max_num = NULL, cumulative = TRUE) {
+  if(type == "group" && is.null(attr(dat, "group")))
+    warning("No group specified.")
+  
+  filt_dat <- attr(dat, "completed")
+  
+  if(type == "group")
+    filt_dat <- filt_dat %>%
+      filter(`sample type` == "Sample")
+  
+  filt_dat <- filt_dat %>%  
     select(all_of(setdiff(attr(dat, "metabolites"),
                           unlist(attr(dat, "removed"))))) %>%
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
@@ -961,7 +979,8 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
   cumulative_variance <- cumsum(variance_explained)
   
   variance_df <- data.frame(
-    Component = paste0("PC", 1:length(variance_explained)),
+    Component = factor(paste0("PC", 1:length(variance_explained)),
+                       levels = paste0("PC", 1:length(variance_explained))),
     Variance_Explained = variance_explained,
     Cumulative_Variance = cumulative_variance
   )
@@ -1013,9 +1032,10 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
 #' @inheritParams create_distribution_plot
 #' 
 #' @param type A character denoting which type of PCA plot should be created.
-#' Default is "sample_type", which makes a plot for quality control. Type
-#' "group" creates a PCA plot with respect to the groups of samples with type
-#' 'Sample'. Type "biplot" adds eigenvectors to the PCA for quality control.
+#' Default to "scatter". Type "biplot" shows eigenvectors.
+#' @param group_by Character; default to "sample_type", which makes a plot for
+#' quality control. When set as "group", a PCA plot with respect to the groups
+#' of samples with type 'Sample' is created.
 #' @param types_to_display A vector of sample type names specifying which types
 #' should be shown on the plot when type = "sample_type". Defaults to all.
 #' @param threshold A value indicating the minimum correlation between
@@ -1030,13 +1050,16 @@ pca_variance <- function(dat, threshold, max_num = NULL, cumulative = TRUE) {
 #' create_PCA_plot(dat, type = "biplot", threshold = 0.3)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_PCA_plot(dat, type = "group")
+#' create_PCA_plot(dat, group_by = "group")
+#' create_PCA_plot(dat, type = "biplot", group_by = "group", threshold = 0.3)
 #' 
 #' @export
 
-create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
+create_PCA_plot <- function(dat, type = "sample_type",
+                            group_by = "sample_type",
+                            types_to_display = "all",
                             threshold = NULL, interactive = TRUE){
-  if(type == "group" & is.null(attr(dat, "group")))
+  if(group_by == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
   
   if(type == "biplot" & is.null(threshold))
@@ -1045,20 +1068,16 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
   if(is.null(attr(dat, "completed")))
     stop("Complete the missing values in data first.")
   
-  if(type == "sample_type")
+  if(group_by == "sample_type")
     completed_with_tooltips <- attr(dat, "completed") %>%
       group_by(`sample type`) %>%
       mutate(tooltip = paste0("Type: ", `sample type`,
                               "<br>Sample id: ", `sample identification`)) %>%
       select(-all_of(attr(dat, "metabolites")))
-  else if(type == "group")
+  else(type == "group")
     completed_with_tooltips <- attr(dat, "completed") %>%
       mutate(tooltip = paste0("Sample id: ", `sample identification`)) %>%
       select(-all_of(attr(dat, "metabolites")))
-  else
-    completed_with_tooltips <- attr(dat, "completed") %>%
-      select(-all_of(attr(dat, "metabolites")))
-    
   
   mod_dat <- attr(dat, "completed") %>%
     select(all_of(c(attr(dat, "metabolites"), "tmp_id"))) %>%
@@ -1067,7 +1086,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
     select(where(~ n_distinct(.) > 1)) %>%
     left_join(completed_with_tooltips)
   
-  if(type == "group"){
+  if(group_by == "group"){
     mod_dat <- mod_dat %>%
       filter(`sample type` == "Sample")
     
@@ -1085,13 +1104,11 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
     mod_dat <- rename(mod_dat, sample_type = `sample type`)
   }
   
-  col_type <- ifelse(type == "biplot", "sample_type", type)
-  
   metabolites <- setdiff(attr(dat, "metabolites"),
                          c(unlist(attr(dat, "removed"))))
   
   metabo_dat <- mod_dat %>%
-    mutate(across(all_of(col_type), ~ factor(., levels = unique(.)))) %>%
+    mutate(across(all_of(group_by), ~ factor(., levels = unique(.)))) %>%
     select(any_of(metabolites))
   
   if(ncol(metabo_dat) == 0)
@@ -1124,7 +1141,7 @@ create_PCA_plot <- function(dat, type = "sample_type", types_to_display = "all",
                     "#2980B9", "#27AE60", "#D35400")
     
     pca_df <- as.data.frame(pca_res[["x"]]) %>%
-      mutate(col_type = mod_dat[[col_type]],
+      mutate(col_type = mod_dat[[group_by]],
              tooltip = mod_dat[["tooltip"]])
     
     pca_exact_colors <- pca_colors[1:nrow(unique(select(pca_df, col_type)))]
