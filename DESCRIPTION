@@ -38,6 +38,7 @@ Imports: dplyr,
          ggvenn,
          logspline,
          openxlsx,
+         patchwork,
          readxl,
          reshape2,
          scales,
@@ -51,3 +52,5 @@ Depends:
 Config/testthat/edition: 3
 Language: en-US
 VignetteBuilder: knitr
+URL: http://biogenies.info/MetaboCrates/
+LazyData: true

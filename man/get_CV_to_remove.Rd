@@ -9,7 +9,7 @@ get_CV_to_remove(dat, threshold)
 \arguments{
 \item{dat}{object with CV attribute}
 
-\item{threshold}{}
+\item{threshold}{words}
 }
 \description{
 Returns metabolite names having more CV value

@@ -14,6 +14,10 @@ create_PCA_plot(
 )
 }
 \arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type
+"Sample".}
+
 \item{type}{A character denoting which type of PCA plot should be created.
 Default to "scatter". Type "biplot" shows eigenvectors.}
 
@@ -27,6 +31,9 @@ should be shown on the plot when type = "sample_type". Defaults to all.}
 \item{threshold}{A value indicating the minimum correlation between
 a variable and any component, required for this  variable to be included
 on the PCA biplot.}
+
+\item{interactive}{logical indicating whether the plot should be interactive.
+If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 PCA plot

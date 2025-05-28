@@ -13,6 +13,10 @@ create_correlations_heatmap(
 )
 }
 \arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type
+"Sample".}
+
 \item{type}{Default to \code{completed}, which creates a heatmap of correlations
 between the metabolites after imputation. If \code{both}, then correlations
 between the metabolites before and after imputation are shown.}
@@ -25,7 +29,8 @@ into account).}
 display. If a number is provided, the first metabolites are selected.
 Defaults to \code{all}.}
 
-\item{interactive}{If TRUE, the plot includes interactive tooltips.}
+\item{interactive}{logical indicating whether the plot should be interactive.
+If TRUE, the plot includes interactive tooltips.}
 }
 \description{
 Heatmap of correlations between metabolites

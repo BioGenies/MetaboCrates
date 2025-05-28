@@ -50,4 +50,3 @@ types and their counts
 \description{
 raw_data class
 }
-\keyword{internal}

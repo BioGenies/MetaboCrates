@@ -6,6 +6,18 @@
 \usage{
 create_plot_of_2_metabolites(dat, metabolite1, metabolite2, interactive = TRUE)
 }
+\arguments{
+\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data should be completed and filtered to include only samples of type
+"Sample".}
+
+\item{metabolite1}{words}
+
+\item{metabolite2}{words}
+
+\item{interactive}{logical indicating whether the plot should be interactive.
+If TRUE, the plot includes interactive tooltips.}
+}
 \description{
 Plot of two metabolites
 }
