@@ -70,7 +70,7 @@ MetaboCrates::
 - [ ] colored column height
 - [ ] ?fix report?
 - [ ] ?correct logspline imputation?
-- [ ] legends to the top
+- [ ] ?legends to the top?
 - [x] downloading check !!!
 - [ ] color of spinners in DT
 - [x] spinners color
@@ -80,7 +80,7 @@ MetaboCrates::
 - [ ] spinners delay
 - [ ] plots descriptions
 - [x] handling data without missing values
-- [ ] missing heatmap colors
+- [x] missing heatmap colors
 - [x] PCA plots for all sample types
 - [ ] change descriptions appearance
 - [x] automatic imputation methods
@@ -88,3 +88,4 @@ MetaboCrates::
 - [ ] different color with different histogram type
 - [ ] shorter message window when downloading
 - [x] fix removing metabolites
+- [ ] tests

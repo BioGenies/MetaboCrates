@@ -279,22 +279,39 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
       pivot_longer(!Sample,
                    names_to = "Metabolite", values_to = "Value")
     
-  plt_dat <- plt_dat %>%
-    rowwise() %>%
-    mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
-           Missing = case_when(
-             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & show_colors ~ Value,
-             Value %in% c("< LOD", "< LLOQ", "> ULOQ") & !show_colors ~ "True",
-             Value %in% c("NA", "∞") | is.na(Value) ~ "True",
-             TRUE ~ "False"
-           ))
+  if(!show_colors){
+    plt_dat <- plt_dat %>%
+      rowwise() %>%
+      mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+             Value = case_when(
+               Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞") |
+                 is.na(Value) ~ "True",
+               TRUE ~ "False"
+             )
+      )
+  }else{
+    plt_dat <- plt_dat %>%
+      rowwise() %>%
+      mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
+             Value = case_when(
+               !(Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞")) &
+                 !is.na(Value) ~ "Valid",
+               is.na(Value) ~ "NA",
+               .default = Value
+             )
+      )
+  }
   
   plt <- plt_dat %>%
-    ggplot(aes(x = Sample, y = Metabolite, fill = Missing)) +
+    ggplot(aes(x = Sample, y = Metabolite, fill = Value)) +
     geom_tile(color = "white") +
-    scale_fill_manual(values = c("False" = "#BBBBBB", "True" = "#2B2A29",
-                                 "< LOD" = "#A28CA1", "< LLOQ" = "#B2D1DE",
-                                 "> ULOQ"  = "#7FB1C5")) +
+    scale_fill_manual(values = c("Valid" = "#b8de81", "NA" = "#feea7f",
+                                 "∞" = "#F1DABF", "< LOD" = "#a28aa2",
+                                 "< LLOQ" = "#B3D2DD", "> ULOQ"  = "#81b2c6",
+                                 "False" = "#BBBBBB", "True" = "#2B2A29"),
+                      name = ifelse(show_colors,
+                                    "Value type",
+                                    "Is missing")) +
     scale_y_discrete(limits = rev) +
     metabocrates_theme() +
     theme(legend.justification.right = "top")
