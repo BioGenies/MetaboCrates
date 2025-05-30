@@ -89,3 +89,4 @@ MetaboCrates::
 - [ ] shorter message window when downloading
 - [x] fix removing metabolites
 - [ ] tests
+- [ ] unified tab layouts

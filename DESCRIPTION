@@ -34,18 +34,16 @@ Imports: dplyr,
          ggfortify,
          ggiraph,
          ggplot2,
-         ggpubr,
          ggvenn,
          logspline,
-         openxlsx,
+         patchwork,
          readxl,
          reshape2,
          scales,
          stringi,
          stringr,
          tidyr,
-         tools,
-         zip
+         tools
 Depends: 
     R (>= 2.10)
 Config/testthat/edition: 3
