@@ -1,7 +1,10 @@
 
-#' Specify group in the Biocrates data
+#' Group data
 #' 
-#' @param raw_data a \code{\link{raw_data}} object. Output of [read_data()] 
+#' @description
+#' `add_group()` groups data by one or more columns.
+#' 
+#' @param dat a \code{\link{raw_data}} object. Output of [read_data()]
 #' function.
 #' @param group_names a single character string or character vector
 #' specifying the names of the columns to group the data by.
@@ -15,28 +18,34 @@
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' 
+#' dat <- add_group(dat, c("group", "species"))
+#' 
 #' @export
 #'
 
-add_group <- function(raw_data, group_names) {
+add_group <- function(dat, group_names) {
   
-  if(!all(group_names %in% colnames(raw_data)))
+  if(!all(group_names %in% colnames(dat)))
     stop(paste0("Some of the provided column: ", group_names, 
                 " can't be found in your data!"))
   
-  if(!is.null(attr(raw_data, "group")))
+  if(!is.null(attr(dat, "group")))
     warning("You already have grouping defined in your data. It will be replaced!")
   
-  attr(raw_data, "group") <- group_names
+  attr(dat, "group") <- group_names
   
-  raw_data(as.data.frame(raw_data), 
-           LOD_table = attr(raw_data, "LOD_table"), 
-           metabolites = attr(raw_data, "metabolites"),
+  raw_data(as.data.frame(dat), 
+           LOD_table = attr(dat, "LOD_table"), 
+           metabolites = attr(dat, "metabolites"),
            group = group_names)
   
 }
 
-#' Get informations from Biocrates data
+#' Get information about data
+#' 
+#' @description
+#' `get_info()` returns information about the number of sample types,
+#' missing values types and grouping (if applied).
 #' 
 #' @inheritParams add_group
 #' 
@@ -45,35 +54,33 @@ add_group <- function(raw_data, group_names) {
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
-#' get_info(dat)
 #' cat(get_info(dat))
 #' 
 #' dat <- add_group(dat, "group")
-#' get_info(dat)
 #' cat(get_info(dat))
 #' 
 #' @export
 #' 
 
-get_info <- function(raw_data){
+get_info <- function(dat){
   
-  if(any(class(raw_data) != c("raw_data", "data.frame")))
+  if(any(class(dat) != c("raw_data", "data.frame")))
     stop("dat must be a raw_data object.")
   
   info_str <- paste0("Data contains ", 
-                     nrow(attr(raw_data, "samples")), 
+                     nrow(attr(dat, "samples")), 
                      " sample types and ", 
-                     nrow(attr(raw_data, "NA_info")[["counts"]]), 
+                     nrow(attr(dat, "NA_info")[["counts"]]), 
                      " NA types.")
   
-  if(!is.null(attr(raw_data, "group"))){
-    group_lvls <- raw_data %>%
-      select(all_of(attr(raw_data, "group"))) %>%
+  if(!is.null(attr(dat, "group"))){
+    group_lvls <- dat %>%
+      select(all_of(attr(dat, "group"))) %>%
       unique() %>%
       nrow()
     
     info_str <- paste0(info_str, "\nGroupping by: \"", 
-                       attr(raw_data, "group"), "\" (", 
+                       attr(dat, "group"), "\" (", 
                        nrow(group_lvls), " levels).")
   }
   
@@ -82,14 +89,18 @@ get_info <- function(raw_data){
 }
 
 
-#' Get metabolites to remove
+#' Get metabolites to remove based on missing values proportion
 #'
-#' @description Returns metabolite names having more NA values in each group
-#' level than the given threshold.
+#' @description
+#' `get_LOD_to_remove()` returns the names of metabolites having the higher
+#' proportion of missing values than the given threshold.
 #' 
 #' @inheritParams add_group
 #' 
-#' @param threshold Percentage value.
+#' @param threshold a decimal specifying the minimum proportion of missing
+#' values a metabolite must have to be removed.
+#' @param use_group logical. If `TRUE`, a metabolite will be returned only if
+#' the proportion of missing values exceeds the threshold in every group level.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -128,12 +139,19 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
 }
 
 
-#' Adding metabolites to the attribute removed
+#' Add metabolites to the attribute `removed`
+#' 
+#' @description
+#' `remove_metabolites()` remove the specified metabolites from data by adding
+#' them to the attribute `removed`.
 #' 
 #' @inheritParams add_group
 #' 
-#' @param metabolites_to_remove metabolites to remove
-#' @param type type of metabolites to remove
+#' @param metabolites_to_remove a character string or vector specifing the
+#' names of metabolites to remove.
+#' @param type a character string specifying the criterion used to evaluate
+#' whether a metabolite should be removed. Can be one of `LOD`, `QC` or
+#' `QC_man`.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -142,20 +160,25 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
 #' 
 #' @export
 #' 
-remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
+remove_metabolites <- function(dat, metabolites_to_remove, type) {
   type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
-  attr(raw_data, "removed")[[type]] <- 
-    c(attr(raw_data, "removed")[[type]], metabolites_to_remove)
+  attr(dat, "removed")[[type]] <- 
+    c(attr(dat, "removed")[[type]], metabolites_to_remove)
   
-  raw_data
+  dat
 }
 
 
-#' Setting attribute removed to NULL
+#' Setting the specified type in attribute `removed` to `NULL`
+#' 
+#' @description
+#' `unremove_all()` set all the metabolites from the specified type as not
+#' removed.
 #' 
 #' @inheritParams add_group
 #' 
-#' @param type type of metabolites to remove
+#' @param type a character string indicating the type from which to unremove
+#' all metabolites.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -166,18 +189,23 @@ remove_metabolites <- function(raw_data, metabolites_to_remove, type) {
 #' 
 #' @export
 #' 
-unremove_all <- function(raw_data, type) {
+unremove_all <- function(dat, type) {
   type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
-  attr(raw_data, "removed")[type] <- list(NULL)
+  attr(dat, "removed")[type] <- list(NULL)
   
-  raw_data
+  dat
 }
 
-#' Removing given metabolites from the attribute removed
+#' Removing the specified metabolites from the attribute `removed`
+#' 
+#' @description
+#' `unremove_metabolites()` flags the specified metabolites as not removed. 
+#'
 #' 
 #' @inheritParams add_group
 #' 
-#' @param metabolites a vector of metabolites to unremove
+#' @param metabolites a character string or vector specifing the names of
+#' metabolites to unremove.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -189,21 +217,23 @@ unremove_all <- function(raw_data, type) {
 #' 
 #' @export
 #' 
-unremove_metabolites <- function(raw_data, metabolites){
-  attr(raw_data, "removed") <- lapply(
-    attr(raw_data, "removed"), function(type){
+unremove_metabolites <- function(dat, metabolites){
+  attr(dat, "removed") <- lapply(
+    attr(dat, "removed"), function(type){
       new_removed <- type[which(!(type %in% metabolites))]
       if(length(new_removed) == 0 | is.null(new_removed)) NULL else new_removed
     })
   
-  raw_data
+  dat
 }
 
-#' Show metabolites without removed
+#' Show metabolites without removed ones
 #' 
-#' @description Returns metabolites without those in removed attribute.
+#' @description
+#' `show_data()` returns metabolites without those in the attribute `removed`.
 #' 
-#' @param dat A raw_data object.
+#' 
+#' @inheritParams add_group
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -220,11 +250,13 @@ show_data <- function(dat){
 }
 
 
-#' Show LOD ratios without removed metabolites
+#' Show missing values ratios without those in the removed metabolites
 #' 
-#' @description Returns LOD ratios without metabolites in removed attribute.
+#' @description
+#' `show_ratios()` returns LOD ratios without metabolites in removed attribute.
 #' 
-#' @param dat A raw_data object.
+#' 
+#' @inheritParams add_group
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -242,13 +274,13 @@ show_ratios <- function(dat){
     summarise(NA_frac = sum(NA_frac))
 }
 
-#' Calculate CV for different QC samples depending on metabolite
+#' Calculate CV for different QC samples for each metabolite
 #' 
 #' @importFrom stringr str_detect
 #' @importFrom tidyr pivot_longer
 #' @importFrom stats sd
 #' 
-#' @param dat A raw_data object.
+#' @inheritParams add_group
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -283,11 +315,15 @@ calculate_CV <- function(dat){
 
 #' Get CV to remove
 #'
-#' @description Returns metabolite names having more CV value 
+#' @description
+#' `get_CV_to_remove()` returns metabolite names having more CV value 
 #' than the given threshold.
 #' 
-#' @param dat object with CV attribute
-#' @param threshold
+#' 
+#' @inheritParams add_group
+#' 
+#' @param threshold a decimal specifying the minimum CV a metabolite must have
+#' to be removed.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
