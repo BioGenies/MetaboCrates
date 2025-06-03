@@ -45,8 +45,8 @@ dat_completed <- complete_data(dat, LOD_method = "halfmin")
 completed <- attributes(dat_completed)[["completed"]]
 
 test_that("Proper LOD values were imputed with halfmin method", {
-  expect_equal(completed[2, 21], Inf)
-  expect_equal(completed[3, 21], Inf)
+  expect_equal(completed[2, 21], NA_real_)
+  expect_equal(completed[3, 21], NA_real_)
   expect_equal(completed[6, 26], 0.0525)
 })
 
