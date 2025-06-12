@@ -65,11 +65,16 @@ scale_fill_metabocrates_continuous <- function(){
   )
 }
 
-#' Barplot of levels sizes
+#' Barplot of group level sizes
 #' 
+#' @description
+#' `plot_groups()` creates a barplot showing the count of observations in
+#' each group level.
+#'  
 #' @import ggplot2
 #' 
-#' @param dat a \code{\link{raw_data}} object. Output of [read_data()] function.
+#' @param dat a \code{\link{raw_data}} object, the output of [read_data()],
+#' with group specified using the [add_group()] function.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -100,11 +105,15 @@ plot_groups <- function(dat){
 }
 
 
-#' Barplot of metabolomics numbers
+#' Barplot of missing values types
+#' 
+#' @description
+#' `plot_mv_types()` creates a barplot showing the count of missing values for
+#' each type.
 #' 
 #' @import ggplot2
 #' 
-#' @param dat A \code{\link{raw_data}} object. Output of [read_data()] function
+#' @inheritParams add_group
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -131,19 +140,25 @@ plot_mv_types <- function(dat) {
 }
 
 
-#' Barplot of missing values percents
+#' Barplot of missing values proportion in each metabolite
+#' 
+#' @description
+#' `plot_NA_percent()` creates a barplot showing the proportion of missing
+#' values in each metabolite.  Optionally, for every metabolite, it can include
+#' the division by the type of missing values or display the proportion of
+#' missing values in each group level.
 #' 
 #' @importFrom scales percent
 #' @importFrom ggiraph girafe geom_col_interactive opts_tooltip opts_toolbar opts_sizing opts_zoom
 #' 
-#' @inheritParams plot_mv_types
+#' @inheritParams add_group
+#' @inheritParams create_distribution_plot
 #' 
-#' @param type A character denoting which type of plot should be made. This 
-#' function accepts either "joint", "NA_type" or "group".
-#' Default type is "joint", which creates plot of missing values percents
-#' in each metabolite. Types "NA_type" and "group" add the division into
-#' all missing values types and levels in grouping column respectively.
-#' @param interactive If TRUE, the plot includes interactive tooltips.
+#' @param type a character string indicating which type of plot to return. This 
+#' can be either "joint", "NA_type" or "group". Default type is "joint", which
+#' creates a plot of missing values percents in each metabolite. "NA_type"
+#' additionally splits missing values by type, and "group" includes the ratios
+#' in every group level.
 #' 
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -239,17 +254,23 @@ plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
   else plt
 }
 
-#' Heatmap of missing metabolites values
+#' Heatmap of missing values
 #' 
-#' @param dat A `raw_data` object, the output of the [read_data()].
-#' @param plate_bar_code A single plate bar code for selecting observations to
-#' include in the plot. If NULL (default), a grid of plots is returned, where
+#' @description
+#' `plot_heatmap()` creates a heatmap of missing values for the specified
+#' plate bar code or for all of them.
+#' 
+#' @inheritParams add_group
+#' 
+#' @param plate_bar_code a single plate bar code used to select observations to
+#' include in the plot. If `NULL` (default), a grid of plots is returned, where
 #' each plot corresponds to a different plate bar code.
-#' @param include_title Logical. Indicates whether the title with the
-#' plate bar code should be included (only if `plate_bar_code` is not NULL).
+#' @param include_title logical. Indicates whether the title with the
+#' plate bar code should be included (only if `plate_bar_code` is not `NULL`).
 #' Defaults to `FALSE`.
-#' @param show_colors Logical. If `TRUE`, applies distinct colors to different
-#' types of missing values, following the conventions used in Biocrates® files.
+#' @param show_colors logical. If `TRUE`, distinct colors are applied to
+#' different types of missing values, following the conventions used in
+#' Biocrates® files.
 #'
 #' @examples 
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -476,21 +497,28 @@ create_beeswarm <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     scale_color_metabocrates_discrete(2)
 }
 
-#' Histograms or density plots of individual metabolite values before and after imputation
+#' Histograms, density or beeswarm plots of individual metabolite values before and after imputation
 #' 
-#' This function creates density plots of metabolite values before and after
-#' imputation, with the sample limit of detection, or histogram of all values
-#' after imputation against the histogram of only imputed ones.
+#' @description
+#' `create_distribution_plot()` creates density plots of metabolite values
+#' before and after imputation (with the sample limit of detection), beeswarm
+#' plots or histograms of the values before and after imputation. Histogram
+#' can also show only imputed values.
 #' 
 #' @importFrom patchwork area plot_layout
 #' @importFrom ggbeeswarm position_quasirandom geom_quasirandom
 #' 
-#' @param metabolite A name of metabolite of interest.
-#' @param type A type of the plot. Can be "histogram" (default), "density"
-#' or "beeswarm".
-#' @param bins The number of bins for the histogram plot, 30 if not specified.
-#' @param histogram_type If `all` (default), the histogram displays all values
-#' after imputation. If `imputed`, it shows only the values that were imputed.
+#' @param dat a `raw_data` object, the output of the [read_data()] function.
+#' The data have to be completed, for example using the [complete_data()]
+#' function.
+#' @param metabolite a name of the metabolite of interest.
+#' @param type a type of the plot. Can be either "histogram" (default),
+#' "density", or "beeswarm".
+#' @param bins the number of bins for the histogram plot; 30 if not specified.
+#' @param histogram_type if "all' (default), the histogram displays all values
+#' after imputation. If "imputed", it shows only the values that were imputed.
+#' @param interactive logical. If `TRUE` (default), a ggiraph interactive plot
+#' is returned; otherwise, a standard ggplot object is produced.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -555,7 +583,11 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
 
 #' Boxplots of individual metabolite values before and after imputation
 #' 
-#' @param metabolite A name of metabolite of interest.
+#' @description
+#' `create_boxplot()` returns boxplots based on the values of the specified
+#' metabolite before and after imputation.
+#' 
+#' @inheritParams create_distribution_plot
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -607,9 +639,13 @@ create_boxplot <- function(dat, metabolite, interactive = TRUE){
     
 }
 
-#' Qqplots of individual metabolite values before and after imputation
+#' QQ plots of individual metabolite values before and after imputation
 #' 
-#' @param metabolite A name of metabolite of interest.
+#' @description
+#' `create_qqplot()` returns QQ plots for the specified metabolite
+#' before and after imputation.
+#' 
+#' @inheritParams create_distribution_plot
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -666,16 +702,17 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE){
 #' @importFrom reshape2 melt
 #' @importFrom ggiraph geom_tile_interactive
 #' 
-#' @param type Default to `completed`, which creates a heatmap of correlations
+#' @inheritParams create_distribution_plot
+#' 
+#' @param type default to `completed`, which creates a heatmap of correlations
 #' between the metabolites after imputation. If `both`, then correlations
 #' between the metabolites before and after imputation are shown.
-#' @param threshold A numeric value specifying the minimum absolute correlation
+#' @param threshold a numeric value specifying the minimum absolute correlation
 #' to display (only metabolites specified in metabolites_to_display are taken
 #' into account).
-#' @param metabolites_to_display A vector of names or number of metabolites to
+#' @param metabolites_to_display a vector of names or number of metabolites to
 #' display. If a number is provided, the first metabolites are selected.
 #' Defaults to `all`.
-#' @param interactive If TRUE, the plot includes interactive tooltips.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -793,56 +830,16 @@ create_correlations_heatmap <- function(dat, type = "completed",
   else plt
 }
 
-#' This function creates a density plot for a specified metabolite, overlaying a 
-#' vertical dashed line indicating the Limit of Detection (LOD) cutoff. The LOD 
-#' value is derived from the `LOD_table` attribute of the `dat` object.
-#' 
-#' @importFrom ggplot2 ggplot geom_density geom_vline labs aes
-#' @importFrom dplyr filter select mutate
-#'
-#'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. The 
-#' data should contain the metabolite values and LOD information.
-#' @param metabolite_name A character string specifying the name of the 
-#' metabolite for which the histogram should be created.
-#'
-#' @examples
-#' path <- get_example_data("small_biocrates_example.xls")
-#' dat <- read_data(path)
-#' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_density_with_lod(dat, "C0")
-#'
-#' @export
-create_density_with_lod <- function(dat, metabolite_name) {
-  metabolites <- attr(dat, "metabolites")
-  
-  lod_info <- attr(dat, "LOD_table") %>%
-    filter(type == "LOD (calc.)") %>%
-    pull(metabolite_name)  %>%
-    sum(na.rm = TRUE)
-  
-  plot_data <- attr(dat, "completed") %>%
-    filter(`sample type` == "Sample") %>%
-    select(all_of(metabolite_name)) %>%
-    pivot_longer(cols = all_of(metabolite_name), 
-                 names_to = "Metabolite", 
-                 values_to = "Value") %>%
-    mutate(Value = as.numeric(Value))
-  
-  ggplot(plot_data, aes(x = Value)) +
-    geom_density() +
-    geom_vline(xintercept = lod_info, color = "red", linetype = "dashed", 
-               size = 1) +
-    labs(x = paste(metabolite_name), y = "Count",
-         title = paste("Histogram of", metabolite_name, "with LOD Cutoff")) +
-    metabocrates_theme()
-}
-
 
 #' Plot of two metabolites
 #' 
 #' @importFrom stringr str_extract
 #' @importFrom ggiraph geom_point_interactive
+#' 
+#' @inheritParams create_correlations_heatmap
+#' 
+#' @param metabolite1 first metabolite name.
+#' @param metabolite2 second metabolite name.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -851,6 +848,7 @@ create_density_with_lod <- function(dat, metabolite_name) {
 #' print(create_plot_of_2_metabolites(dat, "C0", "C2"))
 #' 
 #' @export
+
 create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
                                          interactive = TRUE){
   p_b_codes <- dat %>%
@@ -911,28 +909,28 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 }
 
 
-#' Plot of Variance Explained by Principal Components
+#' Plot of variance explained by principal components
 #'
-#' This function creates a barplot showing the minimum number of the greatest
-#' variances explained by each principal component from a Principal Component
-#' Analysis (PCA) on metabolomics data, which cumulative sum is less or equal
-#' than given threshold. The plot also includes a line graph representing
-#' the cumulative variance explained by the components.
+#' @description
+#' `pca_variance()` creates a barplot showing the variance explained by each
+#' principal component in a Principal Component Analysis (PCA). It includes all
+#' components for which the cumulative variance explained is below the
+#' specified threshold, as well as the first component for which the cumulative
+#' variance exceeds the threshold (or up to the specified maximum number, if
+#' given). Optionally, a line representing the cumulative variance explained
+#' can be included.
 #' 
-#' @importFrom ggplot2 ggplot geom_bar geom_line geom_point aes labs
+#' @inheritParams create_correlations_heatmap
 #'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. 
-#' The data should be completed and filtered to include only samples of type 
-#' "Sample".
-#' @param threshold A value indicating the maximum cumulative variance
+#' @param threshold a decimal indicating the maximum cumulative variance to
+#' include in the plot.
+#' @param type a character specifying which rows to consider. The default is
+#' `"sample_type"`, which uses all rows. When set to `"group"`, only
+#' observations of type "sample" are included.
+#' @param max_num an optional integer indicating the maximum number
 #' of components to display.
-#' @param type A character specifying which rows to consider. Default is
-#' "sample_type" and all rows are used. When "group", only observations
-#' with type sample are considered.
-#' @param max_num An optional parameter indicating the maximum number
-#' of components to display.
-#' @param cumulative A logical value indicating if the cumulative variance
-#' should be showed on the plot, defaults to TRUE.
+#' @param cumulative logical. If `TRUE`, a line representing the cumulative
+#' variance is shown on the plot.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -941,6 +939,7 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #' pca_variance(dat, 0.8, max_num = 5)
 #'
 #' @export
+
 pca_variance <- function(dat, threshold, type = "sample_type",
                          max_num = NULL, cumulative = TRUE) {
   if(type == "group" && is.null(attr(dat, "group")))
@@ -1012,18 +1011,23 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 
 #' PCA plot
 #' 
+#' @description
+#' `create_PCA_plot()` returns the scatterplot or biplot, based on the PCA.
+#' 
 #' @import ggfortify
 #' @importFrom tidyr drop_na
 #' @importFrom ggiraph geom_segment_interactive
 #' 
-#' @param type A character denoting which type of PCA plot should be created.
+#' @inheritParams create_correlations_heatmap
+#' 
+#' @param type a character denoting which type of PCA plot should be created.
 #' Default to "scatter". Type "biplot" shows eigenvectors.
-#' @param group_by Character; default to "sample_type", which makes a plot for
+#' @param group_by character; default to "sample_type", which makes a plot for
 #' quality control. When set as "group", a PCA plot with respect to the groups
 #' of samples with type 'Sample' is created.
-#' @param types_to_display A vector of sample type names specifying which types
+#' @param types_to_display a vector of sample type names specifying which types
 #' should be shown on the plot when type = "sample_type". Defaults to all.
-#' @param threshold A value indicating the minimum correlation between
+#' @param threshold a value indicating the minimum correlation between
 #' a variable and any component, required for this  variable to be included
 #' on the PCA biplot.
 #' 
@@ -1159,16 +1163,18 @@ create_PCA_plot <- function(dat, type = "sample_type",
 
 #' Beeswarm Plot of Metabolite Values
 #'
+#' @description
 #' This function creates a beeswarm plot for a specified metabolite, allowing 
 #' visualization of the distribution of metabolite values across different plate 
 #' bar code.
 #'
+#'
 #' @importFrom ggbeeswarm geom_beeswarm
 #' @importFrom ggplot2 ggplot aes labs
+#' 
+#' @inheritParams add_group
 #'
-#' @param dat A `raw_data` object, the output of the [read_data()] function. 
-#' The data should contain metabolite values and sample information.
-#' @param metabolite A character string specifying the name of the metabolite 
+#' @param metabolite a character string specifying the name of the metabolite 
 #' for which the beeswarm plot should be created.
 #'
 #' @examples
@@ -1188,8 +1194,8 @@ create_beeswarm_plot <- function(dat, metabolite) {
   
   attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(metabolite_name)) %>%
-    pivot_longer(cols = all_of(metabolite_name), 
+    select(all_of(metabolite)) %>%
+    pivot_longer(cols = all_of(metabolite), 
                  names_to = "Metabolite", 
                  values_to = "Value") %>%
     mutate(Value = as.numeric(Value))
@@ -1207,6 +1213,7 @@ create_beeswarm_plot <- function(dat, metabolite) {
 
 #' Venn diagram for group levels
 #'
+#' @description
 #' This function creates Venn diagram, showing counts of metabolites having
 #' ratios of missing values larger than the given threshold for each group level.
 #' Function works only when group has up to 5 levels.
@@ -1214,12 +1221,14 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' @importFrom ggvenn ggvenn
 #' @importFrom tidyr pivot_wider
 #' 
-#' @param dat A grouped `raw_data` object - the output of the [read_data()]
+#' @inheritParams plot_groups
+#' 
+#' @param dat a grouped `raw_data` object - the output of the [read_data()]
 #' function with group specified with [add_group()].
-#' @param threshold A minimum ratio of metabolite missing values in one group
+#' @param threshold a minimum ratio of metabolite missing values in one group
 #' level for metabolite to be included in the diagram, given as decimal.
 #' 
-#' @examples#'
+#' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
