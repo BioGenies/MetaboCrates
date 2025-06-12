@@ -11,21 +11,21 @@ test_that("Group is added to raw_data class.", {
 
 test_that("Wrong group name throws an error", {
   expect_error(add_group(test_dat, "wrong_name"), 
-               "Provided column: wrong_name can't be found in your data!")
+               "Some of the provided columns: wrong_name, can't be found in your data!")
 })
 
 test_that("Existing group throws a warning", {
   expect_warning(add_group(dat_grp, "plate bar code"), 
-                 "You already have group defined in your data. It will be replaced!")
+                 "You already have grouping defined in your data. It will be replaced!")
 })
 
 test_that("Existing group throws a warning", {
   expect_error(add_group(test_dat, "org. info"), 
-                 "Grouping column should not contain any NA's!")
+                 "Grouping columns should not contain any NA's!")
 })
 
 test_that("Groups aren't too small.", {
   expect_error(add_group(test_dat, "well position"), 
-               "Some of groups have less than 2 observations.")
+               "Some group levels have less than 2 observations.")
 })
 
