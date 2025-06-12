@@ -106,7 +106,7 @@ validate_raw_data <- function(raw_data) {
     if(!all(group_names %in% colnames(raw_data)))
       stop(
         paste0("At least one of the provided grouping columns: ", group_name,
-               " is not contained in the data.")
+               " is not present in the data.")
       )
     
     samples_data <- raw_data %>% 
