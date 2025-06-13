@@ -30,7 +30,7 @@ MetaboCrates is designed for early analysis of data obtained from Biocrates® ki
 Execute following commands in the R console:
 
 ```
-devtools::install_github("KrystynaGrzesiak/MetaboCrates")
+devtools::install_github("BioGenies/MetaboCrates")
 ```
 
 # Run MetaboCrates

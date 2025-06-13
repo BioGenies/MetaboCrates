@@ -2,20 +2,24 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{remove_metabolites}
 \alias{remove_metabolites}
-\title{Adding metabolites to the attribute removed}
+\title{Add metabolites to the attribute \code{removed}}
 \usage{
-remove_metabolites(raw_data, metabolites_to_remove, type)
+remove_metabolites(dat, metabolites_to_remove, type)
 }
 \arguments{
-\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{metabolites_to_remove}{metabolites to remove}
+\item{metabolites_to_remove}{a character string or vector specifing the
+names of metabolites to remove.}
 
-\item{type}{type of metabolites to remove}
+\item{type}{a character string specifying the criterion used to evaluate
+whether a metabolite should be removed. Can be one of \code{LOD}, \code{QC} or
+\code{QC_man}.}
 }
 \description{
-Adding metabolites to the attribute removed
+\code{remove_metabolites()} remove the specified metabolites from data by adding
+them to the attribute \code{removed}.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

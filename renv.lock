@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.4.3",
+    "Version": "4.4.1",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -194,6 +194,16 @@
         "Rcpp"
       ],
       "Hash": "74a64813f17b492da9c6afda6b128e3d"
+    },
+    "askpass": {
+      "Package": "askpass",
+      "Version": "1.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "sys"
+      ],
+      "Hash": "cad6cf7f1d5f6e906700b9d3e718c796"
     },
     "backports": {
       "Package": "backports",
@@ -441,6 +451,16 @@
       ],
       "Hash": "ab12c7b080a57475248a30f4db6298c0"
     },
+    "curl": {
+      "Package": "curl",
+      "Version": "5.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "8f27335f2bcff4d6035edcc82d7d46de"
+    },
     "desc": {
       "Package": "desc",
       "Version": "1.4.3",
@@ -503,6 +523,26 @@
         "tidyr"
       ],
       "Hash": "dcf435fc286300b02eb341b8670da08a"
+    },
+    "downlit": {
+      "Package": "downlit",
+      "Version": "0.4.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "brio",
+        "desc",
+        "digest",
+        "evaluate",
+        "fansi",
+        "memoise",
+        "rlang",
+        "vctrs",
+        "withr",
+        "yaml"
+      ],
+      "Hash": "45a6a596bf0108ee1ff16a040a2df897"
     },
     "dplyr": {
       "Package": "dplyr",
@@ -867,6 +907,27 @@
       ],
       "Hash": "d55aa087c47a63ead0f6fc10f8fa1ee0"
     },
+    "httr2": {
+      "Package": "httr2",
+      "Version": "1.0.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "cli",
+        "curl",
+        "glue",
+        "lifecycle",
+        "magrittr",
+        "openssl",
+        "rappdirs",
+        "rlang",
+        "vctrs",
+        "withr"
+      ],
+      "Hash": "d84e4c33206aaace37714901ac2b00c3"
+    },
     "hunspell": {
       "Package": "hunspell",
       "Version": "3.0.3",
@@ -1168,6 +1229,16 @@
       ],
       "Hash": "df58958f293b166e4ab885ebcad90e02"
     },
+    "openssl": {
+      "Package": "openssl",
+      "Version": "2.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "askpass"
+      ],
+      "Hash": "c62edf62de70cadf40553e10c739049d"
+    },
     "openxlsx": {
       "Package": "openxlsx",
       "Version": "4.2.8",
@@ -1263,6 +1334,35 @@
         "utils"
       ],
       "Hash": "01f28d4278f15c76cddbea05899c5d6f"
+    },
+    "pkgdown": {
+      "Package": "pkgdown",
+      "Version": "2.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bslib",
+        "callr",
+        "cli",
+        "desc",
+        "downlit",
+        "fontawesome",
+        "fs",
+        "httr2",
+        "jsonlite",
+        "openssl",
+        "purrr",
+        "ragg",
+        "rlang",
+        "rmarkdown",
+        "tibble",
+        "whisker",
+        "withr",
+        "xml2",
+        "yaml"
+      ],
+      "Hash": "6266e6fd90bd2ad21298c6ea52b1346b"
     },
     "pkgload": {
       "Package": "pkgload",
@@ -1411,6 +1511,17 @@
       ],
       "Hash": "c761594a7770e688a6e79003ed04877a"
     },
+    "ragg": {
+      "Package": "ragg",
+      "Version": "1.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "systemfonts",
+        "textshaping"
+      ],
+      "Hash": "1591adde9ce8ff7de58072e4a32b66ce"
+    },
     "rappdirs": {
       "Package": "rappdirs",
       "Version": "0.3.3",
@@ -1503,14 +1614,14 @@
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "1.1.3",
+      "Version": "1.1.6",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "utils"
       ],
-      "Hash": "42548638fae05fd9a9b5f3f437fbbbe2"
+      "Hash": "892124978869b74935dc3934c42bfe5a"
     },
     "rmarkdown": {
       "Package": "rmarkdown",
@@ -1757,6 +1868,13 @@
       ],
       "Hash": "e6e3071f471513e4b85f98ca041303c7"
     },
+    "sys": {
+      "Package": "sys",
+      "Version": "3.4.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "3a1be13d68d47a8cd0bfd74739ca1555"
+    },
     "systemfonts": {
       "Package": "systemfonts",
       "Version": "1.1.0",
@@ -1797,6 +1915,19 @@
         "withr"
       ],
       "Hash": "4767a686ebe986e6cb01d075b3f09729"
+    },
+    "textshaping": {
+      "Package": "textshaping",
+      "Version": "0.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cpp11",
+        "lifecycle",
+        "systemfonts"
+      ],
+      "Hash": "5142f8bc78ed3d819d26461b641627ce"
     },
     "tibble": {
       "Package": "tibble",
@@ -1939,6 +2070,13 @@
         "tibble"
       ],
       "Hash": "c7d3fd6d29ab077cbac8f0e2751449e6"
+    },
+    "whisker": {
+      "Package": "whisker",
+      "Version": "0.4.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c6abfa47a46d281a7d5159d0a8891e88"
     },
     "withr": {
       "Package": "withr",

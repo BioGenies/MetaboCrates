@@ -14,22 +14,29 @@ create_PCA_plot(
 )
 }
 \arguments{
-\item{type}{A character denoting which type of PCA plot should be created.
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
+
+\item{type}{a character denoting which type of PCA plot should be created.
 Default to "scatter". Type "biplot" shows eigenvectors.}
 
-\item{group_by}{Character; default to "sample_type", which makes a plot for
+\item{group_by}{character; default to "sample_type", which makes a plot for
 quality control. When set as "group", a PCA plot with respect to the groups
 of samples with type 'Sample' is created.}
 
-\item{types_to_display}{A vector of sample type names specifying which types
+\item{types_to_display}{a vector of sample type names specifying which types
 should be shown on the plot when type = "sample_type". Defaults to all.}
 
-\item{threshold}{A value indicating the minimum correlation between
+\item{threshold}{a value indicating the minimum correlation between
 a variable and any component, required for this  variable to be included
 on the PCA biplot.}
+
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
-PCA plot
+\code{create_PCA_plot()} returns the scatterplot or biplot, based on the PCA.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

@@ -7,10 +7,18 @@
 create_boxplot(dat, metabolite, interactive = TRUE)
 }
 \arguments{
-\item{metabolite}{A name of metabolite of interest.}
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
+
+\item{metabolite}{a name of the metabolite of interest.}
+
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
-Boxplots of individual metabolite values before and after imputation
+\code{create_boxplot()} returns boxplots based on the values of the specified
+metabolite before and after imputation.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

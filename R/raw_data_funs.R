@@ -319,7 +319,6 @@ calculate_CV <- function(dat){
 #' `get_CV_to_remove()` returns metabolite names having more CV value 
 #' than the given threshold.
 #' 
-#' 
 #' @inheritParams add_group
 #' 
 #' @param threshold a decimal specifying the minimum CV a metabolite must have

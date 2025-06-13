@@ -6,6 +6,18 @@
 \usage{
 create_plot_of_2_metabolites(dat, metabolite1, metabolite2, interactive = TRUE)
 }
+\arguments{
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
+
+\item{metabolite1}{first metabolite name.}
+
+\item{metabolite2}{second metabolite name.}
+
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
+}
 \description{
 Plot of two metabolites
 }

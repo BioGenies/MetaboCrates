@@ -830,7 +830,6 @@ create_correlations_heatmap <- function(dat, type = "completed",
   else plt
 }
 
-
 #' Plot of two metabolites
 #' 
 #' @importFrom stringr str_extract
@@ -1223,8 +1222,6 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' 
 #' @inheritParams plot_groups
 #' 
-#' @param dat a grouped `raw_data` object - the output of the [read_data()]
-#' function with group specified with [add_group()].
 #' @param threshold a minimum ratio of metabolite missing values in one group
 #' level for metabolite to be included in the diagram, given as decimal.
 #' 

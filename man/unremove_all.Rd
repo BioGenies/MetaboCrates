@@ -2,18 +2,20 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{unremove_all}
 \alias{unremove_all}
-\title{Setting attribute removed to NULL}
+\title{Setting the specified type in attribute \code{removed} to \code{NULL}}
 \usage{
-unremove_all(raw_data, type)
+unremove_all(dat, type)
 }
 \arguments{
-\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{type}{type of metabolites to remove}
+\item{type}{a character string indicating the type from which to unremove
+all metabolites.}
 }
 \description{
-Setting attribute removed to NULL
+\code{unremove_all()} set all the metabolites from the specified type as not
+removed.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

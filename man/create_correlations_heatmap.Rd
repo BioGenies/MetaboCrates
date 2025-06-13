@@ -13,19 +13,24 @@ create_correlations_heatmap(
 )
 }
 \arguments{
-\item{type}{Default to \code{completed}, which creates a heatmap of correlations
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
+
+\item{type}{default to \code{completed}, which creates a heatmap of correlations
 between the metabolites after imputation. If \code{both}, then correlations
 between the metabolites before and after imputation are shown.}
 
-\item{threshold}{A numeric value specifying the minimum absolute correlation
+\item{threshold}{a numeric value specifying the minimum absolute correlation
 to display (only metabolites specified in metabolites_to_display are taken
 into account).}
 
-\item{metabolites_to_display}{A vector of names or number of metabolites to
+\item{metabolites_to_display}{a vector of names or number of metabolites to
 display. If a number is provided, the first metabolites are selected.
 Defaults to \code{all}.}
 
-\item{interactive}{If TRUE, the plot includes interactive tooltips.}
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 Heatmap of correlations between metabolites

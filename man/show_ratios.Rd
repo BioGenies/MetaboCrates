@@ -2,15 +2,16 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{show_ratios}
 \alias{show_ratios}
-\title{Show LOD ratios without removed metabolites}
+\title{Show missing values ratios without those in the removed metabolites}
 \usage{
 show_ratios(dat)
 }
 \arguments{
-\item{dat}{A raw_data object.}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 }
 \description{
-Returns LOD ratios without metabolites in removed attribute.
+\code{show_ratios()} returns LOD ratios without metabolites in removed attribute.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

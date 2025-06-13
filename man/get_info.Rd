@@ -2,25 +2,24 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{get_info}
 \alias{get_info}
-\title{Get informations from Biocrates data}
+\title{Get information about data}
 \usage{
-get_info(raw_data)
+get_info(dat)
 }
 \arguments{
-\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 }
 \description{
-Get informations from Biocrates data
+\code{get_info()} returns information about the number of sample types,
+missing values types and grouping (if applied).
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
-get_info(dat)
 cat(get_info(dat))
 
 dat <- add_group(dat, "group")
-get_info(dat)
 cat(get_info(dat))
 
 }

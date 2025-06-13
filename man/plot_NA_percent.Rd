@@ -2,23 +2,28 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_NA_percent}
 \alias{plot_NA_percent}
-\title{Barplot of missing values percents}
+\title{Barplot of missing values proportion in each metabolite}
 \usage{
 plot_NA_percent(dat, type = "joint", interactive = TRUE)
 }
 \arguments{
-\item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
-\item{type}{A character denoting which type of plot should be made. This
-function accepts either "joint", "NA_type" or "group".
-Default type is "joint", which creates plot of missing values percents
-in each metabolite. Types "NA_type" and "group" add the division into
-all missing values types and levels in grouping column respectively.}
+\item{type}{a character string indicating which type of plot to return. This
+can be either "joint", "NA_type" or "group". Default type is "joint", which
+creates a plot of missing values percents in each metabolite. "NA_type"
+additionally splits missing values by type, and "group" includes the ratios
+in every group level.}
 
-\item{interactive}{If TRUE, the plot includes interactive tooltips.}
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
-Barplot of missing values percents
+\code{plot_NA_percent()} creates a barplot showing the proportion of missing
+values in each metabolite.  Optionally, for every metabolite, it can include
+the division by the type of missing values or display the proportion of
+missing values in each group level.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

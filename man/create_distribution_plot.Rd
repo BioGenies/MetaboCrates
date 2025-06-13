@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_funs.R
 \name{create_distribution_plot}
 \alias{create_distribution_plot}
-\title{Histograms or density plots of individual metabolite values before and after imputation}
+\title{Histograms, density or beeswarm plots of individual metabolite values before and after imputation}
 \usage{
 create_distribution_plot(
   dat,
@@ -14,20 +14,28 @@ create_distribution_plot(
 )
 }
 \arguments{
-\item{metabolite}{A name of metabolite of interest.}
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
 
-\item{type}{A type of the plot. Can be "histogram" (default), "density"
-or "beeswarm".}
+\item{metabolite}{a name of the metabolite of interest.}
 
-\item{bins}{The number of bins for the histogram plot, 30 if not specified.}
+\item{type}{a type of the plot. Can be either "histogram" (default),
+"density", or "beeswarm".}
 
-\item{histogram_type}{If \code{all} (default), the histogram displays all values
-after imputation. If \code{imputed}, it shows only the values that were imputed.}
+\item{bins}{the number of bins for the histogram plot; 30 if not specified.}
+
+\item{histogram_type}{if "all' (default), the histogram displays all values
+after imputation. If "imputed", it shows only the values that were imputed.}
+
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
-This function creates density plots of metabolite values before and after
-imputation, with the sample limit of detection, or histogram of all values
-after imputation against the histogram of only imputed ones.
+\code{create_distribution_plot()} creates density plots of metabolite values
+before and after imputation (with the sample limit of detection), beeswarm
+plots or histograms of the values before and after imputation. Histogram
+can also show only imputed values.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
