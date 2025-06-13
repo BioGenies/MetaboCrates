@@ -2,15 +2,17 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_groups}
 \alias{plot_groups}
-\title{Barplot of levels sizes}
+\title{Barplot of group level sizes}
 \usage{
 plot_groups(dat)
 }
 \arguments{
-\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function.}
+\item{dat}{a \code{\link{raw_data}} object, the output of \code{\link[=read_data]{read_data()}},
+with group specified using the \code{\link[=add_group]{add_group()}} function.}
 }
 \description{
-Barplot of levels sizes
+\code{plot_groups()} creates a barplot showing the count of observations in
+each group level.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

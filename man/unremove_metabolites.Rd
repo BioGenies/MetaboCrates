@@ -2,18 +2,19 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{unremove_metabolites}
 \alias{unremove_metabolites}
-\title{Removing given metabolites from the attribute removed}
+\title{Removing the specified metabolites from the attribute \code{removed}}
 \usage{
-unremove_metabolites(raw_data, metabolites)
+unremove_metabolites(dat, metabolites)
 }
 \arguments{
-\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{metabolites}{a vector of metabolites to unremove}
+\item{metabolites}{a character string or vector specifing the names of
+metabolites to unremove.}
 }
 \description{
-Removing given metabolites from the attribute removed
+\code{unremove_metabolites()} flags the specified metabolites as not removed.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

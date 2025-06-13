@@ -2,15 +2,16 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{show_data}
 \alias{show_data}
-\title{Show metabolites without removed}
+\title{Show metabolites without removed ones}
 \usage{
 show_data(dat)
 }
 \arguments{
-\item{dat}{A raw_data object.}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 }
 \description{
-Returns metabolites without those in removed attribute.
+\code{show_data()} returns metabolites without those in the attribute \code{removed}.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

@@ -2,15 +2,16 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{calculate_CV}
 \alias{calculate_CV}
-\title{Calculate CV for different QC samples depending on metabolite}
+\title{Calculate CV for different QC samples for each metabolite}
 \usage{
 calculate_CV(dat)
 }
 \arguments{
-\item{dat}{A raw_data object.}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 }
 \description{
-Calculate CV for different QC samples depending on metabolite
+Calculate CV for different QC samples for each metabolite
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

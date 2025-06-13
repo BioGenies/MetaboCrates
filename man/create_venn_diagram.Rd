@@ -7,10 +7,10 @@
 create_venn_diagram(dat, threshold)
 }
 \arguments{
-\item{dat}{A grouped \code{raw_data} object - the output of the \code{\link[=read_data]{read_data()}}
-function with group specified with \code{\link[=add_group]{add_group()}}.}
+\item{dat}{a \code{\link{raw_data}} object, the output of \code{\link[=read_data]{read_data()}},
+with group specified using the \code{\link[=add_group]{add_group()}} function.}
 
-\item{threshold}{A minimum ratio of metabolite missing values in one group
+\item{threshold}{a minimum ratio of metabolite missing values in one group
 level for metabolite to be included in the diagram, given as decimal.}
 }
 \description{
@@ -19,7 +19,6 @@ ratios of missing values larger than the given threshold for each group level.
 Function works only when group has up to 5 levels.
 }
 \examples{
-#'
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- add_group(dat, "group")

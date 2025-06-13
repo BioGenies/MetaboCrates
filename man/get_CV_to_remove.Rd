@@ -7,12 +7,14 @@
 get_CV_to_remove(dat, threshold)
 }
 \arguments{
-\item{dat}{object with CV attribute}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
-\item{threshold}{words}
+\item{threshold}{a decimal specifying the minimum CV a metabolite must have
+to be removed.}
 }
 \description{
-Returns metabolite names having more CV value
+\code{get_CV_to_remove()} returns metabolite names having more CV value
 than the given threshold.
 }
 \examples{

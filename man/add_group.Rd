@@ -2,12 +2,12 @@
 % Please edit documentation in R/raw_data_funs.R
 \name{add_group}
 \alias{add_group}
-\title{Specify group in the Biocrates data}
+\title{Group data}
 \usage{
-add_group(raw_data, group_names)
+add_group(dat, group_names)
 }
 \arguments{
-\item{raw_data}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
 \item{group_names}{a single character string or character vector
@@ -17,12 +17,14 @@ specifying the names of the columns to group the data by.}
 \code{\link{raw_data}} object.
 }
 \description{
-Specify group in the Biocrates data
+\code{add_group()} groups data by one or more columns.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- add_group(dat, "group")
+
+dat <- add_group(dat, c("group", "species"))
 
 }
 \seealso{

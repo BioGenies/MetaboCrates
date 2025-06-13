@@ -204,10 +204,6 @@ Aside from plots corresponding to the all metabolites, *MetaboCrates* package pr
 
 Moreover, the package allows for creating the density plot for a specific metabolite, with a dash line representing the limit of detection retrevied from the LOD table.
 
-```{r}
-create_density_with_lod(comp_dat, "C0")
-```
-
 Next, one can create a beeswarm plot for a specified metabolite, visualizing the distribution of metabolite values across different plate bar codes.
 
 Another function creates a scatter plot of two metabolites values pairs. It also incorporates information about plate bar code and limit of detection values.

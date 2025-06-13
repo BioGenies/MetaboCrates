@@ -32,3 +32,61 @@ Execute following commands in the R console:
 ```
 devtools::install_github("BioGenies/MetaboCrates")
 ```
+
+# Run MetaboCrates
+
+If you have successfully installed the package, run the GUI in your web browser using:
+
+```
+MetaboCrates::
+```
+- [x] report
+- [x] fix PCA plot
+- [x] fix biplot
+- [x] logspline imputation
+- [x] all metabolites allowed on correlation heatmap
+- [x] correlation heatmap check on big screen + helper
+- [ ] NA ratios plot reactive height
+- [x] !multiple grouping column!
+- [x] !group plot change!
+- [x] !group counts table!
+- [x] group levels to character
+- [x] extra space on the bottom
+- [x] colors to missing heatmap
+- [ ] extra space under missing heatmap
+- [x] venn description
+- [x] download buttons !!!
+- [x] histogram change
+- [x] PCA plots and correlations heatmap to new panel
+- [x] correlations heatmap before and after imputation
+- [x] thresholds steps to 5%
+- [x] all summary info in excel
+- [x] info panel to markdown
+- [x] information to impute data to see plots
+- [ ] ?adjustable correlations plot size?
+- [x] disable picking columns in tables
+- [x] new imputation panel layout
+- [ ] scaled random imputation
+- [ ] colored column height
+- [ ] ?fix report?
+- [ ] ?correct logspline imputation?
+- [ ] ?legends to the top?
+- [x] downloading check !!!
+- [ ] color of spinners in DT
+- [x] spinners color
+- [ ] ?DT spinners color?
+- [ ] buttons color
+- [x] spinners placement
+- [ ] spinners delay
+- [ ] plots descriptions
+- [x] handling data without missing values
+- [x] missing heatmap colors
+- [x] PCA plots for all sample types
+- [ ] change descriptions appearance
+- [x] automatic imputation methods
+- [x] group PCA to another panel
+- [ ] different color with different histogram type
+- [ ] shorter message window when downloading
+- [x] fix removing metabolites
+- [ ] tests
+- [ ] unified tab layouts

@@ -5,7 +5,7 @@
 #' 
 #' @author Krystyna Grzesiak, Joanna Pokora, Filip Gaj, Michal Burdukiewicz.
 #' @docType package
-#' @name MetaboCrates-package
+#' @name MetaboCrates
 #' @aliases MetaboCrates
 
 if(getRversion() >= "2.15.1")  

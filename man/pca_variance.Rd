@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_funs.R
 \name{pca_variance}
 \alias{pca_variance}
-\title{Plot of Variance Explained by Principal Components}
+\title{Plot of variance explained by principal components}
 \usage{
 pca_variance(
   dat,
@@ -13,29 +13,31 @@ pca_variance(
 )
 }
 \arguments{
-\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
-The data should be completed and filtered to include only samples of type
-"Sample".}
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
 
-\item{threshold}{A value indicating the maximum cumulative variance
+\item{threshold}{a decimal indicating the maximum cumulative variance to
+include in the plot.}
+
+\item{type}{a character specifying which rows to consider. The default is
+\code{"sample_type"}, which uses all rows. When set to \code{"group"}, only
+observations of type "sample" are included.}
+
+\item{max_num}{an optional integer indicating the maximum number
 of components to display.}
 
-\item{type}{A character specifying which rows to consider. Default is
-"sample_type" and all rows are used. When "group", only observations
-with type sample are considered.}
-
-\item{max_num}{An optional parameter indicating the maximum number
-of components to display.}
-
-\item{cumulative}{A logical value indicating if the cumulative variance
-should be showed on the plot, defaults to TRUE.}
+\item{cumulative}{logical. If \code{TRUE}, a line representing the cumulative
+variance is shown on the plot.}
 }
 \description{
-This function creates a barplot showing the minimum number of the greatest
-variances explained by each principal component from a Principal Component
-Analysis (PCA) on metabolomics data, which cumulative sum is less or equal
-than given threshold. The plot also includes a line graph representing
-the cumulative variance explained by the components.
+\code{pca_variance()} creates a barplot showing the variance explained by each
+principal component in a Principal Component Analysis (PCA). It includes all
+components for which the cumulative variance explained is below the
+specified threshold, as well as the first component for which the cumulative
+variance exceeds the threshold (or up to the specified maximum number, if
+given). Optionally, a line representing the cumulative variance explained
+can be included.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

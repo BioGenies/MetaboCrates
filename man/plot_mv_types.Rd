@@ -2,15 +2,17 @@
 % Please edit documentation in R/plot_funs.R
 \name{plot_mv_types}
 \alias{plot_mv_types}
-\title{Barplot of metabolomics numbers}
+\title{Barplot of missing values types}
 \usage{
 plot_mv_types(dat)
 }
 \arguments{
-\item{dat}{A \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}} function}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 }
 \description{
-Barplot of metabolomics numbers
+\code{plot_mv_types()} creates a barplot showing the count of missing values for
+each type.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

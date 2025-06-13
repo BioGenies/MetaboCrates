@@ -7,11 +7,10 @@
 create_beeswarm_plot(dat, metabolite)
 }
 \arguments{
-\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
-The data should be completed and filtered to include only samples of type
-"Sample".}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
-\item{metabolite}{A character string specifying the name of the metabolite
+\item{metabolite}{a character string specifying the name of the metabolite
 for which the beeswarm plot should be created.}
 }
 \description{

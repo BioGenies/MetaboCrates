@@ -2,22 +2,23 @@
 % Please edit documentation in R/plot_funs.R
 \name{create_qqplot}
 \alias{create_qqplot}
-\title{Qqplots of individual metabolite values before and after imputation}
+\title{QQ plots of individual metabolite values before and after imputation}
 \usage{
 create_qqplot(dat, metabolite, interactive = TRUE)
 }
 \arguments{
-\item{dat}{A \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
-The data should be completed and filtered to include only samples of type
-"Sample".}
+\item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
+The data have to be completed, for example using the \code{\link[=complete_data]{complete_data()}}
+function.}
 
-\item{metabolite}{A name of metabolite of interest.}
+\item{metabolite}{a name of the metabolite of interest.}
 
-\item{interactive}{logical indicating whether the plot should be interactive.
-If TRUE, the plot includes interactive tooltips.}
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
-Qqplots of individual metabolite values before and after imputation
+\code{create_qqplot()} returns QQ plots for the specified metabolite
+before and after imputation.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
