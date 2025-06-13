@@ -55,32 +55,32 @@
 
 
 <dl><dt id="arg-dat">dat<a class="anchor" aria-label="anchor" href="#arg-dat"></a></dt>
-<dd><p>A <code>raw_data</code> object, the output of the <code><a href="read_data.html">read_data()</a></code> function.
-The data should be completed and filtered to include only samples of type
-"Sample".</p></dd>
+<dd><p>a <code>raw_data</code> object, the output of the <code><a href="read_data.html">read_data()</a></code> function.
+The data have to be completed, for example using the <code><a href="complete_data.html">complete_data()</a></code>
+function.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>Default to <code>completed</code>, which creates a heatmap of correlations
+<dd><p>default to <code>completed</code>, which creates a heatmap of correlations
 between the metabolites after imputation. If <code>both</code>, then correlations
 between the metabolites before and after imputation are shown.</p></dd>
 
 
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
-<dd><p>A numeric value specifying the minimum absolute correlation
+<dd><p>a numeric value specifying the minimum absolute correlation
 to display (only metabolites specified in metabolites_to_display are taken
 into account).</p></dd>
 
 
 <dt id="arg-metabolites-to-display">metabolites_to_display<a class="anchor" aria-label="anchor" href="#arg-metabolites-to-display"></a></dt>
-<dd><p>A vector of names or number of metabolites to
+<dd><p>a vector of names or number of metabolites to
 display. If a number is provided, the first metabolites are selected.
 Defaults to <code>all</code>.</p></dd>
 
 
 <dt id="arg-interactive">interactive<a class="anchor" aria-label="anchor" href="#arg-interactive"></a></dt>
-<dd><p>logical indicating whether the plot should be interactive.
-If TRUE, the plot includes interactive tooltips.</p></dd>
+<dd><p>logical. If <code>TRUE</code> (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.</p></dd>
 
 </dl></div>
 

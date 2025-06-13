@@ -49,22 +49,22 @@
 
 
 <dl><dt id="arg-dat">dat<a class="anchor" aria-label="anchor" href="#arg-dat"></a></dt>
-<dd><p>A <code>raw_data</code> object, the output of the <code><a href="read_data.html">read_data()</a></code> function.
-The data should be completed and filtered to include only samples of type
-"Sample".</p></dd>
+<dd><p>a <code>raw_data</code> object, the output of the <code><a href="read_data.html">read_data()</a></code> function.
+The data have to be completed, for example using the <code><a href="complete_data.html">complete_data()</a></code>
+function.</p></dd>
 
 
 <dt id="arg-metabolite-">metabolite1<a class="anchor" aria-label="anchor" href="#arg-metabolite-"></a></dt>
-<dd><p>words</p></dd>
+<dd><p>first metabolite name.</p></dd>
 
 
 <dt id="arg-metabolite-">metabolite2<a class="anchor" aria-label="anchor" href="#arg-metabolite-"></a></dt>
-<dd><p>words</p></dd>
+<dd><p>second metabolite name.</p></dd>
 
 
 <dt id="arg-interactive">interactive<a class="anchor" aria-label="anchor" href="#arg-interactive"></a></dt>
-<dd><p>logical indicating whether the plot should be interactive.
-If TRUE, the plot includes interactive tooltips.</p></dd>
+<dd><p>logical. If <code>TRUE</code> (default), a ggiraph interactive plot
+is returned; otherwise, a standard ggplot object is produced.</p></dd>
 
 </dl></div>
 

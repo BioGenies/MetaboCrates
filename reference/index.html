@@ -46,7 +46,7 @@
 
       <dl><dt>
 
-          <code><a href="MetaboCrates-package.html">-package</a></code> <code><a href="MetaboCrates-package.html">MetaboCrates-package</a></code> <code><a href="MetaboCrates-package.html">MetaboCrates</a></code>
+          <code><a href="MetaboCrates.html">-package</a></code> <code><a href="MetaboCrates.html">MetaboCrates</a></code>
 
         </dt>
         <dd>MetaboCrates</dd>
@@ -55,13 +55,13 @@
           <code><a href="add_group.html">add_group()</a></code>
 
         </dt>
-        <dd>Specify group in the Biocrates data</dd>
+        <dd>Group data</dd>
       </dl><dl><dt>
 
           <code><a href="calculate_CV.html">calculate_CV()</a></code>
 
         </dt>
-        <dd>Calculate CV for different QC samples depending on metabolite</dd>
+        <dd>Calculate CV for different QC samples for each metabolite</dd>
       </dl><dl><dt>
 
           <code><a href="check_values.html">check_values()</a></code>
@@ -100,16 +100,10 @@
         <dd>Heatmap of correlations between metabolites</dd>
       </dl><dl><dt>
 
-          <code><a href="create_density_with_lod.html">create_density_with_lod()</a></code>
-
-        </dt>
-        <dd>This function creates a density plot for a specified metabolite, overlaying a vertical dashed line indicating the Limit of Detection (LOD) cutoff. The LOD value is derived from the <code>LOD_table</code> attribute of the <code>dat</code> object.</dd>
-      </dl><dl><dt>
-
           <code><a href="create_distribution_plot.html">create_distribution_plot()</a></code>
 
         </dt>
-        <dd>Histograms or density plots of individual metabolite values before and after imputation</dd>
+        <dd>Histograms, density or beeswarm plots of individual metabolite values before and after imputation</dd>
       </dl><dl><dt>
 
           <code><a href="create_plot_of_2_metabolites.html">create_plot_of_2_metabolites()</a></code>
@@ -121,7 +115,7 @@
           <code><a href="create_qqplot.html">create_qqplot()</a></code>
 
         </dt>
-        <dd>Qqplots of individual metabolite values before and after imputation</dd>
+        <dd>QQ plots of individual metabolite values before and after imputation</dd>
       </dl><dl><dt>
 
           <code><a href="create_venn_diagram.html">create_venn_diagram()</a></code>
@@ -139,7 +133,7 @@
           <code><a href="get_LOD_to_remove.html">get_LOD_to_remove()</a></code>
 
         </dt>
-        <dd>Get metabolites to remove</dd>
+        <dd>Get metabolites to remove based on missing values proportion</dd>
       </dl><dl><dt>
 
           <code><a href="get_example_data.html">get_example_data()</a></code>
@@ -151,37 +145,37 @@
           <code><a href="get_info.html">get_info()</a></code>
 
         </dt>
-        <dd>Get informations from Biocrates data</dd>
+        <dd>Get information about data</dd>
       </dl><dl><dt>
 
           <code><a href="pca_variance.html">pca_variance()</a></code>
 
         </dt>
-        <dd>Plot of Variance Explained by Principal Components</dd>
+        <dd>Plot of variance explained by principal components</dd>
       </dl><dl><dt>
 
           <code><a href="plot_NA_percent.html">plot_NA_percent()</a></code>
 
         </dt>
-        <dd>Barplot of missing values percents</dd>
+        <dd>Barplot of missing values proportion in each metabolite</dd>
       </dl><dl><dt>
 
           <code><a href="plot_groups.html">plot_groups()</a></code>
 
         </dt>
-        <dd>Barplot of levels sizes</dd>
+        <dd>Barplot of group level sizes</dd>
       </dl><dl><dt>
 
           <code><a href="plot_heatmap.html">plot_heatmap()</a></code>
 
         </dt>
-        <dd>Heatmap of missing metabolites values</dd>
+        <dd>Heatmap of missing values</dd>
       </dl><dl><dt>
 
           <code><a href="plot_mv_types.html">plot_mv_types()</a></code>
 
         </dt>
-        <dd>Barplot of metabolomics numbers</dd>
+        <dd>Barplot of missing values types</dd>
       </dl><dl><dt>
 
           <code><a href="raw_data.html">raw_data()</a></code>
@@ -199,31 +193,31 @@
           <code><a href="remove_metabolites.html">remove_metabolites()</a></code>
 
         </dt>
-        <dd>Adding metabolites to the attribute removed</dd>
+        <dd>Add metabolites to the attribute <code>removed</code></dd>
       </dl><dl><dt>
 
           <code><a href="show_data.html">show_data()</a></code>
 
         </dt>
-        <dd>Show metabolites without removed</dd>
+        <dd>Show metabolites without removed ones</dd>
       </dl><dl><dt>
 
           <code><a href="show_ratios.html">show_ratios()</a></code>
 
         </dt>
-        <dd>Show LOD ratios without removed metabolites</dd>
+        <dd>Show missing values ratios without those in the removed metabolites</dd>
       </dl><dl><dt>
 
           <code><a href="unremove_all.html">unremove_all()</a></code>
 
         </dt>
-        <dd>Setting attribute removed to NULL</dd>
+        <dd>Setting the specified type in attribute <code>removed</code> to <code>NULL</code></dd>
       </dl><dl><dt>
 
           <code><a href="unremove_metabolites.html">unremove_metabolites()</a></code>
 
         </dt>
-        <dd>Removing given metabolites from the attribute removed</dd>
+        <dd>Removing the specified metabolites from the attribute <code>removed</code></dd>
       </dl></div>
   </main></div>
 
