@@ -81,7 +81,7 @@ get_info <- function(dat){
     
     info_str <- paste0(info_str, "\nGroupping by: \"", 
                        attr(dat, "group"), "\" (", 
-                       nrow(group_lvls), " levels).")
+                       group_lvls, " levels).")
   }
   
   info_str
@@ -147,7 +147,7 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
 #' 
 #' @inheritParams add_group
 #' 
-#' @param metabolites_to_remove a character string or vector specifing the
+#' @param metabolites_to_remove a character string or vector specifying the
 #' names of metabolites to remove.
 #' @param type a character string specifying the criterion used to evaluate
 #' whether a metabolite should be removed. Can be one of `LOD`, `QC` or
@@ -177,7 +177,7 @@ remove_metabolites <- function(dat, metabolites_to_remove, type) {
 #' 
 #' @inheritParams add_group
 #' 
-#' @param type a character string indicating the type from which to unremove
+#' @param type a character string indicating the type from which to restore
 #' all metabolites.
 #' 
 #' @examples
@@ -204,8 +204,8 @@ unremove_all <- function(dat, type) {
 #' 
 #' @inheritParams add_group
 #' 
-#' @param metabolites a character string or vector specifing the names of
-#' metabolites to unremove.
+#' @param metabolites a character string or vector specifying the names of
+#' metabolites to restore.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")

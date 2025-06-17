@@ -7,15 +7,15 @@
 general_min(x)
 }
 \arguments{
-\item{x}{a vector of observations}
+\item{x}{a vector of observations.}
 }
 \description{
-This function calculates minimum without values such as NA's,
+\code{general_min()} calculates minimum without values such as NA's,
 values below or above LOD limit and so on.
 }
 \examples{
 x <- c("<LOD", 5, 6, NA, 9, 16)
-general_min(x)
+MetaboCrates:::general_min(x)
 
 }
 \keyword{internal}

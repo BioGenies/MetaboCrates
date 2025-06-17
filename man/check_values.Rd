@@ -2,22 +2,20 @@
 % Please edit documentation in R/read_data.R
 \name{check_values}
 \alias{check_values}
-\title{Convert weird values into NA's}
+\title{Convert weird values into \code{NA}'s}
 \usage{
-check_values(
-  metabolite_vals,
-  special_signs = c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞")
-)
+check_values(metabolite_vals, special_signs = "auto")
 }
 \arguments{
 \item{metabolite_vals}{a \code{\link{character}} vector containing measured
 metabolite values.}
 
 \item{special_signs}{a character vector of permitted special signs that
-should not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ",
-"NA" and "∞". Where ULOQ means upper limit of quantification, LLOQ means
-lower limit of quantification and LOD means limit o detection.}
+should not be converted into \code{NA}'s. Default to \code{"auto"}, which converts
+\verb{< LOD},\verb{< LLOQ}, \verb{> ULOQ}, \code{NA} and \eqn{\infty}, where ULOQ means upper
+limit of quantification, LLOQ means lower limit of quantification and LOD
+means limit of detection.}
 }
 \description{
-Convert weird values into NA's
+Convert weird values into \code{NA}'s
 }

@@ -4,18 +4,20 @@
 \alias{complete_ULOQ}
 \title{Complete values above limit of quantification}
 \usage{
-complete_ULOQ(gathered_data, method, LOD_vals)
+complete_ULOQ(gathered_data, ULOQ_method, LOD_vals)
 }
 \arguments{
-\item{gathered_data}{description}
+\item{gathered_data}{a long-format data table.}
 
-\item{method}{a character. Imputation method, one of "limit" or NULL meaning
-changing missing values into NAs.}
+\item{ULOQ_method}{a character string specifying the imputation method to be
+applied to \verb{> ULOQ} values, or \code{NULL} if these values should not be imputed.
+Available methods are: \code{limit} and \verb{third quartile}.}
 
-\item{LOD_vals}{description}
+\item{LOD_vals}{a long-format table containing limits of
+detection/quantification and corresponding plate bar codes.}
 }
 \description{
-This function imputes values below limit of quantification
-("> ULOQ")
+\code{complete_ULOQ()} imputes values below limit of quantification
+("> ULOQ").
 }
 \keyword{internal}

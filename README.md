@@ -54,7 +54,7 @@ MetaboCrates::
 - [x] extra space on the bottom
 - [x] colors to missing heatmap
 - [ ] extra space under missing heatmap
-- [x] venn description
+- [x] plot description
 - [x] download buttons !!!
 - [x] histogram change
 - [x] PCA plots and correlations heatmap to new panel
@@ -63,14 +63,14 @@ MetaboCrates::
 - [x] all summary info in excel
 - [x] info panel to markdown
 - [x] information to impute data to see plots
-- [ ] ?adjustable correlations plot size?
+- [x] ?adjustable correlations plot size?
 - [x] disable picking columns in tables
 - [x] new imputation panel layout
 - [ ] scaled random imputation
-- [ ] colored column height
+- [ ] ?colored column height?
 - [ ] ?fix report?
 - [ ] ?correct logspline imputation?
-- [ ] ?legends to the top?
+- [ ] legends to the top
 - [x] downloading check !!!
 - [ ] color of spinners in DT
 - [x] spinners color

@@ -18,6 +18,8 @@ metabocrates_theme <- function(){
 
 #' MetaboCrates ggplot palette
 #' 
+#' @importFrom grDevices colorRampPalette
+#' 
 #' @keywords internal
 
 metabocrates_palette <- function(n){
@@ -72,6 +74,7 @@ scale_fill_metabocrates_continuous <- function(){
 #' each group level.
 #'  
 #' @import ggplot2
+#' @importFrom stats reorder
 #' 
 #' @param dat a \code{\link{raw_data}} object, the output of [read_data()],
 #' with group specified using the [add_group()] function.
@@ -305,7 +308,7 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
       rowwise() %>%
       mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
              Value = case_when(
-               Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞") |
+               Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "\u221E") |
                  is.na(Value) ~ "True",
                TRUE ~ "False"
              )
@@ -315,7 +318,7 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
       rowwise() %>%
       mutate(Metabolite = factor(Metabolite, levels = unique(Metabolite)),
              Value = case_when(
-               !(Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞")) &
+               !(Value %in% c("< LOD", "< LLOQ", "> ULOQ", "NA", "\u221E")) &
                  !is.na(Value) ~ "Valid",
                is.na(Value) ~ "NA",
                .default = Value
@@ -327,7 +330,7 @@ plot_heatmap <- function(dat, plate_bar_code = NULL, include_title = FALSE,
     ggplot(aes(x = Sample, y = Metabolite, fill = Value)) +
     geom_tile(color = "white") +
     scale_fill_manual(values = c("Valid" = "#b8de81", "NA" = "#feea7f",
-                                 "∞" = "#F1DABF", "< LOD" = "#a28aa2",
+                                 "\u221E" = "#F1DABF", "< LOD" = "#a28aa2",
                                  "< LLOQ" = "#B3D2DD", "> ULOQ"  = "#81b2c6",
                                  "False" = "#BBBBBB", "True" = "#2B2A29"),
                       name = ifelse(show_colors,
@@ -393,6 +396,8 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
 }
 
 #' Density of individual metabolite values before and after imputation
+#' 
+#' @importFrom stats density na.omit
 #' 
 #' @keywords internal
 
@@ -701,6 +706,7 @@ create_qqplot <- function(dat, metabolite, interactive = TRUE){
 #' @importFrom stringr str_trunc
 #' @importFrom reshape2 melt
 #' @importFrom ggiraph geom_tile_interactive
+#' @importFrom stats cor
 #' 
 #' @inheritParams create_distribution_plot
 #' 
@@ -834,6 +840,7 @@ create_correlations_heatmap <- function(dat, type = "completed",
 #' 
 #' @importFrom stringr str_extract
 #' @importFrom ggiraph geom_point_interactive
+#' @importFrom stats setNames
 #' 
 #' @inheritParams create_correlations_heatmap
 #' 
@@ -918,6 +925,8 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #' variance exceeds the threshold (or up to the specified maximum number, if
 #' given). Optionally, a line representing the cumulative variance explained
 #' can be included.
+#' 
+#' @importFrom stats prcomp
 #' 
 #' @inheritParams create_correlations_heatmap
 #'

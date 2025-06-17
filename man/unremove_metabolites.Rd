@@ -10,8 +10,8 @@ unremove_metabolites(dat, metabolites)
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{metabolites}{a character string or vector specifing the names of
-metabolites to unremove.}
+\item{metabolites}{a character string or vector specifying the names of
+metabolites to restore.}
 }
 \description{
 \code{unremove_metabolites()} flags the specified metabolites as not removed.

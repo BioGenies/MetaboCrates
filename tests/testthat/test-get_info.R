@@ -35,5 +35,5 @@ test_that("Prints info with group", {
     class = c("raw_data", "data.frame")
     )
   expect_identical(get_info(dat),
-                   "Data contains 2 sample types and 2 NA types.\nAdded group \"group\" contains 3 levels.")
+                   "Data contains 2 sample types and 2 NA types.\nGroupping by: \"group\" (3 levels).")
 })

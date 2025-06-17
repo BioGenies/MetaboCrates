@@ -7,15 +7,15 @@
 general_third_quartile(x)
 }
 \arguments{
-\item{x}{a vector of observations}
+\item{x}{a vector of observations.}
 }
 \description{
-This function calculates third quartile without values such as
+\code{general_third_quartile()} calculates third quartile without values such as
 NA's, values below or above LOD limit and so on.
 }
 \examples{
 x <- c("<LOD", 5, 6, NA, 9, 16)
-general_third_quartile(x)
+MetaboCrates:::general_third_quartile(x)
 
 }
 \keyword{internal}
