@@ -72,21 +72,22 @@ read_data <- function(path) {
 }
 
 
-#' Convert weird values into NA's
+#' Convert weird values into `NA`'s
 #'
 #' @param metabolite_vals a \code{\link{character}} vector containing measured 
 #' metabolite values.
 #' @param special_signs a character vector of permitted special signs that 
-#' should not be converted into NA's. Default to "< LOD","< LLOQ", "> ULOQ", 
-#' "NA" and "∞". Where ULOQ means upper limit of quantification, LLOQ means 
-#' lower limit of quantification and LOD means limit o detection. 
+#' should not be converted into `NA`'s. Default to `"auto"`, which converts
+#' `< LOD`,`< LLOQ`, `> ULOQ`, `NA` and \eqn{\infty}, where ULOQ means upper
+#' limit of quantification, LLOQ means lower limit of quantification and LOD
+#' means limit of detection.
 #' 
 #' @export
 #'
 
-check_values <- function(metabolite_vals, 
-                         special_signs = c("< LOD", "< LLOQ", 
-                                           "> ULOQ", "NA", "∞")) {
+check_values <- function(metabolite_vals, special_signs = "auto"){
+  if(special_signs == "auto")
+    special_signs <- c("< LOD", "< LLOQ", "> ULOQ", "NA", "\u221E")
   
   values_storage <- metabolite_vals
   suppressWarnings({ storage.mode(values_storage) <- "numeric"})

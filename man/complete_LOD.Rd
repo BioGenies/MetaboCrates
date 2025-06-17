@@ -4,18 +4,21 @@
 \alias{complete_LOD}
 \title{Complete values below limit of detection}
 \usage{
-complete_LOD(gathered_data, LOD_type, method, LOD_vals)
+complete_LOD(gathered_data, LOD_type, LOD_method, LOD_vals)
 }
 \arguments{
-\item{gathered_data}{description}
+\item{gathered_data}{a long-format data table.}
 
-\item{LOD_type}{a character. Type of LOD values form table ('OP' or 'calc').
-It can be NULL depending on the \code{method} parameter.}
+\item{LOD_type}{a character string specifying which LOD type to use for
+imputing values. Possible values are \code{"OP"} and \code{"calc"}.}
 
-\item{method}{a character. Imputation method, one of "halfmin",  "random",
-"halflimit", "limit", "logspline" or NULL meaning changing missing values into NAs.}
+\item{LOD_method}{a character string specifying the imputation method to be
+applied to \verb{< LOD} values, or \code{NULL} to change these values to \code{NA}.
+Available methods are: \code{halfmin}, \code{random}, \code{halflimit}, \code{limit},
+\verb{limit-0.2min} and \code{logspline}.}
 
-\item{LOD_vals}{description}
+\item{LOD_vals}{a long-format table containing limits of
+detection/quantification and corresponding plate bar codes.}
 }
 \description{
 Complete values below limit of detection

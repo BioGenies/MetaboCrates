@@ -1,16 +1,26 @@
 
 #' Complete not quantified values
 #'
-#' @description This function completes missing values related to limits of 
+#' @description
+#' `complete_data()` completes missing values related to the limits of 
 #' quantification or detection.
 #' 
 #' @importFrom tidyr spread
+#' 
+#' @inheritParams add_group
 #'
-#' @param dat descr
-#' @param LOD_method description
-#' @param LLOQ_method description
-#' @param ULOQ_method description
-#' @param LOD_type desc
+#' @param LOD_method a character string specifying the imputation method to be
+#' applied to `< LOD` values, or `NULL` to change these values to `NA`.
+#' Available methods are: `halfmin`, `random`, `halflimit`, `limit`,
+#' `limit-0.2min` and `logspline`.
+#' @param LLOQ_method a character string specifying the imputation method to be
+#' applied to `< LLOQ` values, or `NULL` if these values should not be imputed.
+#' Currently, the only available method is: `limit`.
+#' @param ULOQ_method a character string specifying the imputation method to be
+#' applied to `> ULOQ` values, or `NULL` if these values should not be imputed.
+#' Available methods are: `limit` and `third quartile`.
+#' @param LOD_type a character string specifying which LOD type to use for
+#' imputing values. Possible values are `"OP"` and `"calc"`.
 #'
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -49,7 +59,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     if(NA_info[["< LOD"]] > 0 & !is.null(LOD_method)) {
       message(paste0("Completing ", NA_info[["< LOD"]], " < LOD values..."))
       gathered_data <- complete_LOD(gathered_data = gathered_data,  
-                                    method = LOD_method, 
+                                    LOD_method = LOD_method, 
                                     LOD_type = LOD_type, 
                                     LOD_vals = LOD_vals)
     } else {
@@ -64,7 +74,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     if(NA_info[["< LLOQ"]] > 0 & !is.null(LLOQ_method)) {
       message(paste0("Completing ", NA_info[["< LLOQ"]], " < LLOQ values..."))
       gathered_data <- complete_LLOQ(gathered_data = gathered_data, 
-                                     method = LLOQ_method, 
+                                     LLOQ_method = LLOQ_method, 
                                      LOD_vals = LOD_vals)
     } else {
       message("Skipping < LLOQ imputation.")
@@ -78,7 +88,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
     if(NA_info[["> ULOQ"]] > 0 & !is.null(ULOQ_method)) {
       message(paste0("Completing ", NA_info[["> ULOQ"]], " < ULOQ values..."))
       gathered_data <- complete_ULOQ(gathered_data = gathered_data, 
-                                     method = ULOQ_method, 
+                                     ULOQ_method = ULOQ_method, 
                                      LOD_vals = LOD_vals)
     } else {
       message("Skipping > ULOQ imputation.")
@@ -107,21 +117,20 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' @importFrom stringr str_extract
 #' @importFrom stats runif
 #' @importFrom logspline logspline qlogspline
+#' 
+#' @inheritParams complete_data
 #'
-#' @param gathered_data description
-#' @param LOD_type a character. Type of LOD values form table ('OP' or 'calc'). 
-#' It can be NULL depending on the \code{method} parameter.
-#' @param method a character. Imputation method, one of "halfmin",  "random", 
-#' "halflimit", "limit", "logspline" or NULL meaning changing missing values into NAs.
-#' @param LOD_vals description
+#' @param gathered_data a long-format data table.
+#' @param LOD_vals a long-format table containing limits of
+#' detection/quantification and corresponding plate bar codes.
 #' 
 #' @keywords internal
 #' 
 
 
-complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
+complete_LOD <- function(gathered_data, LOD_type, LOD_method, LOD_vals) {
   
-  method <- match.arg(method,
+  method <- match.arg(LOD_method,
                       c("halfmin", "random", "halflimit", "limit",
                         "limit-0.2min", "logspline", NULL))
   LOD_type <- match.arg(LOD_type, c("OP", "calc"))
@@ -195,12 +204,12 @@ complete_LOD <- function(gathered_data, LOD_type, method, LOD_vals) {
 
 #' Find matching plate bar codes in the LOD table
 #' 
-#' @param LOD_table an LOD_table attribute from \code{\link{raw_data}} object.
+#' @param LOD_table an `LOD_table` attribute from \code{\link{raw_data}} object.
 #' @param sets an unique character vector of plate bar codes (for example 
-#' '1036372116-1 | 1036372121-1') 
+#' '1036372116-1 | 1036372121-1').
 #'
 #' @returns A long-format table containing limits of detection/quantification 
-#' and corresponding plate bar codes
+#' and corresponding plate bar codes.
 #'
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -225,22 +234,21 @@ match_plate_codes <- function(LOD_table, sets) {
 
 #' Complete values above limit of quantification
 #' 
-#' @description This function imputes values below limit of quantification 
-#' ("> ULOQ")
+#' @description 
+#' `complete_ULOQ()` imputes values below limit of quantification 
+#' ("> ULOQ").
 #' 
 #' @importFrom stringr str_extract
+#' 
+#' @inheritParams complete_data
 #' @inheritParams complete_LOD
-#'
-#' @param method a character. Imputation method, one of "limit" or NULL meaning 
-#' changing missing values into NAs.
-#' @param LOD_vals description
 #' 
 #' @keywords internal
 #' 
 
-complete_ULOQ <- function(gathered_data, method, LOD_vals) {
+complete_ULOQ <- function(gathered_data, ULOQ_method, LOD_vals) {
   
-  method <- match.arg(method, c("limit", "third quartile"))
+  method <- match.arg(ULOQ_method, c("limit", "third quartile"))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "ULOQ"), 
@@ -266,22 +274,21 @@ complete_ULOQ <- function(gathered_data, method, LOD_vals) {
 
 #' Complete values below limit of quantification
 #' 
-#' @description This function imputes values below limit of quantification 
-#' ("< LLOQ")
+#' @description 
+#' `complete_LLOQ()` imputes values below limit of quantification 
+#' ("< LLOQ").
 #' 
 #' @importFrom stringr str_extract
+#' 
+#' @inheritParams complete_data
 #' @inheritParams complete_LOD
-#'
-#' @param method a character. Imputation method, one of "limit" or NULL meaning 
-#' changing missing values into NAs.
-#' @param LOD_vals description
 #' 
 #' @keywords internal
 #' 
 
-complete_LLOQ <- function(gathered_data, method, LOD_vals) {
+complete_LLOQ <- function(gathered_data, LLOQ_method, LOD_vals) {
   
-  method <- match.arg(method, c("limit"))
+  method <- match.arg(LLOQ_method, c("limit"))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "LLOQ"), 
@@ -301,14 +308,15 @@ complete_LLOQ <- function(gathered_data, method, LOD_vals) {
 
 #' Calculate minimum ignoring character values
 #' 
-#' @description This function calculates minimum without values such as NA's, 
+#' @description
+#' `general_min()` calculates minimum without values such as NA's, 
 #' values below or above LOD limit and so on. 
 #' 
-#' @param x a vector of observations
+#' @param x a vector of observations.
 #' 
 #' @examples
 #' x <- c("<LOD", 5, 6, NA, 9, 16)
-#' general_min(x)
+#' MetaboCrates:::general_min(x)
 #' 
 #' @keywords internal
 #' 
@@ -322,14 +330,17 @@ general_min <- function(x) {
 
 #' Calculate third quartile ignoring character values
 #' 
-#' @description This function calculates third quartile without values such as
-#' NA's, values below or above LOD limit and so on. 
+#' @description
+#' `general_third_quartile()` calculates third quartile without values such as
+#' NA's, values below or above LOD limit and so on.
 #' 
-#' @param x a vector of observations
+#' @importFrom stats quantile
+#' 
+#' @inheritParams general_min
 #' 
 #' @examples
 #' x <- c("<LOD", 5, 6, NA, 9, 16)
-#' general_third_quartile(x)
+#' MetaboCrates:::general_third_quartile(x)
 #' 
 #' @keywords internal
 #' 

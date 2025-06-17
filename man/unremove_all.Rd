@@ -10,7 +10,7 @@ unremove_all(dat, type)
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{type}{a character string indicating the type from which to unremove
+\item{type}{a character string indicating the type from which to restore
 all metabolites.}
 }
 \description{

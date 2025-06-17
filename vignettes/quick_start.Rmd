@@ -22,7 +22,7 @@ library(MetaboCrates)
 
 ## Introduction
 
-The *MetaboCrates* package contains tools for processing and analyzing Biocrates® metabolomics data. It allows users to easily upload data and perform automated preprocessing, including data cleaning, imputation of missing values, and checking the dataset's comprehensiveness. Additionally, it offers tools for quality control and calculating descriptive statistics, and allows users to quickly save the results.
+The *MetaboCrates* package contains tools for processing and analyzing Biocrates® metabolomics data. It allows users to easily upload data and perform automated preprocessing, including data cleaning, imputation of missing values, and checking the comprehensiveness of the dataset. Additionally, it offers tools for quality control and calculating descriptive statistics, and allows users to quickly save the results.
 
 ## Getting started
 
@@ -43,7 +43,7 @@ dat <- read_data(path)
 get_info(dat)
 ```
 
-Class of the dat object is both `data.frame` and `raw_data`. It has following attributes:
+Class of the `dat` object is both `data.frame` and `raw_data`. It has following attributes:
 
 * `LOD_table` - LOD, LLOQ and ULOQ table
 * `NA_info`
@@ -104,7 +104,7 @@ get_info(grouped_dat)
 plot_groups(grouped_dat)
 ```
 
-Next, let's focus on the clearance of data. When ugrouped data passed, function below returns the names of metabolites which have more than the given threshold of missing values. If the grouping column is specified, then it returnes only metabolites for which the threshold is exceeded in each group level. In the examples below the threshold is 20%.
+Next, let's focus on the clearance of data. When not grouped data passed, function below returns the names of metabolites which have more than the given threshold of missing values. If the grouping column is specified, then it returns only metabolites for which the threshold is exceeded in each group level. In the examples below the threshold is 20%.
 
 ```{r}
 get_LOD_to_remove(dat, 0.2)[1:10]
@@ -134,7 +134,7 @@ comp_dat <- calculate_CV(comp_dat)
 get_CV_to_remove(comp_dat, 0.8)[1:10]
 ```
 
-To remove the metabolites from data, the function below can be used. Instead of actually removing them from data, this function adds provided metabolites to the *removed* attribute. Additionaly, the type of removal can be specified - either LOD, QC or QC_man.
+To remove the metabolites from data, the function below can be used. Instead of actually removing them from data, this function adds provided metabolites to the *removed* attribute. Additionally, the type of removal can be specified - either LOD, QC or QC_man.
 
 ```{r}
 dat_with_metabo_removed <- remove_metabolites(comp_dat, c("C8", "C10"), "LOD")
@@ -151,7 +151,7 @@ show_data(dat_with_metabo_removed)[1:5, c(1:3, 19:21)]
 show_ratios(dat_with_metabo_removed)[7:12,]
 ```
 
-There are two options for unremoving metabolites - either the specific ones are can be chosen or all metabolites from the specified type can be restored.
+There are two options for restoring metabolites - either specific ones can be selected or all metabolites from the specified type can be restored.
 
 ```{r}
 attr(unremove_metabolites(dat_with_metabo_removed, "C8"), "removed")
@@ -169,7 +169,7 @@ create_PCA_plot(comp_dat)
 
 ## Analysis
 
-First, let's create the barplots of missing values percents. Below function takes an argument *type*, which can be set to *joined* (deafult) to get a plot of missing values in each metabolite or else *NA_type* or *group* to add the division into all missing values types and levels in grouping column respectively.
+First, let's create the barplots of missing values percents. Below function takes an argument *type*, which can be set to *joined* (default) to get a plot of missing values in each metabolite or else *NA_type* or *group* to add the division into all missing values types and levels in grouping column respectively.
 
 ```{r}
 library(ggplot2)
@@ -184,7 +184,7 @@ plot_NA_percent(grouped_dat, type = "group") +
   xlim(attr(grouped_dat, "metabolites")[5:10])
 ```
 
-Next function creates heatmap, which shows if value is missing for each sample and metabolite. Below the cropped plot is presented, with the metabolites from 5th to 10th and first 50 samples.
+Next function creates heatmap, which shows if value is missing for each sample and metabolite. Below, the cropped plot is presented, showing the metabolites from the 5th to the 10th and the first 50 samples.
 
 ```{r, fig.width=7}
 # plot_heatmap(dat) +
@@ -200,9 +200,9 @@ create_correlations_heatmap(comp_dat) +
   ylim(attr(comp_dat, "metabolites")[5:10])
 ```
 
-Aside from plots corresponding to the all metabolites, *MetaboCrates* package provides also tools for visualisations related to the specific metabolite. Next three functions create histogram, boxplot and qqplot, based on the values measured for one metabolite.
+Aside from plots corresponding to all metabolites, the *MetaboCrates* package also provides tools for visualizations related to specific metabolite. Next three functions create histogram, boxplot and Q-Q plot, based on the values measured for one metabolite.
 
-Moreover, the package allows for creating the density plot for a specific metabolite, with a dash line representing the limit of detection retrevied from the LOD table.
+Moreover, the package allows for creating the density plot for a specific metabolite, with a dash line representing the limit of detection retrieved from the LOD table.
 
 Next, one can create a beeswarm plot for a specified metabolite, visualizing the distribution of metabolite values across different plate bar codes.
 

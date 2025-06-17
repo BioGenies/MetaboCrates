@@ -13,18 +13,27 @@ complete_data(
 )
 }
 \arguments{
-\item{dat}{descr}
+\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
+function.}
 
-\item{LOD_method}{description}
+\item{LOD_method}{a character string specifying the imputation method to be
+applied to \verb{< LOD} values, or \code{NULL} to change these values to \code{NA}.
+Available methods are: \code{halfmin}, \code{random}, \code{halflimit}, \code{limit},
+\verb{limit-0.2min} and \code{logspline}.}
 
-\item{LLOQ_method}{description}
+\item{LLOQ_method}{a character string specifying the imputation method to be
+applied to \verb{< LLOQ} values, or \code{NULL} if these values should not be imputed.
+Currently, the only available method is: \code{limit}.}
 
-\item{ULOQ_method}{description}
+\item{ULOQ_method}{a character string specifying the imputation method to be
+applied to \verb{> ULOQ} values, or \code{NULL} if these values should not be imputed.
+Available methods are: \code{limit} and \verb{third quartile}.}
 
-\item{LOD_type}{desc}
+\item{LOD_type}{a character string specifying which LOD type to use for
+imputing values. Possible values are \code{"OP"} and \code{"calc"}.}
 }
 \description{
-This function completes missing values related to limits of
+\code{complete_data()} completes missing values related to the limits of
 quantification or detection.
 }
 \examples{

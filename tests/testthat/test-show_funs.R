@@ -21,13 +21,12 @@ test_that("show_data returns data with correct metabolites", {
 
 test_that("show_ratios returns NA ratios with correct metabolites", {
   attr(dat, "NA_info")$NA_ratios_type <- tibble(
-    metabolite = rep(c("C0", "C1", "C2", "C3"), each = 3),
-    group = rep(1:3, 4),
-    NA_frac = c(0,0,0,0.1,0,0,0.1,0,0.222,1,0,0)
+    metabolite = rep(c("C0", "C1", "C2", "C3"), each = 5),
+    type = rep(c("< LOD", "< LLOQ", "> ULOQ", "NA", "∞"), 4),
+    NA_frac = c(0,0,0,0,0,0,0.1,0,0,0,0.1,0,0.222,0,0,0,0,1,0,0)
   )
   
   expect_equal(show_ratios(dat),
-               tibble(metabolite = rep("C1", 3),
-                      group = 1:3,
-                      NA_frac = c(0.1,0,0)))
+               tibble(metabolite = "C1",
+                      NA_frac = 0.1))
 })

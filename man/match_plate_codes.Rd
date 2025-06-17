@@ -7,14 +7,14 @@
 match_plate_codes(LOD_table, sets)
 }
 \arguments{
-\item{LOD_table}{an LOD_table attribute from \code{\link{raw_data}} object.}
+\item{LOD_table}{an \code{LOD_table} attribute from \code{\link{raw_data}} object.}
 
 \item{sets}{an unique character vector of plate bar codes (for example
-'1036372116-1 | 1036372121-1')}
+'1036372116-1 | 1036372121-1').}
 }
 \value{
 A long-format table containing limits of detection/quantification
-and corresponding plate bar codes
+and corresponding plate bar codes.
 }
 \description{
 Find matching plate bar codes in the LOD table

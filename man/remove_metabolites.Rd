@@ -10,7 +10,7 @@ remove_metabolites(dat, metabolites_to_remove, type)
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{metabolites_to_remove}{a character string or vector specifing the
+\item{metabolites_to_remove}{a character string or vector specifying the
 names of metabolites to remove.}
 
 \item{type}{a character string specifying the criterion used to evaluate

@@ -74,7 +74,7 @@ validate_raw_data <- function(raw_data) {
   suppressWarnings({ storage.mode(values_mode) <- "numeric" })
   
   wrong_values <- is.na(values_mode) & 
-    !(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "∞", NA))
+    !(metabolites_values %in% c("< LOD","< LLOQ", "> ULOQ", "NA", "\u221E", NA))
   
   if(any(wrong_values)) 
     stop("Found incorrect metabolites values!")
@@ -185,7 +185,7 @@ raw_data <- function(metabolomics_matrix,
     pull(count)
   
   grouping_variables_tmp <- group
-  miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "∞")
+  miss_vals <- c("< LOD","< LLOQ", "> ULOQ", "NA", "\u221E")
   
   NA_ratios_type <- metabolomics_matrix %>% 
     filter(`sample type` == "Sample") %>% 
