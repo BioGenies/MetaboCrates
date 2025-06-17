@@ -41,7 +41,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">complete_LOD</span><span class="op">(</span><span class="va">gathered_data</span>, <span class="va">LOD_type</span>, <span class="va">method</span>, <span class="va">LOD_vals</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">complete_LOD</span><span class="op">(</span><span class="va">gathered_data</span>, <span class="va">LOD_type</span>, <span class="va">LOD_method</span>, <span class="va">LOD_vals</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -49,21 +49,24 @@
 
 
 <dl><dt id="arg-gathered-data">gathered_data<a class="anchor" aria-label="anchor" href="#arg-gathered-data"></a></dt>
-<dd><p>description</p></dd>
+<dd><p>a long-format data table.</p></dd>
 
 
 <dt id="arg-lod-type">LOD_type<a class="anchor" aria-label="anchor" href="#arg-lod-type"></a></dt>
-<dd><p>a character. Type of LOD values form table ('OP' or 'calc').
-It can be NULL depending on the <code>method</code> parameter.</p></dd>
+<dd><p>a character string specifying which LOD type to use for
+imputing values. Possible values are <code>"OP"</code> and <code>"calc"</code>.</p></dd>
 
 
-<dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>a character. Imputation method, one of "halfmin",  "random",
-"halflimit", "limit", "logspline" or NULL meaning changing missing values into NAs.</p></dd>
+<dt id="arg-lod-method">LOD_method<a class="anchor" aria-label="anchor" href="#arg-lod-method"></a></dt>
+<dd><p>a character string specifying the imputation method to be
+applied to <code>&lt; LOD</code> values, or <code>NULL</code> to change these values to <code>NA</code>.
+Available methods are: <code>halfmin</code>, <code>random</code>, <code>halflimit</code>, <code>limit</code>,
+<code>limit-0.2min</code> and <code>logspline</code>.</p></dd>
 
 
 <dt id="arg-lod-vals">LOD_vals<a class="anchor" aria-label="anchor" href="#arg-lod-vals"></a></dt>
-<dd><p>description</p></dd>
+<dd><p>a long-format table containing limits of
+detection/quantification and corresponding plate bar codes.</p></dd>
 
 </dl></div>
 
