@@ -86,7 +86,7 @@ MetaboCrates::
 - [x] automatic imputation methods
 - [x] group PCA to another panel
 - [ ] different color with different histogram type
-- [ ] shorter message window when downloading
 - [x] fix removing metabolites
 - [x] tests
 - [x] unified tab layouts
+- [ ] q-q plots instead of correlation heatmaps
