@@ -17,6 +17,7 @@ source("app_supplementary/plot_with_button_module.R")
 source("app_supplementary/table_with_button_module.R")
 source("app_supplementary/update_inputs_module.R")
 source("app_supplementary/download_module.R")
+source("app_supplementary/message_box.R")
 
 options(
   shiny.maxRequestSize=100*1024^2,
@@ -52,11 +53,11 @@ ui <- navbarPage(
     div.dataTables_processing {
       background-color: white;
     }
-  .full-height {
-    min-height: 80vh;
-    background-color: #f8f5f0;
-    border-right: 1px solid #ccc;
-  }
+    .full-height {
+      min-height: 80vh;
+      background-color: #f8f5f0;
+      border-right: 1px solid #ccc;
+    }
   ")),
   
   tabPanel("About",
@@ -76,54 +77,123 @@ ui <- navbarPage(
           tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
         ),
         nav_btns_UI("Uploading data"),
-        column(3,
-               class = "full-height",
-               style = "background-color:#f8f5f0; border-right: 1px solid",
-               br(),
-               h4("Upload new data"),
-               fileInput(
-                 inputId = 'users_path',
-                 label = "Upload Biocrates® file.",
-                 multiple = FALSE,
-                 accept = c(".xlsx", ".xls")
-               ),
-               h4("... or load your previous project"),
-               fileInput(
-                 inputId = 'project_path',
-                 label = "Upload RDS file downloaded from MetaboCrates.",
-                 multiple = FALSE,
-                 accept = c(".rds", ".RDS")
-               ),
-               br(),
-               h4("Click below to upload example data!",
-                  style = "font-size:15px;"),
-               actionBttn(
-                 inputId = "example_dat",
-                 label = "Example data",
-                 style = "material-flat",
-                 color = "success",
-                 icon = HTML("<i class='fa-solid fa-upload fa-bounce'></i>")
-               )
-        ),
-        column(9,
-               column(12, align = "right", 
-                      h2("Uploading data (step 1/8)"),
-                      h3("next: Group selection")),
-               column(12, 
-                      tabsetPanel(
-                        tabPanel(
-                          "Data summary",
+        column(12, 
+               tabsetPanel(
+                 tabPanel(
+                   "Data summary",
+                   column(3,
+                          class = "full-height",
+                          style = "background-color:#f8f5f0; border-right: 1px solid",
                           br(),
-                          withSpinner(htmlOutput("raw_data_summary")),
-                        ),
-                        tabPanel(
-                          "Compounds matrix",
+                          h4("Upload new data"),
+                          fileInput(
+                            inputId = 'users_path',
+                            label = "Upload Biocrates® file.",
+                            multiple = FALSE,
+                            accept = c(".xlsx", ".xls")
+                          ),
+                          h4("... or load your previous project"),
+                          fileInput(
+                            inputId = 'project_path',
+                            label = "Upload RDS file downloaded from MetaboCrates.",
+                            multiple = FALSE,
+                            accept = c(".rds", ".RDS")
+                          ),
                           br(),
-                          table_with_button_UI("biocrates_matrix")
-                        ),
-                        tabPanel(
-                          align = "center",
-                          "Missing values",
+                          h4("Click below to upload example data!",
+                             style = "font-size:15px;"),
+                          actionBttn(
+                            inputId = "example_dat",
+                            label = "Example data",
+                            style = "material-flat",
+                            color = "success",
+                            icon = HTML("<i class='fa-solid fa-upload fa-bounce'></i>")
+                          )
+                   ),
+                   column(9,
+                          column(12, align = "right", 
+                                 h2("Uploading data (step 1/8)"),
+                                 h3("next: Group selection")),
+                          br(),
+                          withSpinner(htmlOutput("raw_data_summary"))
+                   ),
+                 ),
+                 tabPanel(
+                   "Compounds matrix",
+                   column(3,
+                          class = "full-height",
+                          style = "background-color:#f8f5f0; border-right: 1px solid",
+                          br(),
+                          h4("Upload new data"),
+                          fileInput(
+                            inputId = 'users_path',
+                            label = "Upload Biocrates® file.",
+                            multiple = FALSE,
+                            accept = c(".xlsx", ".xls")
+                          ),
+                          h4("... or load your previous project"),
+                          fileInput(
+                            inputId = 'project_path',
+                            label = "Upload RDS file downloaded from MetaboCrates.",
+                            multiple = FALSE,
+                            accept = c(".rds", ".RDS")
+                          ),
+                          br(),
+                          h4("Click below to upload example data!",
+                             style = "font-size:15px;"),
+                          actionBttn(
+                            inputId = "example_dat",
+                            label = "Example data",
+                            style = "material-flat",
+                            color = "success",
+                            icon = HTML("<i class='fa-solid fa-upload fa-bounce'></i>")
+                          )
+                   ),
+                   column(9,
+                          column(12, align = "right", 
+                                 h2("Uploading data (step 1/8)"),
+                                 h3("next: Group selection")),
+                          br(),
+                          column(12,
+                                 table_with_button_UI("biocrates_matrix") 
+                          )
+                   )
+                 ),
+                 tabPanel(
+                   "Missing values",
+                   column(3,
+                          class = "full-height",
+                          style = "background-color:#f8f5f0; border-right: 1px solid",
+                          br(),
+                          h4("Upload new data"),
+                          fileInput(
+                            inputId = 'users_path',
+                            label = "Upload Biocrates® file.",
+                            multiple = FALSE,
+                            accept = c(".xlsx", ".xls")
+                          ),
+                          h4("... or load your previous project"),
+                          fileInput(
+                            inputId = 'project_path',
+                            label = "Upload RDS file downloaded from MetaboCrates.",
+                            multiple = FALSE,
+                            accept = c(".rds", ".RDS")
+                          ),
+                          br(),
+                          h4("Click below to upload example data!",
+                             style = "font-size:15px;"),
+                          actionBttn(
+                            inputId = "example_dat",
+                            label = "Example data",
+                            style = "material-flat",
+                            color = "success",
+                            icon = HTML("<i class='fa-solid fa-upload fa-bounce'></i>")
+                          )
+                   ),
+                   column(9,
+                          column(12, align = "right", 
+                                 h2("Uploading data (step 1/8)"),
+                                 h3("next: Group selection")),
                           br(),
                           br(),
                           column(4, 
@@ -132,11 +202,10 @@ ui <- navbarPage(
                           column(8,
                                  br(),
                                  uiOutput("mv_types_plt_ui")
-                          )
-                          
-                        )
-                      ))
-        ),
+                          )      
+                   )
+                 )
+               ))
       ),
       #############
       tabPanel("Group selection",
@@ -186,80 +255,84 @@ ui <- navbarPage(
       ####################
       tabPanel("Filtering",
                nav_btns_UI("Filtering"),
-               column(4,
-                      class = "full-height",
-                      style = "background-color:#f8f5f0; border-right: 1px solid",
-                      br(),
-                      h4("Provide threshold."),
-                      h5("All metabolites that contain more missing values than 
+               tabsetPanel(
+                 tabPanel("Ratios of missing values",
+                          column(4,
+                                 class = "full-height",
+                                 style = "background-color:#f8f5f0; border-right: 1px solid",
+                                 br(),
+                                 h4("Provide threshold."),
+                                 h5("All metabolites that contain more missing values than 
                          provided threshold will be removed."),
-                      br(),
-                      numericInput(
-                        inputId = "filtering_threshold",
-                        label = "threshold [%]",
-                        value = 80,
-                        min = 0,
-                        max = 100,
-                        step = 5
-                      ),
-                      br(),
-                      
-                      column(8, 
-                             h4("The following metabolites will be removed:"),
-                      ),
-                      column(4,
-                             align = "right",
-                             dropdownButton(
-                               multiInput(
-                                 inputId = "LOD_to_remove",
-                                 label = "Click metabolite name to select or unselect.",
-                                 choices = character(0),
-                                 width = "90%",
-                                 options = list(
-                                   enable_search = TRUE,
-                                   non_selected_header = "Metabolites:",
-                                   selected_header = "Metabolites to remove:"
-                                 )
-                               ),
-                               circle = TRUE, status = "default",
-                               icon = icon("gear"), width = "700px",
-                               
-                               tooltip = tooltipOptions(title = "Click to edit metabolites to remove!")
-                             ),
-                      ),
-                      br(),
-                      br(),
-                      br(),
-                      column(12, htmlOutput("LOD_to_remove_txt")),
-                      br(),
-                      br(),
-                      br(),
-                      column(6, align = "center", 
-                             actionButton("LOD_remove_btn", label = "Remove")),
-                      column(6, align = "center",
-                             actionButton("LOD_undo_btn", label = "Undo")),
-                      br(),
-                      br(),
-                      br(),
-                      column(12, h4("Removed metabolites:")),
-                      column(12, htmlOutput("LOD_removed_txt"))
-                      
-               ),
-               column(8, align = "right",
-                      h2("Compounds filtering (step 3/8)"),
-                      h3("next: Completing")
-               ),
-               column(8,
-                      tabsetPanel(
-                        tabPanel("Ratios of missing values",
-                                 column(10, offset = 1,
-                                        br(),
-                                        br(),
-                                        table_with_button_UI("NA_ratios_tbl"))
-                        ),
-                        tabPanel("Ratios visualization",
+                                 br(),
+                                 numericInput(
+                                   inputId = "filtering_threshold",
+                                   label = "threshold [%]",
+                                   value = 80,
+                                   min = 0,
+                                   max = 100,
+                                   step = 5
+                                 ),
+                                 br(),
+                                 
+                                 column(8, 
+                                        h4("The following metabolites will be removed:"),
+                                 ),
+                                 column(4,
+                                        align = "right",
+                                        dropdownButton(
+                                          multiInput(
+                                            inputId = "LOD_to_remove",
+                                            label = "Click metabolite name to select or unselect.",
+                                            choices = character(0),
+                                            width = "90%",
+                                            options = list(
+                                              enable_search = TRUE,
+                                              non_selected_header = "Metabolites:",
+                                              selected_header = "Metabolites to remove:"
+                                            )
+                                          ),
+                                          circle = TRUE, status = "default",
+                                          icon = icon("gear"), width = "700px",
+                                          
+                                          tooltip = tooltipOptions(title = "Click to edit metabolites to remove!")
+                                        ),
+                                 ),
                                  br(),
                                  br(),
+                                 br(),
+                                 column(12, htmlOutput("LOD_to_remove_txt")),
+                                 br(),
+                                 br(),
+                                 br(),
+                                 column(6, align = "center", 
+                                        actionButton("LOD_remove_btn", label = "Remove")),
+                                 column(6, align = "center",
+                                        actionButton("LOD_undo_btn", label = "Undo")),
+                                 br(),
+                                 br(),
+                                 br(),
+                                 column(12, h4("Removed metabolites:")),
+                                 column(12, htmlOutput("LOD_removed_txt"))
+                                 
+                          ),
+                          column(8,
+                                 column(12, align = "right",
+                                        h2("Compounds filtering (step 3/8)"),
+                                        h3("next: Completing")
+                                 ),
+                                 br(),
+                                 br(),
+                                 table_with_button_UI("NA_ratios_tbl"))
+                 ),
+                 tabPanel("Ratios visualization",
+                          column(12, align = "right",
+                                 h2("Compounds filtering (step 3/8)"),
+                                 h3("next: Completing")
+                          ),
+                          br(),
+                          br(),
+                          column(8, offset = 2,
                                  radioButtons(
                                    "NA_percent_plt_type", 
                                    "Choose plot type",
@@ -268,16 +341,16 @@ ui <- navbarPage(
                                    choiceNames = c("Joint ratios", "Show NA type"),
                                    inline = TRUE
                                  ),
-                                 column(12,
-                                        uiOutput("NA_ratios_plt_ui")
-                                 )
-                        ),
-                        tabPanel("Venn diagram",
-                                 column(12,
-                                        uiOutput("venn_diagram_ui")
-                                  )
-                        )
-                      )
+                                 uiOutput("NA_ratios_plt_ui")   
+                          )
+                 ),
+                 tabPanel("Venn diagram",
+                          column(12, align = "right",
+                                 h2("Compounds filtering (step 3/8)"),
+                                 h3("next: Completing")
+                          ),
+                          uiOutput("venn_diagram_ui")
+                 )
                )
                
       ),
@@ -411,12 +484,13 @@ ui <- navbarPage(
                                     ),
                                     conditionalPanel(
                                       condition = "input.hist_type",
-                                      tagList(
+                                      column(9,
                                         br(),
-                                        column(7, offset = 1,
-                                               h4("Histogram shows all values before imputation (observed) and only those that were missing and then completed (only imputed values)."),
-                                               br()
-                                        )
+                                        create_message_box("Histogram shows all values before imputation
+                                                                  (observed) and only those that were missing and
+                                                                  then completed<br>&emsp;&emsp;(only imputed values).",
+                                                           type = "description"),
+                                        br()
                                       )
                                     ),
                                     column(9,
@@ -601,7 +675,9 @@ ui <- navbarPage(
                                     column(9, align = "center",
                                            conditionalPanel(
                                              condition = "input.sample_type_PCA_type == `biplot`",
-                                             h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
+                                             create_message_box("Biplot visualizes metabolite contributions to principal components,
+                                                                highlighting groups with similar correlations.",
+                                                                type = "description"),
                                              br()
                                            )
                                     ),
@@ -661,16 +737,7 @@ ui <- navbarPage(
                                            h2("Outlier detection (step 6/8)"),
                                            h3("next: Summary")
                                     ),
-                                    column(9, align = "center",
-                                           conditionalPanel(
-                                             condition = "input.group_PCA_type == `biplot`",
-                                             h4("The biplot visualizes metabolite contributions to principal components, highlighting groups with similar correlations."),
-                                             br()
-                                           )
-                                    ),
-                                    column(7, offset = 1,
-                                           uiOutput("group_cond_pca_plt")
-                                    )
+                                    uiOutput("group_cond_pca_plt")
                            ),
                            tabPanel("Heatmap of correlations after imputation",
                                     column(3,
@@ -972,13 +1039,7 @@ server <- function(input, output, session) {
   output[["mv_types_plt_ui"]] <- renderUI({
     tagList(
       if(is.null(mv_types_plt_reactive()))
-        HTML('<div style="text-align: left; background-color: #e5fbf7;
-                 padding: 8px 10px; border-left: 4px solid #00d2a3;
-                 border-radius: 4px; font-size: 14px; width: 100%;">
-                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                 No missing values found.
-                 </div>'
-        )
+        create_message_box("No missing values found", type = "warning")
       else
         plot_with_button_UI("mv_types_plt")
     )
@@ -1198,14 +1259,9 @@ server <- function(input, output, session) {
     req(input[["run"]] == "Group selection")
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      column(10,
-             HTML('<div style="text-align: left; background-color: #e5fbf7;
-                 padding: 8px 10px; border-left: 4px solid #00d2a3;
-                 border-radius: 4px; font-size: 14px; width: 100%;">
-                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                 Apply grouping to see the summary.
-                 </div>'
-             )
+      column(12,
+             create_message_box("Apply grouping to see the summary",
+                                type = "warning")
       )
     else
       tagList(
@@ -1357,13 +1413,7 @@ server <- function(input, output, session) {
   
   output[["NA_ratios_plt_ui"]] <- renderUI({
     if(is.null(NA_ratios_plt()))
-      HTML('<div style="text-align: left; background-color: #e5fbf7;
-                 padding: 8px 10px; border-left: 4px solid #00d2a3;
-                 border-radius: 4px; font-size: 14px; width: 100%;">
-                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                 No missing values found.
-                 </div>'
-      )
+      create_message_box("No missing values found", type = "warning")
     else
       plot_with_button_UI("NA_ratios_plt")
   })
@@ -1395,22 +1445,26 @@ server <- function(input, output, session) {
     tagList(
       br(),
       if(is.null(venn_plt())){
-        HTML('<div style="text-align: left; background-color: #e5fbf7;
-                  padding: 8px 10px; border-left: 4px solid #00d2a3;
-                  border-radius: 4px; font-size: 14px; width: 100%;">
-                  <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                  Provide a group with more than 1 and up to 4 levels to see Venn diagram.
-                  </div>'
+        column(12,
+               create_message_box("Provide a group with more than 1 and up to 4 levels to see Venn diagram",
+                                  type = "warning")
         )
       }
       else{
-        h4("This Venn diagram illustrates how many metabolites have missing
-           value ratios above the threshold across the different group levels") 
+        column(12,
+               br(),
+               create_message_box(
+                 "This Venn diagram illustrates how many metabolites have missing
+                  value ratios above the threshold across the different group levels.",
+                 type = "description"
+               ),
+               br()
+        )
       },
       if(!is.null(venn_plt())){
-        tagList(
-          br(),
-          plot_with_button_UI("venn_diagram"))
+        column(10, offset = 1,
+          plot_with_button_UI("venn_diagram")
+        )
       }
     )
   })
@@ -1562,13 +1616,7 @@ server <- function(input, output, session) {
     req(input[["run"]] == "Completing")
     
     if(is.null(dist_plt()))
-      HTML('<div style="text-align: left; background-color: #e5fbf7;
-                 padding: 8px 10px; border-left: 4px solid #00d2a3;
-                 border-radius: 4px; font-size: 14px; width: 100%;">
-                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                 Complete data to see plots.
-                 </div>'
-      )
+      create_message_box("Complete data to see plots", type = "warning")
     else
       plot_with_button_UI("dist_plt")
   })
@@ -1607,13 +1655,7 @@ server <- function(input, output, session) {
     req(input[["run"]] == "Completing")
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
-      HTML('<div style="text-align: left; background-color: #e5fbf7;
-                 padding: 8px 10px; border-left: 4px solid #00d2a3;
-                 border-radius: 4px; font-size: 14px; width: 100%;">
-                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                 Complete data to see heatmap.
-                 </div>'
-      )
+      create_message_box("Complete data to see heatmap", type = "warning")
     else
       plot_with_button_UI("corr_heatmap_both")
   })
@@ -1877,18 +1919,30 @@ server <- function(input, output, session) {
   
   output[["group_cond_pca_plt"]] <- renderUI({
     if(is.null(attr(dat[["metabocrates_dat_group"]], "group")))
-      HTML('<div style="text-align: left; background-color: #e5fbf7;
-                 padding: 8px 10px; border-left: 4px solid #00d2a3;
-                 border-radius: 4px; font-size: 14px; width: 100%;">
-                 <span style="margin-right: 8px; color: #00d2a3; font-size: 20px;">&#9888;</span>
-                 Group data to see plots.
-                 </div>'
+      column(9,
+             create_message_box("Group data to see plots", type = "warning") 
       )
     else{
       if(input[["group_PCA_type"]] == "variance"){
-        plot_with_button_UI("group_PCA_variance_plt")
+        column(7, offset = 1,
+               plot_with_button_UI("group_PCA_variance_plt")
+        )
+      }else if(input[["group_PCA_type"]] == "biplot"){
+        tagList(
+          column(9,
+                 create_message_box("Biplot visualizes metabolite contributions to principal components,
+                                    highlighting groups with similar correlations.",
+                                    type = "description")
+          ),
+          br(),
+          column(7, offset = 1,
+                 plot_with_button_UI("group_PCA_plt")
+          )
+        )
       }else{
-        plot_with_button_UI("group_PCA_plt")
+        column(7, offset = 1,
+               plot_with_button_UI("group_PCA_plt")
+        )
       }
     }
   })

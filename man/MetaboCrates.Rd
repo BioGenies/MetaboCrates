@@ -5,7 +5,7 @@
 \title{MetaboCrates}
 \description{
 The \code{MetaboCrates} package is a toolbox for processing of
-Biocrates metabolomics data
+Biocrates® metabolomics data
 }
 \author{
 Krystyna Grzesiak, Joanna Pokora, Filip Gaj, Michal Burdukiewicz.
