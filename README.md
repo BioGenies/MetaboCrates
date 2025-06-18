@@ -88,5 +88,6 @@ MetaboCrates::
 - [ ] different color with different histogram type
 - [ ] shorter message window when downloading
 - [x] fix removing metabolites
-- [ ] tests
+- [x] tests
 - [ ] unified tab layouts
+- [ ] q-q plots between metabolites
