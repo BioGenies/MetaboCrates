@@ -230,7 +230,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
       output[["download"]] <- downloadHandler(
         filename = "all_plots.zip",
         content = function(file){
-          showModal(modalDialog("Creating file", footer = NULL))
+          showModal(modalDialog("Creating file, please wait...", footer = NULL))
           on.exit(removeModal())
           
           if(is.null(dat[["metabocrates_dat_group"]]))
@@ -414,7 +414,8 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
         output[["download"]] <- downloadHandler(
           filename = "report.pdf",
           content = function(file){
-            showModal(modalDialog("Creating report", footer = NULL))
+            showModal(modalDialog("Creating report, please wait...",
+                                  footer = NULL))
             on.exit(removeModal())
             
             params <- list("filtering_threshold",

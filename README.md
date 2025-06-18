@@ -78,16 +78,15 @@ MetaboCrates::
 - [ ] buttons color
 - [x] spinners placement
 - [ ] spinners delay
-- [ ] plots descriptions
+- [x] plots descriptions
 - [x] handling data without missing values
 - [x] missing heatmap colors
 - [x] PCA plots for all sample types
-- [ ] change descriptions appearance
+- [x] change descriptions appearance
 - [x] automatic imputation methods
 - [x] group PCA to another panel
 - [ ] different color with different histogram type
-- [ ] shorter message window when downloading
 - [x] fix removing metabolites
 - [x] tests
-- [ ] unified tab layouts
-- [ ] q-q plots between metabolites
+- [x] unified tab layouts
+- [ ] q-q plots instead of correlation heatmaps
