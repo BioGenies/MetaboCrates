@@ -1,1 +1,0 @@
-This heatmap shows the correlations between each pair of metabolites after imputation. You can set a threshold to display only those metabolites that have at least one correlation value above the threshold and choose which metabolites to include.

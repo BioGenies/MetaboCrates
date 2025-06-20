@@ -1268,3 +1268,50 @@ create_venn_diagram <- function(dat, threshold){
     scale_fill_metabocrates_discrete() +
     scale_color_metabocrates_discrete()
 }
+
+#' Q-Q plot
+#' 
+#' @description
+#' `create_metabo_qq_plot()` creates Q-Q plot based on the single metabolite
+#' before and after imputation.
+#' 
+#' @importFrom stats quantile ecdf
+#' 
+#' @inheritParams create_correlations_heatmap
+#' 
+#' @param metabolite a character string. Name of the metabolite to display.
+#' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' create_metabo_qq_plot(dat, "C5")
+#' 
+#' @export
+
+create_metabo_qq_plot <- function(dat, metabolite){
+  plt_dat <- dat %>%
+    mutate(after = attr(dat, "completed")[[metabolite]]) %>%
+    filter(`sample type` == "Sample") %>%
+    select(before = all_of(metabolite),
+           after)
+  
+  quants <- data.frame(probs = seq(0, 1, by = 0.01)) %>%
+    mutate(before = quantile(as.numeric(plt_dat[["before"]]),
+                             probs = probs, na.rm = TRUE),
+           after = quantile(as.numeric(plt_dat[["after"]]),
+                             probs = probs, na.rm = TRUE))
+  
+  slope <- diff(quants[["after"]][c(26, 76)]) /
+    diff(quants[["before"]][c(26, 76)])
+  
+  ggplot(quants, aes(x = before, y = after)) +
+    geom_point() +
+    geom_abline(
+      slope = slope,
+      intercept = quants[["after"]][1] - slope * quants[["before"]][1],
+      color = "#54F3D3"
+    ) +
+    labs(x = "Before imputation", y = "After imputation") +
+    metabocrates_theme()
+}

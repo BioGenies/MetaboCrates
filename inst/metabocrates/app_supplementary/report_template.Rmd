@@ -15,8 +15,6 @@ params:
   LLOQ_method: NULL
   ULOQ_method: NULL
   LOD_type: NULL
-  corr_threshold: NULL
-  corr_heatmap_metabolites: "all"
   cv_threshold: NULL
   sample_type_PCA_types: "all"
   sample_type_PCA_threshold: NULL
@@ -27,8 +25,6 @@ params:
   group_PCA_variance_threshold: NULL
   group_PCA_variance_max_num: NULL
   group_PCA_variance_cum: TRUE
-  corr_threshold_both: NULL
-  corr_heatmap_metabolites_both: "all"
   filtering_threshold_ex: FALSE
 ---
 
@@ -195,44 +191,6 @@ NA_perc_plt_crop <- NA_perc_plt +
 ggarrange(plotlist = heatmap_plts, ncol = min(length(heatmap_plts), 2))
 ```
 
-```{r, results="asis", eval=!is.null(attr(params[["dat"]], "completed"))}
-cat("The absolute correlation threshold for the heatmap of correlations before and after imputation was set to ",
-    params[["corr_threshold_both"]]*100,
-    "%. There were ",
-    length(params[["corr_heatmap_metabolites_both"]]),
-    " metabolites chosen to be visible: ",
-    paste0(params[["corr_heatmap_metabolites_both"]], collapse = ", "),
-    ".  \n", sep = "")
-```
-
-```{r, eval=!is.null(attr(params[["dat"]], "completed"))}
-cor_heatmap_both <- create_correlations_heatmap(
-  params[["dat"]],
-  threshold = ifelse(is.null(params[["corr_threshold_both"]]),
-                     0,
-                     params[["corr_threshold_both"]]),
-  metabolites_to_display =
-    params[["corr_heatmap_metabolites_both"]][1:min(length(params[["corr_heatmap_metabolites_both"]]), 10)],
-  type = "both",
-  interactive = FALSE
-)
-
-if(!is.null(cor_heatmap_both)){
-  cor_heatmap_cap_both <- "Heatmap of correlations before and after imputation (up to 10 chosen metabolites visible)."
-  cor_heatmap_results_both <- "show"
-}else{
-  cor_heatmap_cap_both <- NULL
-  cor_heatmap_results_both <- "asis"
-}
-```
-
-```{r, eval=!is.null(attr(params[["dat"]], "completed")), fig.height=4, fig.width=5, fig.cap=cor_heatmap_cap_both, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results_both"), cor_heatmap_results_both, "show")}
-if(is.null(cor_heatmap_cap_both)){
-  cat("No metabolites to show on the heatmap.  \n  \n")
-}else
-  cor_heatmap_both
-```
-
 ```{r, results="asis", eval=!is.null(attr(params[["dat"]], "cv"))}
 cat("## Quality control  \n  \n")
 cat("CV threshold was set to ",
@@ -259,47 +217,9 @@ if(!is.null(attr(params[["dat"]], "removed")[["QC"]])){
 }else cat("No metabolites were removed based on the CV.  \n")
 ```
 
-```{r, eval=!is.null(attr(params[["dat"]], "cv")), results="asis"}
-cat("## Outlier detection  \n  \n")
-
-cat("The absolute correlation threshold for the heatmap of correlations after imputation was set to ",
-    params[["corr_threshold"]]*100,
-    "%. There were ",
-    length(params[["corr_heatmap_metabolites"]]),
-    " metabolites chosen to be visible: ",
-    paste0(params[["corr_heatmap_metabolites"]], collapse = ", "),
-    ".  \n", sep = "")
-```
-
-```{r, eval=!is.null(attr(params[["dat"]], "cv"))}
-cor_heatmap <- create_correlations_heatmap(
-  params[["dat"]],
-  threshold = ifelse(is.null(params[["corr_threshold"]]),
-                     0,
-                     params[["corr_threshold"]]),
-  metabolites_to_display =
-    params[["corr_heatmap_metabolites"]][1:min(length(params[["corr_heatmap_metabolites"]]), 10)],
-  interactive = FALSE
-)
-
-if(!is.null(cor_heatmap)){
-  cor_heatmap_cap <- "Heatmap of correlations after imputation (up to 10 chosen metabolites visible)."
-  cor_heatmap_results <- "show"
-}else{
-  cor_heatmap_cap <- NULL
-  cor_heatmap_results <- "asis"
-}
-```
-
-```{r, eval=!is.null(attr(params[["dat"]], "cv")), fig.height=4, fig.width=5, fig.cap=cor_heatmap_cap, fig.align='center', fig.pos="H", results=ifelse(exists("cor_heatmap_results"), cor_heatmap_results, "show")}
-if(is.null(cor_heatmap_cap)){
-  cat("No metabolites to show on the heatmap.  \n  \n")
-}else
-  cor_heatmap
-```
-
 ```{r, results = "asis", eval=!is.null(attr(params[["dat"]], "cv"))}
-cat("For the biplot based on the PCA including all sample types, the threshold
+cat("## Outlier detection   \n   \n
+    For the biplot based on the PCA including all sample types, the threshold
     was set to ",
     params[["sample_type_PCA_threshold"]],
     "%. ", sep = "")

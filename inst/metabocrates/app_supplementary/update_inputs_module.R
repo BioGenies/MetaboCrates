@@ -52,12 +52,6 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
     else if(id == "complete_undo_update"){
       updateSelectInput(main_session, inputId = "sing_metabo_dist",
                         choices = c("None"))
-        
-      updatePickerInput(main_session, inputId = "corr_heatmap_metabolites",
-                        choices = c("None"))
-      
-      updatePickerInput(main_session, inputId = "corr_heatmap_metabolites_both",
-                        choices = c("None"))
       
       attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
     }else if(id == "cv_update"){
@@ -119,20 +113,6 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
           
         updateSelectInput(main_session, inputId = "sing_metabo_dist",
                           choices = aval_metabos)
-          
-        updatePickerInput(main_session, inputId = "corr_heatmap_metabolites",
-                          choices = aval_metabos,
-                          selected = aval_metabos[1:min(length(aval_metabos), 10)],
-                          choicesOpt = list(
-                            style = rep("color: black;", length(metabolites()))
-                          ))
-        
-        updatePickerInput(main_session, inputId = "corr_heatmap_metabolites_both",
-                          choices = aval_metabos,
-                          selected = aval_metabos[1:min(length(aval_metabos), 10)],
-                          choicesOpt = list(
-                            style = rep("color: black;", length(metabolites()))
-                          ))
           
         if(is.null(main_input[["sample_type_PCA_types"]])){
           types <- attr(dat[["metabocrates_dat_group"]], "completed") %>%

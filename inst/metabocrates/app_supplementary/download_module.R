@@ -261,18 +261,6 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                 plot_NA_percent(download_dat, type = "group",
                                 interactive = FALSE)
             },
-            "correlations_heatmap.pdf" = {
-              if(is.null(attr(download_dat, "completed")))
-                NULL
-              else
-                create_correlations_heatmap(
-                  download_dat,
-                  threshold = main_input[["corr_threshold"]],
-                  metabolites_to_display =main_input[["corr_heatmap_metabolites"]],
-                  type = "both",
-                  interactive = FALSE
-                )
-            },
             "venn_diagram.pdf" = {
               if(is.null(attr(download_dat, "group")))
                 NULL
@@ -347,17 +335,6 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                   max_num = main_input[["group_PCA_variance_max_num"]],
                   cumulative = main_input[["group_PCA_variance_cum"]]
                 )
-            },
-            "correlations_heatmap_after_imputation.pdf" = {
-              if(is.null(attr(download_dat, "completed")))
-                NULL
-              else
-                create_correlations_heatmap(
-                  download_dat,
-                  threshold = main_input[["corr_threshold"]],
-                  metabolites_to_display = main_input[["corr_heatmap_metabolites"]],
-                  interactive = FALSE
-                )
             }
           )
           
@@ -423,8 +400,6 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                            "LLOQ_method",
                            "ULOQ_method",
                            "LOD_type",
-                           "corr_threshold",
-                           "corr_heatmap_metabolites",
                            "cv_threshold",
                            "sample_type_PCA_types",
                            "sample_type_PCA_threshold",
@@ -434,9 +409,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
                            "group_PCA_threshold",
                            "group_PCA_variance_threshold",
                            "group_PCA_variance_max_num",
-                           "group_PCA_variance_cum",
-                           "corr_threshold_both",
-                           "corr_heatmap_metabolites_both")
+                           "group_PCA_variance_cum")
             
             params_lst <- setNames(
               lapply(params, function(param) main_input[[param]]),
