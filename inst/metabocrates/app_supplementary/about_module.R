@@ -7,7 +7,7 @@ about_UI <- function(id){
     tags$footer(
       align = "right",
       style = "position:absolute; bottom:0; width:95%; height:20px; padding: 0px 0px 100px 100px;",
-      HTML("<img src='funding.png' style='height: 90px'>"),
+      HTML(MetaboCrates_funding_images()),
     ),
     fluidRow(
       column(2,

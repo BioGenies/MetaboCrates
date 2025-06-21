@@ -17,3 +17,10 @@ function.}
 \code{create_metabo_qq_plot()} creates Q-Q plot based on the single metabolite
 before and after imputation.
 }
+\examples{
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+dat <- complete_data(dat, "limit", "limit", "limit")
+create_metabo_qq_plot(dat, "C5")
+
+}

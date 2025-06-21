@@ -19,6 +19,9 @@ source("app_supplementary/update_inputs_module.R")
 source("app_supplementary/download_module.R")
 source("app_supplementary/message_box.R")
 
+# to obtain funding image
+source(system.file("readme_scripts.R", package = "MetaboCrates"))
+
 options(
   shiny.maxRequestSize=100*1024^2,
   spinner.color = "#54F3D3"
