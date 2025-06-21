@@ -3,10 +3,14 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+
+knitr::opts_chunk$set(
+  fig.path = "readme_files/"
+)
 ```
 
-# MetaboCrates <img src='man/figures/logo.png' align="right" height="150"/>
+# MetaboCrates 
 
 *MetaboCrates* is designed for early analysis of data obtained from targeted metabolomics, e.g., Biocrates® kits. It simplifies and streamlines the data processing workflow, allowing you to efficiently analyze metabolite data. Here's a brief overview of its key features:
 
@@ -65,10 +69,15 @@ To run *MetaboCrates* type the following command into an R console.
 MetaboCrates::MetaboCrates_gui()
 ```
 
-```{r echo = FALSE, results = 'asis'}
+```{r results = 'asis'}
 source(system.file("readme_scripts.R", package = "MetaboCrates"))
 cat(MetaboCrates_citation())
 cat(MetaboCrates_contact())
 cat(MetaboCrates_funding())
-cat(MetaboCrates_funding_images())
+
+if (!dir.exists("readme_files")) 
+  dir.create("readme_files")
+
+dummy <- file.copy(system.file("readme_files/funding.png", package = "MetaboCrates"), "readme_files/funding.png", overwrite = TRUE)
+knitr::include_graphics("readme_files/funding.png")
 ```

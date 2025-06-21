@@ -1,5 +1,5 @@
 
-# MetaboCrates <img src='man/figures/logo.png' align="right" height="150"/>
+# MetaboCrates
 
 *MetaboCrates* is designed for early analysis of data obtained from
 targeted metabolomics, e.g., Biocrates® kits. It simplifies and
@@ -84,5 +84,4 @@ grant no. 2021/43/O/ST6/02805 (National Science Centre). J. P. and M. B.
 wants to acknowledge grant no. 2023/51/D/NZ7/02847 (National Science
 Centre). We also acknowledge the Center for Artificial Intelligence at
 the Medical University of Białystok (funded by the Ministry of Health of
-the Republic of
-Poland).<img src='/Users/michbur/Library/Caches/org.R-project.R/R/renv/library/MetaboCrates-572a9277/R-4.4/aarch64-apple-darwin20/MetaboCrates/readme_files/funding.png' style='height: 90px'>
+the Republic of Poland).![](readme_files/funding.png)<!-- -->
