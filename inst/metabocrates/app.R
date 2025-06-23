@@ -10,6 +10,8 @@ library(shinycssloaders)
 library(DT)
 library(shinyhelper)
 
+addResourcePath("readme_files", system.file("readme_files", package = "MetaboCrates"))
+
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
 source("app_supplementary/about_module.R")
@@ -18,6 +20,9 @@ source("app_supplementary/table_with_button_module.R")
 source("app_supplementary/update_inputs_module.R")
 source("app_supplementary/download_module.R")
 source("app_supplementary/message_box.R")
+
+# to obtain funding image
+source(system.file("readme_scripts.R", package = "MetaboCrates"))
 
 options(
   shiny.maxRequestSize=100*1024^2,
@@ -33,6 +38,7 @@ ui <- navbarPage(
   id = "main",
   
   includeCSS("www/style.css"),
+  footer = HTML("<img src='readme_files/funding.png' style='height: 90px'>"),
   
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
@@ -61,7 +67,7 @@ ui <- navbarPage(
   ")),
   
   tabPanel("About",
-           about_UI("content_about")
+           about_UI(),
   ),
   
   tabPanel(
@@ -497,42 +503,13 @@ ui <- navbarPage(
                                            uiOutput("dist_plt_ui")
                                     )
                            ),
-                           tabPanel("Correlations heatmap",
-                                    column(3,
-                                           class = "full-height",
-                                           style = "background-color:#f8f5f0; border-right: 1px solid",
-                                           br(),
-                                           br(),
-                                           br(),
-                                           br(),
-                                           h5("Select metabolites", style = "font-weight: bold"),
-                                           pickerInput("corr_heatmap_metabolites_both",
-                                                       choices = character(0),
-                                                       options = pickerOptions(
-                                                         actionsBox = TRUE, 
-                                                         selectedTextFormat = "count > 3",
-                                                         liveSearch = TRUE
-                                                       ),
-                                                       multiple = TRUE
-                                           ),
-                                           br(),
-                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
-                                           numericInput(
-                                             inputId = "corr_threshold_both",
-                                             label = NULL,
-                                             value = 0.3,
-                                             min = 0,
-                                             max = 1,
-                                             step = 0.05
-                                           )
-                                    ),
-                                    column(9, align = "right",
+                           tabPanel("Q-Q plot",
+                                    column(12, align = "right",
                                            h2("Gaps completing (step 4/8)"),
                                            h3("next: Quality control")
                                     ),
-                                    column(9,
-                                           uiOutput("corr_heatmap_both_ui")
-                                    )
+                                    br(),
+                                    uiOutput("metabo_qq_plot_ui")
                            )
                 )
       ),
@@ -738,43 +715,6 @@ ui <- navbarPage(
                                            h3("next: Summary")
                                     ),
                                     uiOutput("group_cond_pca_plt")
-                           ),
-                           tabPanel("Heatmap of correlations after imputation",
-                                    column(3,
-                                           class = "full-height",
-                                           style = "background-color:#f8f5f0; border-right: 1px solid",
-                                           br(),
-                                           br(),
-                                           br(),
-                                           br(),
-                                           h5("Select metabolites", style = "font-weight: bold"),
-                                           pickerInput("corr_heatmap_metabolites",
-                                                       choices = character(0),
-                                                       options = pickerOptions(
-                                                         actionsBox = TRUE, 
-                                                         selectedTextFormat = "count > 3",
-                                                         liveSearch = TRUE
-                                                       ),
-                                                       multiple = TRUE
-                                           ),
-                                           br(),
-                                           h5("Absolute correlation threshold [%]", style = "font-weight: bold"),
-                                           numericInput(
-                                             inputId = "corr_threshold",
-                                             label = NULL,
-                                             value = 0.3,
-                                             min = 0,
-                                             max = 1,
-                                             step = 0.05
-                                           )
-                                    ),
-                                    column(9, align = "right",
-                                           h2("Outlier detection (step 6/8)"),
-                                           h3("next: Summary")
-                                    ),
-                                    column(9,
-                                           plot_with_button_UI("corr_heatmap")
-                                    )
                            )
                )
       ),
@@ -1625,45 +1565,39 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
   
-  corr_heatmap_both_plt <- reactive({
+  metabo_qq_plot <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_threshold_both"]])
+    req(input[["qq_plot"]])
     
-    if(is.null(input[["corr_heatmap_metabolites_both"]]))
-      NULL
-    else
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  threshold = input[["corr_threshold_both"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites_both"]],
-                                  type = "both")
+    create_metabo_qq_plot(dat[["metabocrates_dat_group"]],
+                          metabolite = input[["qq_plot"]])
   })
   
-  full_corr_heatmap_both_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites_both"]])
-    
-    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                threshold = input[["corr_threshold"]],
-                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
-                                type = "both",
-                                interactive = FALSE)
-  })
-  
-  output[["corr_heatmap_both_ui"]] <- renderUI({
+  output[["metabo_qq_plot_ui"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     req(input[["run"]] == "Completing")
     
     if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
-      create_message_box("Complete data to see heatmap", type = "warning")
+      column(12,
+             create_message_box("Complete data to see Q-Q plot", type = "warning")
+      )
     else
-      plot_with_button_UI("corr_heatmap_both")
+      tagList(
+        column(3, offset = 2,
+               selectInput("qq_plot",
+                           label = "Absolute correlation threshold [%]",
+                           choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                                             unlist(attr(dat[["metabocrates_dat_group"]], "removed"))))
+        ),
+        column(8, offset = 2,
+               plot_with_button_UI("metabo_qq_plot")
+        )
+      )
   })
   
-  outputOptions(output, "corr_heatmap_both_ui", suspendWhenHidden = FALSE)
+  outputOptions(output, "metabo_qq_plot_ui", suspendWhenHidden = FALSE)
   
-  plot_with_button_SERVER("corr_heatmap_both", corr_heatmap_both_plt,
-                          full_plt = full_corr_heatmap_both_plt)
+  plot_with_button_SERVER("metabo_qq_plot", metabo_qq_plot)
   
   ######## Quality control
   
@@ -1946,32 +1880,6 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-  corr_heatmap_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites"]])
-    req(input[["corr_threshold"]])
-    
-    if(is.null(input[["corr_heatmap_metabolites"]]))
-      NULL
-    else
-      create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                  threshold = input[["corr_threshold"]],
-                                  metabolites_to_display =
-                                    input[["corr_heatmap_metabolites"]])
-  })
-  
-  full_corr_heatmap_plt <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["corr_heatmap_metabolites"]])
-    
-    create_correlations_heatmap(dat[["metabocrates_dat_group"]],
-                                threshold = input[["corr_threshold"]],
-                                metabolites_to_display = input[["corr_heatmap_metabolites"]],
-                                interactive = FALSE)
-  })
-  
-  plot_with_button_SERVER("corr_heatmap", corr_heatmap_plt, full_plt = full_corr_heatmap_plt)
   
   ######## Summary
   
