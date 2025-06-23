@@ -10,6 +10,8 @@ library(shinycssloaders)
 library(DT)
 library(shinyhelper)
 
+addResourcePath("readme_files", system.file("readme_files", package = "MetaboCrates"))
+
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
 source("app_supplementary/about_module.R")
