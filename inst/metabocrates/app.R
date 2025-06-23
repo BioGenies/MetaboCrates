@@ -829,11 +829,6 @@ server <- function(input, output, session) {
   callModule(nav_btns_SERVER, "Download", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Download")
   
-  
-  ##### about
-  
-  about_SERVER("content_about")
-  
   ##### uploading data
   
   ## users data
