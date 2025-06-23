@@ -5,6 +5,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/authors.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/index.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates_gui.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/add_group.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/calculate_CV.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/check_values.html</loc></url>
@@ -20,6 +21,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_density.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_distribution_plot.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_histogram.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/create_metabo_qq_plot.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_plot_of_2_metabolites.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_qqplot.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_venn_diagram.html</loc></url>

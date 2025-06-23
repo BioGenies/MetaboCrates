@@ -51,9 +51,9 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="metabocrates---r-package-for-biocrates-metabolomics-data">MetaboCrates - R Package for Biocrates® Metabolomics Data<a class="anchor" aria-label="anchor" href="#metabocrates---r-package-for-biocrates-metabolomics-data"></a>
+<div class="page-header"><h1 id="metabocrates">MetaboCrates<a class="anchor" aria-label="anchor" href="#metabocrates"></a>
 </h1></div>
-<p>MetaboCrates is designed for early analysis of data obtained from Biocrates® kits. It simplifies and streamlines the data processing workflow, allowing you to efficiently analyze metabolite data. Here’s a brief overview of its key features:</p>
+<p><em>MetaboCrates</em> is designed for early analysis of data obtained from targeted metabolomics, e.g., Biocrates® kits. It simplifies and streamlines the data processing workflow, allowing you to efficiently analyze metabolite data. Here’s a brief overview of its key features:</p>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
@@ -74,71 +74,41 @@
 </ul>
 </div>
 <div class="section level2">
+<h2 id="web-server">Web server<a class="anchor" aria-label="anchor" href="#web-server"></a>
+</h2>
+<p>The <em>MetaboCrates</em> web server can be accessed through our <a href="http://biogenies.info/metabocrates-ws" class="external-link">web server</a>.</p>
+</div>
+<div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Execute following commands in the R console:</p>
-<pre><code><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"BioGenies/MetaboCrates"</span><span class="op">)</span></span></code></pre>
+<p>To install <em>MetaboCrates</em> you need to have <em>R</em> version &gt;= 4.2.0.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"BioGenies/MetaboCrates"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="reproducibility">Reproducibility<a class="anchor" aria-label="anchor" href="#reproducibility"></a>
+</h2>
+<p>To reproduce our environment you need to git clone our repo and activate renv.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/BioGenies/metaborates.git</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/activate.html" class="external-link">activate</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/restore.html" class="external-link">restore</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="run-metabocrates">Run MetaboCrates<a class="anchor" aria-label="anchor" href="#run-metabocrates"></a>
+</h2>
+<p>To run <em>MetaboCrates</em> type the following command into an R console.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">MetaboCrates</span><span class="fu">::</span><span class="fu"><a href="reference/MetaboCrates_gui.html">MetaboCrates_gui</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="how-to-cite">How to cite?<a class="anchor" aria-label="anchor" href="#how-to-cite"></a>
+</h4>
+<p>Krystyna Grzesiak, Joanna Pokora, Jarosław Chilimoniuk, Adrian Godlewski, Mariia Solovianova, Rafał Kolenda, Adam Krętowski, Michał Ciborowski, Michał Burdukiewicz (2025). MetaboCrates :An open-source pipeline for quality-aware analysis of targeted metabolomics data.#### Contact</p>
+<p>If you have any questions, suggestions or comments, contact <a href="mailto:michalburdukiewicz@gmail.com">Michal Burdukiewicz</a>.#### Funding and acknowledgements</p>
+<p>We want to thank the Clinical Research Centre (Medical University of Białystok) members for fruitful discussions. K.G. wants to acknowledge grant no. 2021/43/O/ST6/02805 (National Science Centre). J. P. and M. B. wants to acknowledge grant no. 2023/51/D/NZ7/02847 (National Science Centre). We also acknowledge the Center for Artificial Intelligence at the Medical University of Białystok (funded by the Ministry of Health of the Republic of Poland).<img src="readme_files/funding.png"><!-- --></p>
 </div>
 </div>
-<div class="section level1">
-<h1 id="run-metabocrates">Run MetaboCrates<a class="anchor" aria-label="anchor" href="#run-metabocrates"></a>
-</h1>
-<p>If you have successfully installed the package, run the GUI in your web browser using:</p>
-<pre><code>MetaboCrates::</code></pre>
-<ul class="task-list">
-<li><label><input type="checkbox" checked>report</label></li>
-<li><label><input type="checkbox" checked>fix PCA plot</label></li>
-<li><label><input type="checkbox" checked>fix biplot</label></li>
-<li><label><input type="checkbox" checked>logspline imputation</label></li>
-<li><label><input type="checkbox" checked>all metabolites allowed on correlation heatmap</label></li>
-<li><label><input type="checkbox" checked>correlation heatmap check on big screen + helper</label></li>
-<li><label><input type="checkbox">NA ratios plot reactive height</label></li>
-<li><label><input type="checkbox" checked>!multiple grouping column!</label></li>
-<li><label><input type="checkbox" checked>!group plot change!</label></li>
-<li><label><input type="checkbox" checked>!group counts table!</label></li>
-<li><label><input type="checkbox" checked>group levels to character</label></li>
-<li><label><input type="checkbox" checked>extra space on the bottom</label></li>
-<li><label><input type="checkbox" checked>colors to missing heatmap</label></li>
-<li><label><input type="checkbox">extra space under missing heatmap</label></li>
-<li><label><input type="checkbox" checked>plot description</label></li>
-<li><label><input type="checkbox" checked>download buttons !!!</label></li>
-<li><label><input type="checkbox" checked>histogram change</label></li>
-<li><label><input type="checkbox" checked>PCA plots and correlations heatmap to new panel</label></li>
-<li><label><input type="checkbox" checked>correlations heatmap before and after imputation</label></li>
-<li><label><input type="checkbox" checked>thresholds steps to 5%</label></li>
-<li><label><input type="checkbox" checked>all summary info in excel</label></li>
-<li><label><input type="checkbox" checked>info panel to markdown</label></li>
-<li><label><input type="checkbox" checked>information to impute data to see plots</label></li>
-<li><label><input type="checkbox" checked>?adjustable correlations plot size?</label></li>
-<li><label><input type="checkbox" checked>disable picking columns in tables</label></li>
-<li><label><input type="checkbox" checked>new imputation panel layout</label></li>
-<li><label><input type="checkbox">scaled random imputation</label></li>
-<li><label><input type="checkbox">?colored column height?</label></li>
-<li><label><input type="checkbox">?fix report?</label></li>
-<li><label><input type="checkbox">?correct logspline imputation?</label></li>
-<li><label><input type="checkbox">legends to the top</label></li>
-<li><label><input type="checkbox" checked>downloading check !!!</label></li>
-<li><label><input type="checkbox">color of spinners in DT</label></li>
-<li><label><input type="checkbox" checked>spinners color</label></li>
-<li><label><input type="checkbox">?DT spinners color?</label></li>
-<li><label><input type="checkbox">buttons color</label></li>
-<li><label><input type="checkbox" checked>spinners placement</label></li>
-<li><label><input type="checkbox">spinners delay</label></li>
-<li><label><input type="checkbox" checked>plots descriptions</label></li>
-<li><label><input type="checkbox" checked>handling data without missing values</label></li>
-<li><label><input type="checkbox" checked>missing heatmap colors</label></li>
-<li><label><input type="checkbox" checked>PCA plots for all sample types</label></li>
-<li><label><input type="checkbox" checked>change descriptions appearance</label></li>
-<li><label><input type="checkbox" checked>automatic imputation methods</label></li>
-<li><label><input type="checkbox" checked>group PCA to another panel</label></li>
-<li><label><input type="checkbox">different color with different histogram type</label></li>
-<li><label><input type="checkbox" checked>fix removing metabolites</label></li>
-<li><label><input type="checkbox" checked>tests</label></li>
-<li><label><input type="checkbox" checked>unified tab layouts</label></li>
-<li><label><input type="checkbox">q-q plots instead of correlation heatmaps</label></li>
-</ul>
 </div>
-
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
