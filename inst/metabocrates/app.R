@@ -38,6 +38,7 @@ ui <- navbarPage(
   id = "main",
   
   includeCSS("www/style.css"),
+  footer = HTML("<img src='readme_files/funding.png' style='height: 90px'>"),
   
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
@@ -66,7 +67,7 @@ ui <- navbarPage(
   ")),
   
   tabPanel("About",
-           about_UI("content_about")
+           about_UI(),
   ),
   
   tabPanel(
