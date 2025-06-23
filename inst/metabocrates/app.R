@@ -10,7 +10,7 @@ library(shinycssloaders)
 library(DT)
 library(shinyhelper)
 
-addResourcePath("readme_files", system.file("readme_files", package = "MetaboCrates"))
+addResourcePath("readme_files", system.file("metabocrates/www", package = "MetaboCrates"))
 
 source("app_supplementary/nav_module.R")
 source("app_supplementary/custom_dt.R")
@@ -38,7 +38,7 @@ ui <- navbarPage(
   id = "main",
   
   includeCSS("www/style.css"),
-  footer = HTML("<img src='readme_files/funding.png' style='height: 90px'>"),
+  footer = HTML("<img src='funding.png' style='height: 90px'>"),
   
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
