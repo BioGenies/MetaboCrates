@@ -1296,22 +1296,23 @@ create_metabo_qq_plot <- function(dat, metabolite){
     select(before = all_of(metabolite),
            after)
   
-  quants <- data.frame(probs = seq(0, 1, by = 0.01)) %>%
-    mutate(before = quantile(as.numeric(plt_dat[["before"]]),
-                             probs = probs, na.rm = TRUE),
-           after = quantile(as.numeric(plt_dat[["after"]]),
-                             probs = probs, na.rm = TRUE))
+  quants <- plt_dat %>%
+    mutate(before = as.numeric(before))
   
-  slope <- diff(quants[["after"]][c(26, 76)]) /
-    diff(quants[["before"]][c(26, 76)])
+  if(length(na.omit(as.numeric(plt_dat[["before"]]))) ==
+     length(na.omit(plt_dat[["after"]])))
+    quants <- quants %>%
+      na.omit()
+  else
+    quants <- quants %>%
+      select(before) %>%
+      na.omit() %>%
+      mutate(probs = ecdf(before)(before),
+             after = quantile(plt_dat[["after"]], probs = probs, na.rm = TRUE))
   
   ggplot(quants, aes(x = before, y = after)) +
     geom_point() +
-    geom_abline(
-      slope = slope,
-      intercept = quants[["after"]][1] - slope * quants[["before"]][1],
-      color = "#54F3D3"
-    ) +
+    geom_abline(slope = 1, intercept = 0, color = "#54F3D3") +
     labs(x = "Before imputation", y = "After imputation") +
     metabocrates_theme()
 }
