@@ -30,12 +30,16 @@ plot_with_button_UI <- function(id){
                               value = 14, min = 1, max = 20),
                  br(),
                  column(12,
-                        downloadBttn(ns("download_button"),
+                        downloadBttn(ns("download_button_pdf"),
                                      block = TRUE,
-                                     label = "Download",
-                                     color = "primary")),
-                 br(),
-                 br()
+                                     label = "Download PDF",
+                                     color = "primary"),
+                        br(),
+                        downloadBttn(ns("download_button_png"),
+                                     block = TRUE,
+                                     label = "Download PNG",
+                                     color = "primary"),
+                        br())
                ),
                circle = TRUE, status = "primary", right = TRUE,
                icon = icon("download"), width = "300px",
@@ -68,22 +72,33 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                                      res = 96)
     }
     
-    output[["download_button"]] <- downloadHandler(
-      filename = function(){
-        paste0(switch(id,
-                      groups_plt = "groups_sizes_barplot",
-                      mv_types_plt = "missing_values_barplot",
-                      NA_ratios_plt = "missing_values_counts",
-                      venn_diagram = "venn_diagram",
-                      missing_heatmap = "missing_values_heatmap",
-                      dist_plt = "distribution_plot",
-                      sample_type_PCA_plt = "sample_type_PCA_plot",
-                      group_type_PCA_plt = "group_PCA_plot",
-                      sample_type_PCA_variance = "sample_type_variance_explained_plot",
-                      group_PCA_variance = "group_variance_explained_plot",
-                      metabo_qq_plot = "metabo_qq_plot"),
-               ".pdf")
-      },
+    name <- switch(id,
+                   groups_plt = "groups_sizes_barplot",
+                   mv_types_plt = "missing_values_barplot",
+                   NA_ratios_plt = "missing_values_counts",
+                   venn_diagram = "venn_diagram",
+                   missing_heatmap = "missing_values_heatmap",
+                   dist_plt = "distribution_plot",
+                   sample_type_PCA_plt = "sample_type_PCA_plot",
+                   group_type_PCA_plt = "group_PCA_plot",
+                   sample_type_PCA_variance = "sample_type_variance_explained_plot",
+                   group_PCA_variance = "group_variance_explained_plot",
+                   metabo_qq_plot = "metabo_qq_plot")
+    
+    output[["download_button_pdf"]] <- downloadHandler(
+      filename = function() paste0(name, ".pdf"),
+      content = function(file){
+        if(is.null(full_plt)) plt <- plot_reactive()
+        else plt <- full_plt()
+        
+        ggplot2::ggsave(filename = file,
+                        plot = plt,
+                        width = input[["plot_w"]], height = input[["plot_h"]])
+      }
+    )
+    
+    output[["download_button_png"]] <- downloadHandler(
+      filename = function() paste0(name, ".png"),
       content = function(file){
         if(is.null(full_plt)) plt <- plot_reactive()
         else plt <- full_plt()
