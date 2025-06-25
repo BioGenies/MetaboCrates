@@ -1,0 +1,1 @@
+Boxplot summarizes the distribution of values for a selected metabolite before and after imputation. It shows the median, interquartile range (IQR), whiskers extending to 1.5 × IQR from the quartiles, and outliers beyond this range (if present).

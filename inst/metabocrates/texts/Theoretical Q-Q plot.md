@@ -1,0 +1,1 @@
+Theoretical Q-Q plot compares the quantiles of a metabolite values (before or after imputation) with the quantiles of a theoretical normal distribution. Points near the diagonal suggest the data follow a normal distribution.
