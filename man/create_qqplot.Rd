@@ -4,7 +4,7 @@
 \alias{create_qqplot}
 \title{QQ plots of individual metabolite values before and after imputation}
 \usage{
-create_qqplot(dat, metabolite, interactive = TRUE)
+create_qqplot(dat, metabolite)
 }
 \arguments{
 \item{dat}{a \code{raw_data} object, the output of the \code{\link[=read_data]{read_data()}} function.
@@ -12,9 +12,6 @@ The data have to be completed, for example using the \code{\link[=complete_data]
 function.}
 
 \item{metabolite}{a name of the metabolite of interest.}
-
-\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
-is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 \code{create_qqplot()} returns QQ plots for the specified metabolite

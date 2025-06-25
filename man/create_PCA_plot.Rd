@@ -32,8 +32,8 @@ should be shown on the plot when type = "sample_type". Defaults to all.}
 a variable and any component, required for this  variable to be included
 on the PCA biplot.}
 
-\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
-is returned; otherwise, a standard ggplot object is produced.}
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive
+plot is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 \code{create_PCA_plot()} returns the scatterplot or biplot, based on the PCA.

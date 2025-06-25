@@ -28,9 +28,6 @@ into account).}
 \item{metabolites_to_display}{a vector of names or number of metabolites to
 display. If a number is provided, the first metabolites are selected.
 Defaults to \code{all}.}
-
-\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
-is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 Heatmap of correlations between metabolites
