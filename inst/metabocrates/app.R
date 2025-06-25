@@ -461,10 +461,10 @@ ui <- navbarPage(
                                                        choices = character(0)
                                            ),
                                            br(),
-                                           radioButtons("dist_plt_type",
-                                                        "Plot type",
-                                                        choices = c("Histogram", "Density", "Beeswarm", "Boxplot", "Q-Q plot"),
-                                                        inline = TRUE
+                                           selectInput("dist_plt_type",
+                                                       "Plot type",
+                                                       choices = c("Histogram", "Density", "Beeswarm",
+                                                                   "Boxplot", "Theoretical Q-Q plot", "Empirical Q-Q plot")
                                            ),
                                            conditionalPanel(
                                              condition = "input.dist_plt_type == 'Histogram'",
@@ -499,17 +499,7 @@ ui <- navbarPage(
                                         br()
                                       )
                                     ),
-                                    column(9,
-                                           uiOutput("dist_plt_ui")
-                                    )
-                           ),
-                           tabPanel("Q-Q plot",
-                                    column(12, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
-                                           h3("next: Quality control")
-                                    ),
-                                    br(),
-                                    uiOutput("metabo_qq_plot_ui")
+                                    uiOutput("dist_plt_ui")
                            )
                 )
       ),
@@ -1513,11 +1503,13 @@ server <- function(input, output, session) {
                                                   type = "density"),
              "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
                                                    input[["sing_metabo_dist"]],
-                                                   type = "beeswarm"),
+                                                   type = "beeswarm_interactive"),
              "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
                                         input[["sing_metabo_dist"]]),
-             "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
-                                        input[["sing_metabo_dist"]])
+             "Theoretical Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
+                                                    input[["sing_metabo_dist"]]),
+             "Empirical Q-Q plot" = create_empirical_qq_plot(dat[["metabocrates_dat_group"]],
+                                                             input[["sing_metabo_dist"]])
       )
   })
   
@@ -1526,73 +1518,36 @@ server <- function(input, output, session) {
     req(attr(dat[["metabocrates_dat_group"]], "completed"))
     req(input[["sing_metabo_dist"]])
     
-    switch(input[["dist_plt_type"]],
-           "Histogram" = create_distribution_plot(dat[["metabocrates_dat_group"]],
-                                                  input[["sing_metabo_dist"]],
-                                                  interactive = FALSE),
-           "Density" = create_distribution_plot(dat[["metabocrates_dat_group"]],
-                                                input[["sing_metabo_dist"]],
-                                                type = "density",
-                                                interactive = FALSE),
-           "Beeswarm" = create_distribution_plot(dat[["metabocrates_dat_group"]],
-                                                 input[["sing_metabo_dist"]],
-                                                 type = "beeswarm_interactive",
-                                                 interactive = FALSE),
-           "Boxplot" = create_boxplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]],
-                                      interactive = FALSE),
-           "Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
-                                      input[["sing_metabo_dist"]],
-                                      interactive = FALSE)
-       )
+    if(input[["dist_plt_type"]] == "Beeswarm")
+      create_distribution_plot(dat[["metabocrates_dat_group"]],
+                               input[["sing_metabo_dist"]],
+                               type = "beeswarm")
+    else
+      NULL
   })
   
   output[["dist_plt_ui"]] <- renderUI({
     req(input[["run"]] == "Completing")
+    req(input[["dist_plt_type"]])
     
     if(is.null(dist_plt()))
       create_message_box("Complete data to see plots", type = "warning")
     else
-      plot_with_button_UI("dist_plt")
+      column(9,
+             br(),
+             plot_with_button_UI(input[["dist_plt_type"]])
+      )
   })
   
   outputOptions(output, "dist_plt_ui", suspendWhenHidden = FALSE)
   
-  plot_with_button_SERVER("dist_plt", dist_plt, full_plt = full_dist_plt)
-  
-  metabo_qq_plot <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["qq_plot"]])
-    
-    create_metabo_qq_plot(dat[["metabocrates_dat_group"]],
-                          metabolite = input[["qq_plot"]])
-  })
-  
-  output[["metabo_qq_plot_ui"]] <- renderUI({
-    req(dat[["metabocrates_dat_group"]])
-    req(input[["run"]] == "Completing")
-    
-    if(is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
-      column(12,
-             create_message_box("Complete data to see Q-Q plot", type = "warning")
-      )
+  observe({
+    if(input[["dist_plt_type"]] == "Beeswarm")
+      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt,
+                              full_plt = full_dist_plt)
     else
-      tagList(
-        column(3, offset = 2,
-               selectInput("qq_plot",
-                           label = "Absolute correlation threshold [%]",
-                           choices = setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
-                                             unlist(attr(dat[["metabocrates_dat_group"]], "removed"))))
-        ),
-        column(8, offset = 2,
-               plot_with_button_UI("metabo_qq_plot")
-        )
-      )
+      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt)
   })
-  
-  outputOptions(output, "metabo_qq_plot_ui", suspendWhenHidden = FALSE)
-  
-  plot_with_button_SERVER("metabo_qq_plot", metabo_qq_plot)
   
   ######## Quality control
   

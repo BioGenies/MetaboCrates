@@ -1,9 +1,8 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  plt <- if(id %in% c("NA_ratios_plt", "corr_heatmap", "dist_plt",
-                      "sample_type_PCA_plt", "group_PCA_plt",
-                      "corr_heatmap_both")) {
+  plt <- if(id %in% c("NA_ratios_plt", "Beeswarm", "sample_type_PCA_plt",
+                      "group_PCA_plt")) {
     withSpinner(ggiraph::girafeOutput(ns("plot")))
   } else
     withSpinner(plotOutput(ns("plot")))
@@ -78,12 +77,16 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                    NA_ratios_plt = "missing_values_counts",
                    venn_diagram = "venn_diagram",
                    missing_heatmap = "missing_values_heatmap",
-                   dist_plt = "distribution_plot",
+                   Histogram = "histogram",
+                   Density = "density",
+                   Beeswarm = "beeswarm",
+                   Boxplot = "boxplot",
+                   `Theoretical Q-Q plot` = "theoretical_qq_plot",
+                   `Empirical Q-Q plot` = "empirical_qq_plot",
                    sample_type_PCA_plt = "sample_type_PCA_plot",
                    group_type_PCA_plt = "group_PCA_plot",
                    sample_type_PCA_variance = "sample_type_variance_explained_plot",
-                   group_PCA_variance = "group_variance_explained_plot",
-                   metabo_qq_plot = "metabo_qq_plot")
+                   group_PCA_variance = "group_variance_explained_plot")
     
     output[["download_button_pdf"]] <- downloadHandler(
       filename = function() paste0(name, ".pdf"),
