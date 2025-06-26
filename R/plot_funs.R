@@ -362,28 +362,18 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
       bind_cols("Observed" = uncomp_metabo_vals[[metabolite]]) %>%
       filter(!is.numeric(Observed) | is.na(Observed))
     
-    fill_name <- "Only imputed values"
+    fill_vals <- c("Only imputed values" = "#09EDFD")
   }else
-    fill_name <- "Completed"
+    fill_vals <- c("Completed" = "#54F3D3")
   
-  if(all(is.na(uncomp_metabo_vals[[metabolite]])))
-    fill_vals <- c("Only imputed values" = "#54F3D3")
+  fill_vals[["Observed"]] <- "#2B2A29"
   
-  else if(all(is.na(comp_metabo_vals[[metabolite]])))
-    fill_vals <- c("Observed" = "#2B2A29")
-  
-  else
-    fill_vals <- c("Only imputed values" = "#54F3D3",
-                   "Observed" = "#2B2A29")
-  
-  if(type == "all" && !all(is.na(comp_metabo_vals[[metabolite]])))
-    names(fill_vals)[1] <- "Completed"
   
    comp_metabo_vals %>%
     ggplot() +
     geom_histogram(aes(x = get(metabolite), y = after_stat(count),
-                       fill = fill_name), bins = bins,
-                   color = "#54F3D3", alpha = 0.6) +
+                       fill = names(fill_vals)[1]), bins = bins,
+                   color = fill_vals[1], alpha = 0.6) +
     geom_histogram(data = uncomp_metabo_vals,
                    aes(x = get(metabolite), y = -after_stat(count),
                        fill = "Observed"),
