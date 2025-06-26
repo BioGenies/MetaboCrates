@@ -75,8 +75,9 @@ pipeline for quality-aware analysis of targeted metabolomics data.####
 Contact
 
 If you have any questions, suggestions or comments, contact [Michal
-Burdukiewicz](mailto:michalburdukiewicz@gmail.com).#### Funding and
-acknowledgements
+Burdukiewicz](mailto:michalburdukiewicz@gmail.com).
+
+#### Funding and acknowledgements
 
 We want to thank the Clinical Research Centre (Medical University of
 Białystok) members for fruitful discussions. K.G. wants to acknowledge
