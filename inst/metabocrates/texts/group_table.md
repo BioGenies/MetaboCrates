@@ -1,0 +1,1 @@
+This table contains the number of observations for each group level.
