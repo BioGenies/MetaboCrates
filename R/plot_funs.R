@@ -1038,7 +1038,7 @@ create_PCA_plot <- function(dat, type = "sample_type",
       mutate(tooltip = paste0("Type: ", `sample type`,
                               "<br>Sample id: ", `sample identification`)) %>%
       select(-all_of(attr(dat, "metabolites")))
-  else(type == "group")
+  else
     completed_with_tooltips <- attr(dat, "completed") %>%
       mutate(tooltip = paste0("Sample id: ", `sample identification`)) %>%
       select(-all_of(attr(dat, "metabolites")))
@@ -1085,20 +1085,25 @@ create_PCA_plot <- function(dat, type = "sample_type",
   pca_res <- prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit)
   
   if(type == "biplot"){
-    plt <- as.data.frame(pca_res[["rotation"]]) %>%
+    plt_dat <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
+      mutate(max_cor = max(abs(PC1), abs(PC2))) %>%
+      arrange(desc(max_cor)) %>%
+      mutate(label = c(Variable[1:min(10, n())], if(n() > 10) rep("", n()-10)))
+      
+      
+    plt <- plt_dat %>%
       ggplot() +
       geom_segment_interactive(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                    arrow = arrow(length = unit(0.1, "cm")),
                    colour = "black") +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
-      geom_text(aes(x = PC1 + 0.04*ifelse(PC1 < 0, -1, 1),
-                    y = PC2 + 0.04*ifelse(PC2 < 0, -1, 1), label = Variable),
+      geom_text(aes(x = PC1 + PC1/100*ifelse(PC1 < 0, -1, 1),
+                    y = PC2 + PC2/100*ifelse(PC2 < 0, -1, 1), label = label),
                 colour = "black", size = 4) +
-      labs(x = "PC1", y = "PC2") +
       metabocrates_theme()
   }else{
     pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
@@ -1124,6 +1129,11 @@ create_PCA_plot <- function(dat, type = "sample_type",
                          name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
       metabocrates_theme()
   }
+  
+  var_explained <- (pca_res[["sdev"]]^2 / sum(pca_res[["sdev"]]^2))*100
+  plt <- plt +
+    labs(x = paste0("PC1 (", var_explained[1], "%)"),
+         y = paste0("PC2 (", var_explained[2], "%)"))
   
   if(interactive)
     girafe(ggobj = plt,
