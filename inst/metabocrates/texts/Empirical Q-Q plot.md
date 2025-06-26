@@ -1,0 +1,1 @@
+Empirical Q-Q plot compares the quantiles of a metabolite values distribution before and after imputation. Points close to the diagonal indicate similar distributions.

@@ -15,8 +15,8 @@ function.}
 
 \item{metabolite2}{second metabolite name.}
 
-\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
-is returned; otherwise, a standard ggplot object is produced.}
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive
+plot is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 Plot of two metabolites

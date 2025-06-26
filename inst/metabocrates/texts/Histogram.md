@@ -1,0 +1,1 @@
+Histogram shows the distribution of a metabolite values before and after imputation. If 'Show only imputed' is checked, the histogram displays all values before imputation (observed) and only those that were originally missing and then imputed (only imputed values).

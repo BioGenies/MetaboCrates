@@ -9,8 +9,7 @@ create_distribution_plot(
   metabolite,
   type = "histogram",
   bins = 30,
-  histogram_type = "all",
-  interactive = TRUE
+  histogram_type = "all"
 )
 }
 \arguments{
@@ -21,15 +20,12 @@ function.}
 \item{metabolite}{a name of the metabolite of interest.}
 
 \item{type}{a type of the plot. Can be either "histogram" (default),
-"density", or "beeswarm".}
+"density", "beeswarm_interactive" or "beeswarm".}
 
 \item{bins}{the number of bins for the histogram plot; 30 if not specified.}
 
 \item{histogram_type}{if "all' (default), the histogram displays all values
 after imputation. If "imputed", it shows only the values that were imputed.}
-
-\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
-is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 \code{create_distribution_plot()} creates density plots of metabolite values
@@ -43,6 +39,6 @@ dat <- read_data(path)
 dat <- complete_data(dat, "limit", "limit", "limit")
 print(create_distribution_plot(dat, "C3"))
 print(create_distribution_plot(dat, "C3", type = "density"))
-print(create_distribution_plot(dat, "C3", type = "beeswarm"))
+print(create_distribution_plot(dat, "C3", type = "beeswarm_interactive"))
 
 }

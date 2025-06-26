@@ -29,8 +29,8 @@ into account).}
 display. If a number is provided, the first metabolites are selected.
 Defaults to \code{all}.}
 
-\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive plot
-is returned; otherwise, a standard ggplot object is produced.}
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive
+plot is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 Heatmap of correlations between metabolites
