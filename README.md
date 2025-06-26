@@ -71,8 +71,9 @@ MetaboCrates::MetaboCrates_gui()
 Krystyna Grzesiak, Joanna Pokora, Jarosław Chilimoniuk, Adrian
 Godlewski, Mariia Solovianova, Rafał Kolenda, Adam Krętowski, Michał
 Ciborowski, Michał Burdukiewicz (2025). MetaboCrates :An open-source
-pipeline for quality-aware analysis of targeted metabolomics data.####
-Contact
+pipeline for quality-aware analysis of targeted metabolomics data.
+
+#### Contact
 
 If you have any questions, suggestions or comments, contact [Michal
 Burdukiewicz](mailto:michalburdukiewicz@gmail.com).
