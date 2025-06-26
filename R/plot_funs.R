@@ -388,10 +388,10 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
                    aes(x = get(metabolite), y = -after_stat(count),
                        fill = "Observed"),
                    bins = bins, color = "#2B2A29", alpha = 0.6) +
-    labs(y = "Count") +
     scale_fill_manual(name = NULL,
                       values = fill_vals) +
-    labs(x = metabolite) +
+    scale_y_continuous(labels = abs) +
+    labs(x = metabolite, y = "Count") +
     metabocrates_theme()
 }
 
