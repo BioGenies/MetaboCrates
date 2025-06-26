@@ -694,6 +694,8 @@ create_qqplot <- function(dat, metabolite){
 #' @param metabolites_to_display a vector of names or number of metabolites to
 #' display. If a number is provided, the first metabolites are selected.
 #' Defaults to `all`.
+#' @param interactive logical. If `TRUE` (default), a ggiraph interactive
+#' plot is returned; otherwise, a standard ggplot object is produced.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -1013,8 +1015,6 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' @param threshold a value indicating the minimum correlation between
 #' a variable and any component, required for this  variable to be included
 #' on the PCA biplot.
-#' @param interactive logical. If `TRUE` (default), a ggiraph interactive
-#' plot is returned; otherwise, a standard ggplot object is produced.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
