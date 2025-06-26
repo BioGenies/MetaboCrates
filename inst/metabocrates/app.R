@@ -1531,15 +1531,15 @@ server <- function(input, output, session) {
     req(input[["dist_plt_type"]])
     
     if(is.null(dist_plt()))
-      create_message_box("Complete data to see plots", type = "warning")
+      column(9,
+             create_message_box("Complete data to see plots", type = "warning")
+      )
     else
       column(9,
              br(),
              plot_with_button_UI(input[["dist_plt_type"]])
       )
   })
-  
-  outputOptions(output, "dist_plt_ui", suspendWhenHidden = FALSE)
   
   observe({
     if(input[["dist_plt_type"]] == "Beeswarm")
@@ -1589,6 +1589,8 @@ server <- function(input, output, session) {
                         LLOQ_method = "limit",
                         ULOQ_method = "third quartile",
                         LOD_type = "calc")
+        
+        outputOptions(output, "dist_plt_ui", suspendWhenHidden = FALSE)
         
         update_inputs_SERVER("complete_update", session, input, dat)
       }
