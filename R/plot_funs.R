@@ -1082,9 +1082,9 @@ create_PCA_plot <- function(dat, type = "sample_type",
   
   colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
   
-  pca_res <- prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit)
+  pca_res <- prcomp(~ ., data = metabo_dat, scale. = TRUE, na.action = na.omit)
   
-  if(type == "biplot"){
+  if(type == "biplot") {
     plt_dat <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites) %>%
@@ -1132,8 +1132,8 @@ create_PCA_plot <- function(dat, type = "sample_type",
   
   var_explained <- (pca_res[["sdev"]]^2 / sum(pca_res[["sdev"]]^2))*100
   plt <- plt +
-    labs(x = paste0("PC1 (", var_explained[1], "%)"),
-         y = paste0("PC2 (", var_explained[2], "%)"))
+    labs(x = paste0("PC1 (", formatC(var_explained[1], 2, format = "f"), "%)"),
+         y = paste0("PC2 (", formatC(var_explained[2], 2, format = "f"), "%)"))
   
   if(interactive)
     girafe(ggobj = plt,
