@@ -1089,21 +1089,28 @@ create_PCA_plot <- function(dat, type = "sample_type",
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
-      mutate(max_cor = max(abs(PC1), abs(PC2))) %>%
+      rowwise() %>%
+      mutate(cor = max(abs(PC1), abs(PC2))) %>%
+      ungroup() %>%
       arrange(desc(max_cor)) %>%
-      mutate(label = c(Variable[1:min(10, n())], if(n() > 10) rep("", n()-10)))
-      
-      
+      mutate(label = c(Variable[1:min(10, n())], rep("", max(0, n()-10))),
+             color = c(rep("y", min(10, n())), rep("n", max(0, n()-10))))
+    
     plt <- plt_dat %>%
-      ggplot() +
-      geom_segment_interactive(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
-                   arrow = arrow(length = unit(0.1, "cm")),
-                   colour = "black") +
+      ggplot(aes(x = 0, y = 0, xend = PC1, yend = PC2, color = color)) +
+      geom_segment_interactive(arrow = arrow(length = unit(0.1, "cm")),
+                               show.legend = FALSE) +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
-      geom_text(aes(x = PC1 + PC1/100*ifelse(PC1 < 0, -1, 1),
-                    y = PC2 + PC2/100*ifelse(PC2 < 0, -1, 1), label = label),
-                colour = "black", size = 4) +
+      geom_text(aes(
+        x = PC1 + 0.03*max(abs(.data[["PC1"]]))*ifelse(PC1 < 0, -1, 1),
+        y = PC2 + 0.03*max(abs(.data[["PC2"]]))*ifelse(PC2 < 0, -1, 1),
+        label = label
+        ),
+        size = 3, show.legend = FALSE, check_overlap = TRUE) +
+      scale_color_manual(values = c("y" = ifelse(nrow(plt_dat) > 10,
+                                                 "#27AE60", "black"),
+                                    "n" = "black")) +
       metabocrates_theme()
   }else{
     pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
@@ -1126,11 +1133,14 @@ create_PCA_plot <- function(dat, type = "sample_type",
       geom_point_interactive(aes(tooltip = tooltip), size = 2) +
       stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
       scale_color_manual(values = pca_exact_colors,
-                         name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
+                         name = ifelse(type == "sample_type",
+                                       "Sample types",
+                                       "Group levels")) +
       metabocrates_theme()
   }
   
-  var_explained <- (pca_res[["sdev"]]^2 / sum(pca_res[["sdev"]]^2))*100
+  var_explained <- round((pca_res[["sdev"]]^2 / sum(pca_res[["sdev"]]^2))*100,
+                         2)
   plt <- plt +
     labs(x = paste0("PC1 (", var_explained[1], "%)"),
          y = paste0("PC2 (", var_explained[2], "%)"))
@@ -1138,7 +1148,9 @@ create_PCA_plot <- function(dat, type = "sample_type",
   if(interactive)
     girafe(ggobj = plt,
            options = list(
-             opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+             opts_tooltip(css = "background-color:black;color:white;
+                          padding:10px;border-radius:10px;font-family:Arial;
+                          font-size:11px;",
                           opacity = 0.9),
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)
