@@ -155,7 +155,7 @@ plot_mv_types <- function(dat) {
 #' @importFrom ggiraph girafe geom_col_interactive opts_tooltip opts_toolbar opts_sizing opts_zoom
 #' 
 #' @inheritParams add_group
-#' @inheritParams create_distribution_plot
+#' @inheritParams create_correlations_heatmap
 #' 
 #' @param type a character string indicating which type of plot to return. This 
 #' can be either "joint", "NA_type" or "group". Default type is "joint", which
@@ -996,7 +996,7 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' @inheritParams create_correlations_heatmap
 #' 
 #' @param type a character denoting which type of PCA plot should be created.
-#' Default to "scatter". Type "biplot" shows eigenvectors.
+#' Default to "scatterplot". Type "biplot" shows eigenvectors.
 #' @param group_by character; default to "sample_type", which makes a plot for
 #' quality control. When set as "group", a PCA plot with respect to the groups
 #' of samples with type 'Sample' is created.
@@ -1019,7 +1019,7 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' 
 #' @export
 
-create_PCA_plot <- function(dat, type = "sample_type",
+create_PCA_plot <- function(dat, type = "scatterplot",
                             group_by = "sample_type",
                             types_to_display = "all",
                             threshold = NULL, interactive = TRUE){
@@ -1090,11 +1090,14 @@ create_PCA_plot <- function(dat, type = "sample_type",
       mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
       rowwise() %>%
-      mutate(cor = max(abs(PC1), abs(PC2))) %>%
+      mutate(max_cor = max(abs(PC1), abs(PC2))) %>%
       ungroup() %>%
       arrange(desc(max_cor)) %>%
       mutate(label = c(Variable[1:min(10, n())], rep("", max(0, n()-10))),
-             color = c(rep("y", min(10, n())), rep("n", max(0, n()-10))))
+             color = c(rep("y", min(10, n())), rep("n", max(0, n()-10))),
+             x_label = PC1 + 0.03*max(abs(PC1))*ifelse(PC1 < 0, -1, 1),
+             y_label = PC2 + 0.03*max(abs(PC2))*ifelse(PC2 < 0, -1, 1),
+             x_end = x_label + )
     
     plt <- plt_dat %>%
       ggplot(aes(x = 0, y = 0, xend = PC1, yend = PC2, color = color)) +
@@ -1102,12 +1105,8 @@ create_PCA_plot <- function(dat, type = "sample_type",
                                show.legend = FALSE) +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
-      geom_text(aes(
-        x = PC1 + 0.03*max(abs(.data[["PC1"]]))*ifelse(PC1 < 0, -1, 1),
-        y = PC2 + 0.03*max(abs(.data[["PC2"]]))*ifelse(PC2 < 0, -1, 1),
-        label = label
-        ),
-        size = 3, show.legend = FALSE, check_overlap = TRUE) +
+      geom_text(aes(x = x_label, y = y_label, label = label),
+                size = 3, show.legend = FALSE) +
       scale_color_manual(values = c("y" = ifelse(nrow(plt_dat) > 10,
                                                  "#27AE60", "black"),
                                     "n" = "black")) +
@@ -1123,7 +1122,7 @@ create_PCA_plot <- function(dat, type = "sample_type",
     pca_exact_colors <- pca_colors[1:nrow(unique(select(pca_df, col_type)))]
     names(pca_exact_colors) <- unlist(unique(select(pca_df, col_type)))
     
-    if(type == "sample_type" & all(types_to_display != "all")){
+    if(type == "scatterplot" & any(types_to_display != "all")){
       pca_df <- filter(pca_df, col_type %in% types_to_display)
       pca_exact_colors <- pca_exact_colors[names(pca_exact_colors) %in%
                                              types_to_display]
@@ -1133,7 +1132,7 @@ create_PCA_plot <- function(dat, type = "sample_type",
       geom_point_interactive(aes(tooltip = tooltip), size = 2) +
       stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
       scale_color_manual(values = pca_exact_colors,
-                         name = ifelse(type == "sample_type",
+                         name = ifelse(group_by == "sample_type",
                                        "Sample types",
                                        "Group levels")) +
       metabocrates_theme()

@@ -15,6 +15,9 @@ can be either "joint", "NA_type" or "group". Default type is "joint", which
 creates a plot of missing values percents in each metabolite. "NA_type"
 additionally splits missing values by type, and "group" includes the ratios
 in every group level.}
+
+\item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive
+plot is returned; otherwise, a standard ggplot object is produced.}
 }
 \description{
 \code{plot_NA_percent()} creates a barplot showing the proportion of missing
