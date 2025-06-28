@@ -992,6 +992,7 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' @import ggfortify
 #' @importFrom tidyr drop_na
 #' @importFrom ggiraph geom_segment_interactive
+#' @importFrom ggrepel geom_text_repel
 #' 
 #' @inheritParams create_correlations_heatmap
 #' 
@@ -1094,22 +1095,23 @@ create_PCA_plot <- function(dat, type = "scatterplot",
       ungroup() %>%
       arrange(desc(max_cor)) %>%
       mutate(label = c(Variable[1:min(10, n())], rep("", max(0, n()-10))),
-             color = c(rep("y", min(10, n())), rep("n", max(0, n()-10))),
-             x_label = PC1 + 0.03*max(abs(PC1))*ifelse(PC1 < 0, -1, 1),
-             y_label = PC2 + 0.03*max(abs(PC2))*ifelse(PC2 < 0, -1, 1),
-             x_end = x_label + )
+             color = ifelse(label == "", "n", "y"))
     
     plt <- plt_dat %>%
+      arrange(max_cor) %>%
       ggplot(aes(x = 0, y = 0, xend = PC1, yend = PC2, color = color)) +
       geom_segment_interactive(arrow = arrow(length = unit(0.1, "cm")),
                                show.legend = FALSE) +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
-      geom_text(aes(x = x_label, y = y_label, label = label),
-                size = 3, show.legend = FALSE) +
-      scale_color_manual(values = c("y" = ifelse(nrow(plt_dat) > 10,
-                                                 "#27AE60", "black"),
-                                    "n" = "black")) +
+      geom_text_repel(aes(x = PC1, y = PC2, label = label),
+                      size = 3, show.legend = FALSE, color = "#898989",
+                      direction = "both", segment.color = "#898989",
+                      segment.size = 0.3, max.overlaps = Inf, force = 1.5) +
+      scale_color_manual(values = c(
+        "y" = ifelse(nrow(plt_dat) > 10, "#01b893", "black"),
+        "n" = "black"
+      )) +
       metabocrates_theme()
   }else{
     pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
