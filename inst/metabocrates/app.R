@@ -1537,16 +1537,16 @@ server <- function(input, output, session) {
     else
       column(9,
              br(),
-             plot_with_button_UI(input[["dist_plt_type"]])
+             plot_with_button_UI(substr(input[["dist_plt_type"]], 1, 7))
       )
   })
   
   observe({
     if(input[["dist_plt_type"]] == "Beeswarm")
-      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt,
+      plot_with_button_SERVER(substr(input[["dist_plt_type"]], 1, 7), dist_plt,
                               full_plt = full_dist_plt)
     else
-      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt)
+      plot_with_button_SERVER(substr(input[["dist_plt_type"]], 1, 7), dist_plt)
   })
   
   ######## Quality control
@@ -1701,7 +1701,7 @@ server <- function(input, output, session) {
       create_PCA_plot(dat[["metabocrates_dat_group"]],
                       group_by = "sample_type",
                       type = input[["sample_type_PCA_type"]],
-                      types_to_display = types_to_display,
+                      types_to_display = input[["sample_type_PCA_types"]],
                       threshold = input[["sample_type_PCA_threshold"]]/100)
     }
   })
@@ -1714,14 +1714,10 @@ server <- function(input, output, session) {
     if(input[["sample_type_PCA_type"]] == "biplot") req(input[["sample_type_PCA_threshold"]])
     if(input[["sample_type_PCA_type"]] == "scatterplot") req(input[["sample_type_PCA_types"]])
     
-    if(input[["sample_type_PCA_type"]] == "scatterplot")
-      types_to_display <- input[["sample_type_PCA_types"]]
-    else types_to_display <- "all"
-    
     create_PCA_plot(dat[["metabocrates_dat_group"]],
                     group_by = "sample_type",
                     type = input[["sample_type_PCA_type"]],
-                    types_to_display = types_to_display,
+                    types_to_display = input[["sample_type_PCA_types"]],
                     threshold = input[["sample_type_PCA_threshold"]]/100,
                     interactive = FALSE
     )

@@ -15,7 +15,7 @@ If you have any questions, suggestions or comments, contact [Michal Burdukiewicz
 MetaboCrates_funding <- function() 
   "#### Funding and acknowledgements
 
-We want to thank the Clinical Research Centre (Medical University of Białystok) members for fruitful discussions. K.G. wants to acknowledge grant no. 2021/43/O/ST6/02805 (National Science Centre). J. P. and M. B. wants to acknowledge grant no. 2023/51/D/NZ7/02847 (National Science Centre). We also acknowledge the Center for Artificial Intelligence at the Medical University of Białystok (funded by the Ministry of Health of the Republic of Poland)."
+We want to thank the Clinical Research Centre (Medical University of Białystok) members for fruitful discussions. K.G. wants to acknowledge grant no. 2021/43/O/ST6/02805 (National Science Centre). J. P. and M. B. wants to acknowledge grant no. 2023/51/D/NZ7/02847 (National Science Centre). A. K. acknowledges the Centre for Clinical Medicine at the Medical University of Białystok."
 
 MetaboCrates_funding_images <- function() 
   paste0("<img src='", system.file("readme_files/funding.png", package = "MetaboCrates"),

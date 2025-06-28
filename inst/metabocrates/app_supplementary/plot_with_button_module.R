@@ -1,7 +1,7 @@
 plot_with_button_UI <- function(id){
   ns <- NS(id)
   
-  plt <- if(id %in% c("NA_ratios_plt", "Beeswarm", "sample_type_PCA_plt",
+  plt <- if(id %in% c("NA_ratios_plt", "Beeswar", "sample_type_PCA_plt",
                       "group_PCA_plt")) {
     withSpinner(ggiraph::girafeOutput(ns("plot")))
   } else

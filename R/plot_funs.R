@@ -155,7 +155,7 @@ plot_mv_types <- function(dat) {
 #' @importFrom ggiraph girafe geom_col_interactive opts_tooltip opts_toolbar opts_sizing opts_zoom
 #' 
 #' @inheritParams add_group
-#' @inheritParams create_distribution_plot
+#' @inheritParams create_correlations_heatmap
 #' 
 #' @param type a character string indicating which type of plot to return. This 
 #' can be either "joint", "NA_type" or "group". Default type is "joint", which
@@ -992,11 +992,12 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' @import ggfortify
 #' @importFrom tidyr drop_na
 #' @importFrom ggiraph geom_segment_interactive
+#' @importFrom ggrepel geom_text_repel
 #' 
 #' @inheritParams create_correlations_heatmap
 #' 
 #' @param type a character denoting which type of PCA plot should be created.
-#' Default to "scatter". Type "biplot" shows eigenvectors.
+#' Default to "scatterplot". Type "biplot" shows eigenvectors.
 #' @param group_by character; default to "sample_type", which makes a plot for
 #' quality control. When set as "group", a PCA plot with respect to the groups
 #' of samples with type 'Sample' is created.
@@ -1019,7 +1020,7 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' 
 #' @export
 
-create_PCA_plot <- function(dat, type = "sample_type",
+create_PCA_plot <- function(dat, type = "scatterplot",
                             group_by = "sample_type",
                             types_to_display = "all",
                             threshold = NULL, interactive = TRUE){
@@ -1082,28 +1083,35 @@ create_PCA_plot <- function(dat, type = "sample_type",
   
   colnames(metabo_dat) <- paste0("V", 1:ncol(metabo_dat))
   
-  pca_res <- prcomp(~., data = metabo_dat, scale. = TRUE, na.action = na.omit)
+  pca_res <- prcomp(~ ., data = metabo_dat, scale. = TRUE, na.action = na.omit)
   
-  if(type == "biplot"){
+  if(type == "biplot") {
     plt_dat <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
+      rowwise() %>%
       mutate(max_cor = max(abs(PC1), abs(PC2))) %>%
+      ungroup() %>%
       arrange(desc(max_cor)) %>%
-      mutate(label = c(Variable[1:min(10, n())], if(n() > 10) rep("", n()-10)))
-      
-      
+      mutate(label = c(Variable[1:min(10, n())], rep("", max(0, n()-10))),
+             color = ifelse(label == "", "n", "y"))
+    
     plt <- plt_dat %>%
-      ggplot() +
-      geom_segment_interactive(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
-                   arrow = arrow(length = unit(0.1, "cm")),
-                   colour = "black") +
+      arrange(max_cor) %>%
+      ggplot(aes(x = 0, y = 0, xend = PC1, yend = PC2, color = color)) +
+      geom_segment_interactive(arrow = arrow(length = unit(0.1, "cm")),
+                               show.legend = FALSE) +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
-      geom_text(aes(x = PC1 + PC1/100*ifelse(PC1 < 0, -1, 1),
-                    y = PC2 + PC2/100*ifelse(PC2 < 0, -1, 1), label = label),
-                colour = "black", size = 4) +
+      geom_text_repel(aes(x = PC1, y = PC2, label = label),
+                      size = 3, show.legend = FALSE, color = "#898989",
+                      direction = "both", segment.color = "#898989",
+                      segment.size = 0.3, max.overlaps = Inf, force = 1.5) +
+      scale_color_manual(values = c(
+        "y" = ifelse(nrow(plt_dat) > 10, "#01b893", "black"),
+        "n" = "black"
+      )) +
       metabocrates_theme()
   }else{
     pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
@@ -1116,7 +1124,7 @@ create_PCA_plot <- function(dat, type = "sample_type",
     pca_exact_colors <- pca_colors[1:nrow(unique(select(pca_df, col_type)))]
     names(pca_exact_colors) <- unlist(unique(select(pca_df, col_type)))
     
-    if(type == "sample_type" & all(types_to_display != "all")){
+    if(type == "scatterplot" & any(types_to_display != "all")){
       pca_df <- filter(pca_df, col_type %in% types_to_display)
       pca_exact_colors <- pca_exact_colors[names(pca_exact_colors) %in%
                                              types_to_display]
@@ -1126,19 +1134,24 @@ create_PCA_plot <- function(dat, type = "sample_type",
       geom_point_interactive(aes(tooltip = tooltip), size = 2) +
       stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
       scale_color_manual(values = pca_exact_colors,
-                         name = ifelse(type == "sample_type", "Sample types", "Group levels")) +
+                         name = ifelse(group_by == "sample_type",
+                                       "Sample types",
+                                       "Group levels")) +
       metabocrates_theme()
   }
   
-  var_explained <- (pca_res[["sdev"]]^2 / sum(pca_res[["sdev"]]^2))*100
+  var_explained <- round((pca_res[["sdev"]]^2 / sum(pca_res[["sdev"]]^2))*100,
+                         2)
   plt <- plt +
-    labs(x = paste0("PC1 (", var_explained[1], "%)"),
-         y = paste0("PC2 (", var_explained[2], "%)"))
+    labs(x = paste0("PC1 (", formatC(var_explained[1], 2, format = "f"), "%)"),
+         y = paste0("PC2 (", formatC(var_explained[2], 2, format = "f"), "%)"))
   
   if(interactive)
     girafe(ggobj = plt,
            options = list(
-             opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
+             opts_tooltip(css = "background-color:black;color:white;
+                          padding:10px;border-radius:10px;font-family:Arial;
+                          font-size:11px;",
                           opacity = 0.9),
              opts_toolbar(saveaspng = FALSE),
              opts_zoom(min = 0.5, max = 5)

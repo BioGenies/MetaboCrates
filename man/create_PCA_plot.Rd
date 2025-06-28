@@ -6,7 +6,7 @@
 \usage{
 create_PCA_plot(
   dat,
-  type = "sample_type",
+  type = "scatterplot",
   group_by = "sample_type",
   types_to_display = "all",
   threshold = NULL,
@@ -19,7 +19,7 @@ The data have to be completed, for example using the \code{\link[=complete_data]
 function.}
 
 \item{type}{a character denoting which type of PCA plot should be created.
-Default to "scatter". Type "biplot" shows eigenvectors.}
+Default to "scatterplot". Type "biplot" shows eigenvectors.}
 
 \item{group_by}{character; default to "sample_type", which makes a plot for
 quality control. When set as "group", a PCA plot with respect to the groups
