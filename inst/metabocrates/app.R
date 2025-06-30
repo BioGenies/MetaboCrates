@@ -1812,8 +1812,8 @@ server <- function(input, output, session) {
       }else if(input[["group_PCA_type"]] == "biplot"){
         tagList(
           column(9,
-                 create_message_box("Biplot visualizes metabolite contributions to principal components,
-                                    highlighting groups with similar correlations.",
+                 create_message_box("Biplot shows metabolite contributions to principal components,
+                                    highlighting groups with similar correlation patterns.",
                                     type = "description")
           ),
           br(),
