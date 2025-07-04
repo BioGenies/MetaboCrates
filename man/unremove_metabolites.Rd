@@ -19,9 +19,9 @@ metabolites to restore.}
 \examples{
 path <- get_example_data("small_biocrates_example.xls")
 test_dat <- read_data(path)
-test_dat <- remove_metabolites(test_dat, c("C0", "C1", "C2"), "LOD")
+test_dat <- remove_metabolites(test_dat, c("C0", "C2"), "LOD")
 test_dat <- remove_metabolites(test_dat, "C0", "QC")
 attr(test_dat, "removed")
-attr(unremove_metabolites(test_dat, c("C0", "C1")), "removed")
+attr(unremove_metabolites(test_dat, "C0"), "removed")
 
 }

@@ -7,7 +7,7 @@
 pca_variance(
   dat,
   threshold,
-  type = "sample_type",
+  group_by = "sample_type",
   max_num = NULL,
   cumulative = TRUE
 )
@@ -20,9 +20,9 @@ function.}
 \item{threshold}{a decimal indicating the maximum cumulative variance to
 include in the plot.}
 
-\item{type}{a character specifying which rows to consider. The default is
+\item{group_by}{a character specifying which rows to consider. The default is
 \code{"sample_type"}, which uses all rows. When set to \code{"group"}, only
-observations of type "sample" are included.}
+observations of type \emph{Sample} are included.}
 
 \item{max_num}{an optional integer indicating the maximum number
 of components to display.}

@@ -9,7 +9,7 @@ create_PCA_plot(
   type = "scatterplot",
   group_by = "sample_type",
   types_to_display = "all",
-  threshold = NULL,
+  threshold = 0,
   interactive = TRUE
 )
 }
@@ -28,9 +28,9 @@ of samples with type 'Sample' is created.}
 \item{types_to_display}{a vector of sample type names specifying which types
 should be shown on the plot when type = "sample_type". Defaults to all.}
 
-\item{threshold}{a value indicating the minimum correlation between
-a variable and any component, required for this  variable to be included
-on the PCA biplot.}
+\item{threshold}{a value indicating the absolute minimum correlation between
+a metabolite and any of the first two components, required for this
+metabolite to be included on the biplot.}
 
 \item{interactive}{logical. If \code{TRUE} (default), a ggiraph interactive
 plot is returned; otherwise, a standard ggplot object is produced.}

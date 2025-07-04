@@ -1,0 +1,278 @@
+---
+title: "A quick introduction to MetaboCrates"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{A quick introduction to MetaboCrates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.keep = "all",
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+```{r setup, message=FALSE, echo=FALSE}
+library(MetaboCrates)
+library(ggplot2)
+```
+
+## Introduction
+
+The *MetaboCrates* package provides tools for processing and analyzing targeted metabolomics data (e.g., generated using Biocrates® kits). You can easily upload data and perform automated preprocessing, such as data cleaning and missing value imputation, followed by visualizations and descriptive statistics for data exploration. The package also includes tools for quality control and outlier detection.
+
+## Getting started
+
+*MetaboCrates* can be easily installed and loaded into the environment using the following commands.
+
+```{r, eval = FALSE}
+devtools::install_github("BioGenies/MetaboCrates")
+
+library(MetaboCrates)
+```
+
+Next, metabolomics data can be imported with the `read_data()` function. In this guide, an example dataset included in the package will be used.
+
+```{r}
+path <- get_example_data("two_sets_example.xlsx")
+dat <- read_data(path)
+
+get_info(dat)
+```
+
+The class of the `dat` object is both `data.frame` and `raw_data`. It has the following attributes:
+
+* `LOD_table` - table containing the limits of detection (LOD), lower limit of quantification (LLOQ), and upper limit of quantification (ULOQ).
+* `NA_info`
+  + `counts` - types of missing values found in the data with their counts,
+  + `NA_ratios_type` - fractions of missing values of each type for every metabolite,
+  + `NA_ratios_group` - fractions of missing values with respect to group levels for every metabolite,
+* `metabolites` - names of metabolites in the data,
+* `samples` - names of sample types with counts,
+* `group` - names of grouping columns (appears after using the `add_group()` function),
+* `removed` - names of metabolites removed based on the:
+  + `LOD` - proportion of missing values,
+  + `QC` - coefficient of variation (CV),
+* `completed` - completed data (appears after imputation),
+* `cv` - coefficients of variation based on QC sample type for each metabolite (appears after using the `calculate_CV()` function).
+
+Non-null attributes at this stage are shown below.
+
+```{r}
+attr(dat, "LOD_table")[,1:5]
+
+attr(dat, "NA_info")[["NA_ratios"]][5:10,]
+attr(dat, "NA_info")[["counts"]]
+
+attr(dat, "metabolites")[1:10]
+
+attr(dat, "samples")[1:5,]
+```
+
+Now, information about missing values can be displayed.
+
+```{r}
+attr(dat, "NA_info")[["counts"]]
+
+plot_mv_types(dat)
+```
+
+## Group selection
+
+Using the `add_group()` function, you can specify columns (which must not contain any missing values) to group the data by. Although this step is optional, some functions require grouped data.
+
+```{r}
+grouped_dat <- add_group(dat, c("submission name", "species"))
+```
+
+After grouping,the `NA_info` attribute contains the proportion of missing values in group levels for each metabolite. Moreover, the grouping columns names are added to the `group` attribute.
+
+```{r}
+attr(grouped_dat, "NA_info")[["NA_ratios_group"]][5:10,]
+
+attr(grouped_dat, "group")
+```
+
+Below, the information about grouped data are displayed.
+
+```{r, fig.width=6}
+cat(get_info(grouped_dat))
+
+plot_groups(grouped_dat)
+```
+
+## Compounds filtering
+
+To investigate the missing values ratios in each metabolite, the `plot_NA_percent()` function can be used.
+
+```{r}
+example_metabolites <- c("Cys", "TG 18:3_35:2", "Cortisone", "CDCA", "AbsAcid")
+
+plot_NA_percent(grouped_dat, type = "joint", interactive = FALSE) +
+  ylim(example_metabolites)
+
+plot_NA_percent(grouped_dat, type = "NA_type", interactive = FALSE) +
+  ylim(example_metabolites)
+
+plot_NA_percent(grouped_dat, type = "group", interactive = FALSE) +
+  ylim(example_metabolites)
+```
+
+When not grouped data passed, function below returns the names of metabolites which have more than the given threshold of missing values. If the grouping is specified, then it returns only metabolites for which the threshold is exceeded in each group level. In the examples below the threshold is 20%.
+
+```{r}
+get_LOD_to_remove(dat, 0.2)[1:5]
+
+get_LOD_to_remove(grouped_dat, 0.2)[1:5]
+```
+
+If the grouping with up to 4 levels is specified, then the Venn diagram can be created, which shows the counts of metabolites having ratios of missing values larger than the given threshold for each group level.
+
+```{r}
+create_venn_diagram(grouped_dat, 0.2)
+```
+
+Finally, we can remove the chosen metabolites using the `remove_metabolites()` function with `type` specified as `LOD`. Instead of actually removing them from data, this function adds provided metabolites to the `removed` attribute.
+
+```{r}
+rm_dat <- remove_metabolites(grouped_dat,
+                             metabolites_to_remove = c("AbsAcid", "Ac-Orn"),
+                             type = "LOD")
+
+attr(rm_dat, "removed")
+```
+
+Then, the data and missing values ratios without removed metabolites can be displayed. Below, the first 5 rows of both tibbles and chosen columns of the first are visible.
+
+```{r}
+show_data(rm_dat)[1:5, c(1:3, 19:21)]
+
+show_ratios(rm_dat)[1:5,]
+```
+
+There are two options for restoring metabolites - either specific ones can be selected or all metabolites from the specified type can be restored.
+
+```{r}
+attr(unremove_metabolites(rm_dat, "AbsAcid"), "removed")
+
+attr(unremove_all(rm_dat, "LOD"), "removed")
+```
+
+## Gaps completing
+
+Aside from removing metabolites, missing values can be also imputed using the `complete_data()` function. It completes missing values related to the limits of quantification and detection. Imputation of values below the limit of detection (`< LOD`) can be performed in one of six ways:
+
+* `NULL` - skipping imputation,
+* `halfmin` - half of the minimum observed value,
+* `halflimit` - half of the detection limit,
+* `random` - random number not smaller than the limit of detection and not bigger than the minimum observed value,
+* `limit` - the detection limit,
+* `limit-0.2min` - the detection limit minus 0.2 times the minimum observed value.
+
+Values below the quantification limit (`< LLOQ`) can be imputed using either `NULL` or `limit` methods.  Similarly, values above the upper limit of quantification (`> ULOQ`) can be imputed using the `NULL` or `limit` methods, and additionally with the `third quartile` method, which assigns the third quartile of the observed values.
+
+Completed dataset is then stored as the `completed` attribute.
+
+```{r}
+comp_dat <- complete_data(rm_dat,
+                          LOD_method = "halfmin",
+                          LLOQ_method = "limit",
+                          ULOQ_method = "third quartile")
+```
+
+To investigate missing values, you can use the `plot_heatmap()` function, which creates a heatmap indicating whether a value is missing for each sample and metabolite, depending on the plate bar code. You can specify a plate bar code to generate a single plot; otherwise, if there are multiple plate bar codes in the dataset, a faceted plot will be created. If `show_colors = TRUE`, each missing value type is shown in a different color. Below, cropped plots are presented, showing the first five metabolites.
+
+```{r, fig.width=7}
+plot_heatmap(comp_dat, plate_bar_code = "1052125775-1 | 1052125780-1") +
+   ylim(attr(comp_dat, "metabolites")[5:1])
+
+plot_heatmap(comp_dat) +
+   ylim(attr(comp_dat, "metabolites")[5:1])
+```
+
+Next, you can compare the distributions of an individual metabolite before and after imputation. The `create_distribution_plot()` function can generate a histogram, density plot, and beeswarm plot (either regular or interactive with tooltips). Additionally, for histogram, you can choose to display either all values after imputation or only those that were previously missing and then imputed.
+
+```{r}
+create_distribution_plot(comp_dat, metabolite = "C9", bins = 40)
+
+create_distribution_plot(comp_dat, metabolite = "C9", bins = 40,
+                         histogram_type = "imputed")
+
+create_distribution_plot(comp_dat, metabolite = "C9", type = "density")
+
+create_distribution_plot(comp_dat, metabolite = "C9",
+                         type = "beeswarm")
+```
+
+*MetaboCrates* also offers two types of Q-Q plots: a theoretical Q-Q plot (using the `create_qqplot()` function), which compares the quantiles of a metabolite with the quantiles of the normal distribution, and an empirical Q-Q plot (with `create_empirical_qqplot()`), which compares the quantiles of metabolite values before and after imputation.
+
+```{r}
+create_qqplot(comp_dat, metabolite = "C9")
+
+create_empirical_qqplot(comp_dat, metabolite = "C9")
+```
+
+After imputation, you can perform quality control and outlier detection.
+
+## Quality control
+
+To perform quality control, you must calculate the coefficients of variation (CV) for each quality control type using the completed data.
+
+```{r}
+qc_dat <- calculate_CV(comp_dat)
+```
+
+The coefficients of variation can now be accessed in the `cv` attribute.
+
+```{r}
+attr(qc_dat, "cv")[1:5,]
+```
+
+You can obtain the metabolites with CV values greater than a specified threshold using the following function.
+
+```{r}
+get_CV_to_remove(qc_dat, 0.8)[1:5]
+```
+
+To remove metabolites from the data, use the `remove_metabolites()` function.
+
+```{r}
+qc_dat <- remove_metabolites(qc_dat, c("C14:1", "C3-DC (C4-OH)"), "QC")
+
+attr(qc_dat, "removed")
+```
+
+## Outlier detection
+
+To detect outliers and patterns corresponding to variation in the data, you can use principal component analysis (PCA). *MetaboCrates* offers several PCA plots. The function below creates PCA scatterplots, which visualize the clustering of observations with respect to the sample type or group level.
+
+```{r}
+create_PCA_plot(qc_dat,
+                types_to_display = c("Sample", "QC Level 1", "QC Level 2"))
+
+create_PCA_plot(qc_dat, group_by = "group")
+```
+
+Using the same function, you can also generate biplots (based on data with all sample types if `group_by = "sample_type"`, or only type *Sample* when `group_by = "group"`), displaying loadings above a given threshold. This plot type illustrates how each metabolite contributes to the first two principal components and highlights metabolites that capture similar information.
+
+```{r}
+create_PCA_plot(qc_dat, type = "biplot", threshold = 0.05, interactive = FALSE)
+
+create_PCA_plot(qc_dat, type = "biplot", group_by = "group", threshold = 0.05,
+                interactive = FALSE)
+```
+
+Finally, you can investigate the percentage of total variance in the data explained by each principal component. Additionally, cumulative variance - the sum of the percentage variance contributions from the first principal component up to a given component - can be displayed. Threshold determines which principal components are shown: all components for which the cumulative variance remains below the threshold are included, along with one additional component that brings the cumulative variance just above the threshold (if applicable). You can also specify the maximum number of principal components to display on the plot.
+
+```{r}
+pca_variance(qc_dat, threshold = 0.7)
+
+pca_variance(qc_dat, threshold = 0.7, group_by = "group", max_num = 6,
+             cumulative = FALSE)
+```

@@ -899,9 +899,9 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @param threshold a decimal indicating the maximum cumulative variance to
 #' include in the plot.
-#' @param type a character specifying which rows to consider. The default is
+#' @param group_by a character specifying which rows to consider. The default is
 #' `"sample_type"`, which uses all rows. When set to `"group"`, only
-#' observations of type "sample" are included.
+#' observations of type *Sample* are included.
 #' @param max_num an optional integer indicating the maximum number
 #' of components to display.
 #' @param cumulative logical. If `TRUE`, a line representing the cumulative
@@ -915,14 +915,14 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @export
 
-pca_variance <- function(dat, threshold, type = "sample_type",
+pca_variance <- function(dat, threshold, group_by = "sample_type",
                          max_num = NULL, cumulative = TRUE) {
-  if(type == "group" && is.null(attr(dat, "group")))
+  if(group_by == "group" && is.null(attr(dat, "group")))
     warning("No group specified.")
   
   filt_dat <- attr(dat, "completed")
   
-  if(type == "group")
+  if(group_by == "group")
     filt_dat <- filt_dat %>%
       filter(`sample type` == "Sample")
   
@@ -1003,9 +1003,9 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 #' of samples with type 'Sample' is created.
 #' @param types_to_display a vector of sample type names specifying which types
 #' should be shown on the plot when type = "sample_type". Defaults to all.
-#' @param threshold a value indicating the minimum correlation between
-#' a variable and any component, required for this  variable to be included
-#' on the PCA biplot.
+#' @param threshold a value indicating the absolute minimum correlation between
+#' a metabolite and any of the first two components, required for this
+#' metabolite to be included on the biplot.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -1023,12 +1023,9 @@ pca_variance <- function(dat, threshold, type = "sample_type",
 create_PCA_plot <- function(dat, type = "scatterplot",
                             group_by = "sample_type",
                             types_to_display = "all",
-                            threshold = NULL, interactive = TRUE){
+                            threshold = 0, interactive = TRUE){
   if(group_by == "group" & is.null(attr(dat, "group")))
     stop("Provide a group to see the PCA plot.")
-  
-  if(type == "biplot" & is.null(threshold))
-    stop("Provide a threshold.")
   
   if(is.null(attr(dat, "completed")))
     stop("Complete the missing values in data first.")
@@ -1091,27 +1088,23 @@ create_PCA_plot <- function(dat, type = "scatterplot",
       mutate(Variable = pca_metabolites) %>%
       filter(if_any(PC1:PC2, ~ abs(.) >= threshold)) %>%
       rowwise() %>%
-      mutate(max_cor = max(abs(PC1), abs(PC2))) %>%
+      mutate(len = sqrt(PC1^2 + PC2^2)) %>%
       ungroup() %>%
-      arrange(desc(max_cor)) %>%
+      arrange(desc(len)) %>%
       mutate(label = c(Variable[1:min(10, n())], rep("", max(0, n()-10))),
-             color = ifelse(label == "", "n", "y"))
+             alpha = ifelse(label == "", "b", "l"))
     
     plt <- plt_dat %>%
-      arrange(max_cor) %>%
-      ggplot(aes(x = 0, y = 0, xend = PC1, yend = PC2, color = color)) +
+      arrange(len) %>%
+      ggplot(aes(x = 0, y = 0, xend = PC1, yend = PC2, alpha = alpha)) +
       geom_segment_interactive(arrow = arrow(length = unit(0.1, "cm")),
                                show.legend = FALSE) +
       geom_vline(aes(xintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_hline(aes(yintercept = 0), alpha = 0.3, linetype = "dashed") +
       geom_text_repel(aes(x = PC1, y = PC2, label = label),
-                      size = 3, show.legend = FALSE, color = "#898989",
-                      direction = "both", segment.color = "#898989",
+                      size = 3, show.legend = FALSE, direction = "both",
                       segment.size = 0.3, max.overlaps = Inf, force = 1.5) +
-      scale_color_manual(values = c(
-        "y" = ifelse(nrow(plt_dat) > 10, "#01b893", "black"),
-        "n" = "black"
-      )) +
+      scale_alpha_manual(values = c("b" = 0.2, "l" = 1)) +
       metabocrates_theme()
   }else{
     pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
@@ -1214,7 +1207,7 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' @description
 #' This function creates Venn diagram, showing counts of metabolites having
 #' ratios of missing values larger than the given threshold for each group level.
-#' Function works only when group has up to 5 levels.
+#' Function works only when group has up to 4 levels.
 #' 
 #' @importFrom ggvenn ggvenn
 #' @importFrom tidyr pivot_wider
@@ -1273,11 +1266,11 @@ create_venn_diagram <- function(dat, threshold){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_empirical_qq_plot(dat, "C5")
+#' create_empirical_qqplot(dat, "C5")
 #' 
 #' @export
 
-create_empirical_qq_plot <- function(dat, metabolite){
+create_empirical_qqplot <- function(dat, metabolite){
   plt_dat <- dat %>%
     mutate(after = attr(dat, "completed")[[metabolite]]) %>%
     filter(`sample type` == "Sample") %>%

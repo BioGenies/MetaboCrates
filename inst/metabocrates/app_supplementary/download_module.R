@@ -330,7 +330,7 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
               else
                 pca_variance(
                   download_dat,
-                  type = "group",
+                  group_by = "group",
                   threshold = main_input[["group_PCA_variance_threshold"]]/100,
                   max_num = main_input[["group_PCA_variance_max_num"]],
                   cumulative = main_input[["group_PCA_variance_cum"]]
