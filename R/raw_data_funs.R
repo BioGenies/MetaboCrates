@@ -161,6 +161,12 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
 #' @export
 #' 
 remove_metabolites <- function(dat, metabolites_to_remove, type) {
+  if(!all(metabolites_to_remove %in% attr(dat, "metabolites")))
+    stop("Some of the provided metabolites are not present in the data.")
+  
+  if(any(metabolites_to_remove %in% attr(dat, "removed")))
+    stop("Some of the provided metabolites have already been removed.")
+  
   type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
   attr(dat, "removed")[[type]] <- 
     c(attr(dat, "removed")[[type]], metabolites_to_remove)
@@ -210,10 +216,10 @@ unremove_all <- function(dat, type) {
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
 #' test_dat <- read_data(path)
-#' test_dat <- remove_metabolites(test_dat, c("C0", "C1", "C2"), "LOD")
+#' test_dat <- remove_metabolites(test_dat, c("C0", "C2"), "LOD")
 #' test_dat <- remove_metabolites(test_dat, "C0", "QC")
 #' attr(test_dat, "removed")
-#' attr(unremove_metabolites(test_dat, c("C0", "C1")), "removed")
+#' attr(unremove_metabolites(test_dat, "C0"), "removed")
 #' 
 #' @export
 #' 
@@ -246,7 +252,7 @@ unremove_metabolites <- function(dat, metabolites){
 
 show_data <- function(dat){
   dat %>%
-    select(!unlist(attr(dat, "removed")))
+    select(!all_of(unlist(attr(dat, "removed"))))
 }
 
 
