@@ -1,7 +1,7 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>http://biogenies.info/MetaboCrates/404.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/articles/MetaboCrates.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/articles/index.html</loc></url>
-<url><loc>http://biogenies.info/MetaboCrates/articles/quick_start.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/authors.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/index.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates.html</loc></url>
@@ -20,7 +20,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_correlations_heatmap.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_density.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_distribution_plot.html</loc></url>
-<url><loc>http://biogenies.info/MetaboCrates/reference/create_empirical_qq_plot.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/create_empirical_qqplot.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_histogram.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_plot_of_2_metabolites.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/create_qqplot.html</loc></url>
