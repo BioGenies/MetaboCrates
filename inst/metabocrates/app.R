@@ -604,7 +604,9 @@ ui <- navbarPage(
                                              condition = "input.sample_type_PCA_type == `biplot`",
                                              numericInput(
                                                inputId = "sample_type_PCA_threshold",
-                                               label = "Absolute correlation threshold [%]",
+                                               label = HTML("Absolute correlation threshold [%].<br>
+                                               Only metabolites with a higher correlation with
+                                               eighter of the first two components will be included."),
                                                value = 30,
                                                min = 0,
                                                max = 100,
@@ -669,7 +671,9 @@ ui <- navbarPage(
                                              condition = "input.group_PCA_type == `biplot`",
                                              numericInput(
                                                inputId = "group_PCA_threshold",
-                                               label = "Absolute correlation threshold [%]",
+                                               label = HTML("Absolute correlation threshold [%].<br>
+                                               Only metabolites with a higher correlation with
+                                               eighter of the first two components will be included."),
                                                value = 30,
                                                min = 0,
                                                max = 100,
