@@ -248,7 +248,7 @@ sample_biplot <- create_PCA_plot(params[["dat"]],
                           interactive = FALSE)
 
 sample_pca_variance_plt <- pca_variance(params[["dat"]],
-                                 type = "sample_type",
+                                 group_by = "sample_type",
                                  threshold = params[["sample_type_PCA_variance_threshold"]]/100,
                                  max_num = params[["sample_type_PCA_variance_max_num"]],
                                  cumulative = params[["sample_type_PCA_variance_cum"]])
@@ -285,7 +285,7 @@ group_biplot <- create_PCA_plot(params[["dat"]],
                           interactive = FALSE)
 
 group_pca_variance_plt <- pca_variance(params[["dat"]],
-                                 type = "group",
+                                 group_by = "group",
                                  threshold = params[["group_PCA_variance_threshold"]]/100,
                                  max_num = params[["group_PCA_variance_max_num"]],
                                  cumulative = params[["group_PCA_variance_cum"]])

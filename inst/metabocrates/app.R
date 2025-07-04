@@ -1508,7 +1508,7 @@ server <- function(input, output, session) {
                                         input[["sing_metabo_dist"]]),
              "Theoretical Q-Q plot" = create_qqplot(dat[["metabocrates_dat_group"]],
                                                     input[["sing_metabo_dist"]]),
-             "Empirical Q-Q plot" = create_empirical_qq_plot(dat[["metabocrates_dat_group"]],
+             "Empirical Q-Q plot" = create_empirical_qqplot(dat[["metabocrates_dat_group"]],
                                                              input[["sing_metabo_dist"]])
       )
   })
@@ -1733,7 +1733,7 @@ server <- function(input, output, session) {
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
     pca_variance(dat[["metabocrates_dat_group"]],
-                 type = "sample_type",
+                 group_by = "sample_type",
                  threshold = input[["sample_type_PCA_variance_threshold"]]/100,
                  max_num = input[["sample_type_PCA_variance_max_num"]],
                  cumulative = input[["sample_type_PCA_variance_cum"]])
@@ -1791,7 +1791,7 @@ server <- function(input, output, session) {
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
     pca_variance(dat[["metabocrates_dat_group"]],
-                 type = "group",
+                 group_by = "group",
                  threshold = input[["group_PCA_variance_threshold"]]/100,
                  max_num = input[["group_PCA_variance_max_num"]],
                  cumulative = input[["group_PCA_variance_cum"]])

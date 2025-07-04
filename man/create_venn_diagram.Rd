@@ -16,7 +16,7 @@ level for metabolite to be included in the diagram, given as decimal.}
 \description{
 This function creates Venn diagram, showing counts of metabolites having
 ratios of missing values larger than the given threshold for each group level.
-Function works only when group has up to 5 levels.
+Function works only when group has up to 4 levels.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

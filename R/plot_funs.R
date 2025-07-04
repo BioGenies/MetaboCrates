@@ -899,9 +899,9 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @param threshold a decimal indicating the maximum cumulative variance to
 #' include in the plot.
-#' @param type a character specifying which rows to consider. The default is
+#' @param group_by a character specifying which rows to consider. The default is
 #' `"sample_type"`, which uses all rows. When set to `"group"`, only
-#' observations of type "sample" are included.
+#' observations of type *Sample* are included.
 #' @param max_num an optional integer indicating the maximum number
 #' of components to display.
 #' @param cumulative logical. If `TRUE`, a line representing the cumulative
@@ -915,14 +915,14 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
 #'
 #' @export
 
-pca_variance <- function(dat, threshold, type = "sample_type",
+pca_variance <- function(dat, threshold, group_by = "sample_type",
                          max_num = NULL, cumulative = TRUE) {
-  if(type == "group" && is.null(attr(dat, "group")))
+  if(group_by == "group" && is.null(attr(dat, "group")))
     warning("No group specified.")
   
   filt_dat <- attr(dat, "completed")
   
-  if(type == "group")
+  if(group_by == "group")
     filt_dat <- filt_dat %>%
       filter(`sample type` == "Sample")
   
@@ -1214,7 +1214,7 @@ create_beeswarm_plot <- function(dat, metabolite) {
 #' @description
 #' This function creates Venn diagram, showing counts of metabolites having
 #' ratios of missing values larger than the given threshold for each group level.
-#' Function works only when group has up to 5 levels.
+#' Function works only when group has up to 4 levels.
 #' 
 #' @importFrom ggvenn ggvenn
 #' @importFrom tidyr pivot_wider
@@ -1273,11 +1273,11 @@ create_venn_diagram <- function(dat, threshold){
 #' path <- get_example_data("small_biocrates_example.xls")
 #' dat <- read_data(path)
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' create_empirical_qq_plot(dat, "C5")
+#' create_empirical_qqplot(dat, "C5")
 #' 
 #' @export
 
-create_empirical_qq_plot <- function(dat, metabolite){
+create_empirical_qqplot <- function(dat, metabolite){
   plt_dat <- dat %>%
     mutate(after = attr(dat, "completed")[[metabolite]]) %>%
     filter(`sample type` == "Sample") %>%
