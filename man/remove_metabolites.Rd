@@ -14,8 +14,7 @@ function.}
 names of metabolites to remove.}
 
 \item{type}{a character string specifying the criterion used to evaluate
-whether a metabolite should be removed. Can be one of \code{LOD}, \code{QC} or
-\code{QC_man}.}
+whether a metabolite should be removed. Can be \code{LOD} or \code{QC}.}
 }
 \description{
 \code{remove_metabolites()} remove the specified metabolites from data by adding

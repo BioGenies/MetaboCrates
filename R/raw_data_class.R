@@ -271,7 +271,7 @@ raw_data <- function(metabolomics_matrix,
       metabolites = metabolites,
       samples = samples,
       group = group,
-      removed = list(LOD = NULL, QC = NULL, QC_man = NULL),
+      removed = list(LOD = NULL, QC = NULL),
       completed = NULL,
       cv = NULL
     )
