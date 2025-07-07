@@ -130,11 +130,6 @@ if(is.null(attr(params[["dat"]], "removed")[["LOD"]])){
 }
 ```
 
-```{r, fig.height=4, fig.width=4, eval=((params[["filtering_threshold_ex"]]) & !is.null(attr(params[["dat"]], "group"))), fig.cap="Venn diagram of metabolites with missing values ratio greater than the threshold in any group level.", fig.pos="H", fig.align='center'}
-if(lvls_count < 5)
-  create_venn_diagram(params[["dat"]], params[["filtering_threshold"]]/100)
-```
-
 ```{r, fig.height=4, fig.cap="Missing values ratios in each metabolite (up to 10 metabolites wiht the highest ratios are visible); (a) total ratios; (b) ratios of missing values of each type.", fig.pos="H", fig.align='center'}
 NA_perc_plt <- plot_NA_percent(params[["dat"]],
                                interactive = FALSE)
@@ -152,6 +147,11 @@ NA_perc_type_plt_crop <-
   ylim(cropped_lvls)
 
 ggarrange(NA_perc_plt_crop, NA_perc_type_plt_crop, ncol = 1, labels = "auto")
+```
+
+```{r, fig.height=4, fig.width=4, eval=((params[["filtering_threshold_ex"]]) & !is.null(attr(params[["dat"]], "group"))), fig.cap="Venn diagram of metabolites with missing values ratio greater than the threshold in any group level.", fig.pos="H", fig.align='center'}
+if(lvls_count < 5)
+  create_venn_diagram(params[["dat"]], params[["filtering_threshold"]]/100)
 ```
 
 ## Gaps completing
