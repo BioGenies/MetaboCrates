@@ -119,23 +119,19 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
   }
 
   if(use_group) {
-    to_remove <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
-      filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
+    attr(dat, "NA_info")[["NA_ratios_group"]] %>%
       group_by(metabolite) %>%
       filter(all(NA_frac >= threshold)) %>%
       pull(metabolite) %>% 
       unique()
   } else {
-    to_remove <- attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
-      filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
+    attr(dat, "NA_info")[["NA_ratios_type"]] %>%
       group_by(metabolite) %>% 
       reframe(NA_frac = sum(NA_frac)) %>% 
       filter(NA_frac >= threshold) %>% 
       pull(metabolite) %>% 
       unique()
   }
-  
-  to_remove
 }
 
 

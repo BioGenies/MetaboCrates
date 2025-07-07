@@ -105,12 +105,11 @@ cat("Missing values threshold was set to ",
     params[["filtering_threshold"]],
     "%.  \n   \n", sep = "")
 
-LOD_to_remove <- setdiff(get_LOD_to_remove(params[["dat"]],
-                                           threshold = params[["filtering_threshold"]]/100),
-                         attr(params[["dat"]], "removed"))
+LOD_to_remove <- get_LOD_to_remove(params[["dat"]],
+                                   params[["filtering_threshold"]]/100)
 
 if(length(LOD_to_remove) == 0){
-  cat("There was no metabolite with missing values ratio above the threshold.  \n   \n") 
+  cat("There were no metabolites with missing values ratio above the threshold.  \n   \n") 
 }else{
   cat("Metabolites with missing values ratio above the threshold",
       ifelse(is.null(attr(params[["dat"]], "group")),
@@ -191,15 +190,14 @@ NA_perc_plt_crop <- NA_perc_plt +
 ggarrange(plotlist = heatmap_plts, ncol = min(length(heatmap_plts), 2))
 ```
 
-```{r, results="asis", eval=!is.null(attr(params[["dat"]], "cv"))}
+```{r, results='asis', eval=!is.null(attr(params[["dat"]], "cv"))}
 cat("## Quality control  \n  \n")
 cat("CV threshold was set to ",
     params[["cv_threshold"]],
     "%.  \n   \n", sep = "")
 
-CV_to_remove <- setdiff(get_CV_to_remove(params[["dat"]],
-                                         threshold = params[["cv_threshold"]]/100),
-                        unlist(attr(params[["dat"]], "removed")))
+CV_to_remove <- get_CV_to_remove(params[["dat"]],
+                                 threshold = params[["cv_threshold"]]/100)
 
 if(length(CV_to_remove) == 0){
   cat("There were no metabolites with CV greater than the threshold.  \n   \n")
@@ -217,7 +215,7 @@ if(!is.null(attr(params[["dat"]], "removed")[["QC"]])){
 }else cat("No metabolites were removed based on the CV.  \n")
 ```
 
-```{r, results = "asis", eval=!is.null(attr(params[["dat"]], "cv"))}
+```{r, results='asis', eval=!is.null(attr(params[["dat"]], "cv"))}
 cat("## Outlier detection   \n   \n
     For the biplot based on the PCA including all sample types, the threshold
     was set to ",
