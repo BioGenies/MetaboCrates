@@ -26,7 +26,8 @@
 add_group <- function(dat, group_names) {
   
   if(!all(group_names %in% colnames(dat)))
-    stop(paste0("Some of the provided columns: ", group_names, 
+    stop(paste0("Some of the provided columns: ",
+                paste(group_names, sep = ", "), 
                 ", can't be found in your data!"))
   
   if(!is.null(attr(dat, "group")))
