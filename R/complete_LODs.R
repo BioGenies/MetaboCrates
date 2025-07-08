@@ -169,6 +169,7 @@ complete_LOD <- function(gathered_data, LOD_type, LOD_method, LOD_vals) {
     },
     `limit-0.2min` = {
       merged_dat %>%
+        group_by(compound) %>%
         mutate(value = ifelse(value == "< LOD",
                               thresh_est - 0.2 * general_min(value),
                               value))
@@ -176,7 +177,7 @@ complete_LOD <- function(gathered_data, LOD_type, LOD_method, LOD_vals) {
     logspline = {
       models <- merged_dat %>%
         group_by(compound) %>%
-        mutate(value = as.numeric(value)) %>%
+        mutate(value = suppressWarnings(as.numeric(value))) %>%
         filter(!is.na(value)) %>%
         summarise(
           model = list({
@@ -262,6 +263,7 @@ complete_ULOQ <- function(gathered_data, ULOQ_method, LOD_vals) {
     },
     `third quartile` = {
       merged_dat %>%
+        group_by(compound) %>%
         mutate(value = ifelse(value == "> ULOQ",
                               general_third_quartile(value),
                               value))
