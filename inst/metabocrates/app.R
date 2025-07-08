@@ -2,6 +2,7 @@ library(MetaboCrates)
 library(dplyr)
 library(stringr)
 library(openxlsx)
+library(ggpubr)
 
 library(shiny)
 library(shinythemes)
