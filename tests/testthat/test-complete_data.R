@@ -10,6 +10,42 @@ dat_completed <- complete_data(dat, LOD_method = "limit",
 
 completed <- attributes(dat_completed)[["completed"]]
 
+not_missing_dat <- structure(
+  tibble(
+    `sample type` = c("Sample", "Sample", "QC"),
+    `plate bar code` = "1|1",
+    `sample identification` = c("a", "b", "a"),
+    C0 = c("0.5", "1", "NA"),
+  ),
+  NA_info = list(
+    counts = tibble(type = character(0), n = double(0))
+  ),
+  LOD_table = tibble(
+    `plate bar code` = c("LOD (calc.) 1|1", "LLOQ 1|1", "ULOQ 1|1"),
+    C0 = c(0, 0.2, 3),
+    type = c("LOD (calc.)", "LLOQ", "ULOQ")
+  ),
+  metabolites = "C0"
+)
+
+test_that("Message is shown when there are no missing values", {
+  expect_message(complete_data(not_missing_dat), "No missing values found.")
+})
+
+test_that("Message is shown when there are no missing values of some type", {
+  not_missing_dat[1, 4] <- "< LLOQ"
+  attr(not_missing_dat, "NA_info")[["counts"]] <- 
+    attr(not_missing_dat, "NA_info")[["counts"]] %>%
+    add_row(type = "< LLOQ", n = 1)
+  
+  expect_message(complete_data(not_missing_dat), "No < LOD values found.")
+  expect_message(complete_data(not_missing_dat), "No > ULOQ values found.")
+  
+  not_missing_dat[1, 4] <- "< LOD"
+  attr(not_missing_dat, "NA_info")[["counts"]][1,1] <- "< LOD"
+  
+  expect_message(complete_data(not_missing_dat), "No < LLOQ values found.")
+})
 
 test_that("Attribute completed is added to the data", {
   expect_true(all(dim(completed) == c(41, 27)))
@@ -41,6 +77,15 @@ test_that("Proper ULOQ values were imputed with limit method", {
 })
 
 
+dat_completed <- complete_data(dat, ULOQ_method = "third quartile")
+completed <- attributes(dat_completed)[["completed"]]
+
+test_that("Proper ULOQ values were imputed with third quartile method", {
+  expect_equal(completed[30, 19], 10.3)
+  expect_equal(completed[17, 26], 0.238)
+})
+
+
 dat_completed <- complete_data(dat, LOD_method = "halfmin")
 completed <- attributes(dat_completed)[["completed"]]
 
@@ -58,6 +103,24 @@ test_that("Proper LOD values were imputed with halflimit method", {
   expect_equal(completed[2, 21], 0.085)
   expect_equal(completed[3, 22], 0.0095)
   expect_equal(completed[6, 26], 0.0435)
+})
+
+
+dat_completed <- complete_data(dat, LOD_method = "limit-0.2min")
+completed <- attributes(dat_completed)[["completed"]]
+
+test_that("Proper LOD values were imputed with limit-0.2min method", {
+  expect_equal(completed[2, 25], 0.081)
+  expect_equal(completed[7, 26], 0.066)
+})
+
+
+dat_completed <- complete_data(dat, LOD_method = "logspline")
+completed <- attributes(dat_completed)[["completed"]]
+
+test_that("Proper LOD values were imputed with logspline method", {
+  expect_equal(completed[5, 23], as.double(NA))
+  expect_equal(round(completed[7, 26], 6), 0.114104)
 })
 
 
@@ -80,5 +143,12 @@ dat_completed <- attributes(dat_completed)[["completed"]]
 
 test_that("Imputation of only ULOQs", {
   expect_equal(sum(is.na(dat_completed)), 319)
+})
+
+test_that("Error is thrown when the wrong LOD type is given", {
+  expect_error(
+    complete_data(dat, LOD_method = "limit", LOD_type = "OP"),
+    "There is no OP values in LOD table."
+  )
 })
 

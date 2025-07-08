@@ -105,12 +105,11 @@ cat("Missing values threshold was set to ",
     params[["filtering_threshold"]],
     "%.  \n   \n", sep = "")
 
-LOD_to_remove <- setdiff(get_LOD_to_remove(params[["dat"]],
-                                           threshold = params[["filtering_threshold"]]/100),
-                         attr(params[["dat"]], "removed"))
+LOD_to_remove <- get_LOD_to_remove(params[["dat"]],
+                                   params[["filtering_threshold"]]/100)
 
 if(length(LOD_to_remove) == 0){
-  cat("There was no metabolite with missing values ratio above the threshold.  \n   \n") 
+  cat("There were no metabolites with missing values ratio above the threshold.  \n   \n") 
 }else{
   cat("Metabolites with missing values ratio above the threshold",
       ifelse(is.null(attr(params[["dat"]], "group")),
@@ -131,11 +130,6 @@ if(is.null(attr(params[["dat"]], "removed")[["LOD"]])){
 }
 ```
 
-```{r, fig.height=4, fig.width=4, eval=((params[["filtering_threshold_ex"]]) & !is.null(attr(params[["dat"]], "group"))), fig.cap="Venn diagram of metabolites with missing values ratio greater than the threshold in any group level.", fig.pos="H", fig.align='center'}
-if(lvls_count < 5)
-  create_venn_diagram(params[["dat"]], params[["filtering_threshold"]]/100)
-```
-
 ```{r, fig.height=4, fig.cap="Missing values ratios in each metabolite (up to 10 metabolites wiht the highest ratios are visible); (a) total ratios; (b) ratios of missing values of each type.", fig.pos="H", fig.align='center'}
 NA_perc_plt <- plot_NA_percent(params[["dat"]],
                                interactive = FALSE)
@@ -153,6 +147,11 @@ NA_perc_type_plt_crop <-
   ylim(cropped_lvls)
 
 ggarrange(NA_perc_plt_crop, NA_perc_type_plt_crop, ncol = 1, labels = "auto")
+```
+
+```{r, fig.height=4, fig.width=4, eval=((params[["filtering_threshold_ex"]]) & !is.null(attr(params[["dat"]], "group"))), fig.cap="Venn diagram of metabolites with missing values ratio greater than the threshold in any group level.", fig.pos="H", fig.align='center'}
+if(lvls_count < 5)
+  create_venn_diagram(params[["dat"]], params[["filtering_threshold"]]/100)
 ```
 
 ## Gaps completing
@@ -191,15 +190,14 @@ NA_perc_plt_crop <- NA_perc_plt +
 ggarrange(plotlist = heatmap_plts, ncol = min(length(heatmap_plts), 2))
 ```
 
-```{r, results="asis", eval=!is.null(attr(params[["dat"]], "cv"))}
+```{r, results='asis', eval=!is.null(attr(params[["dat"]], "cv"))}
 cat("## Quality control  \n  \n")
 cat("CV threshold was set to ",
     params[["cv_threshold"]],
     "%.  \n   \n", sep = "")
 
-CV_to_remove <- setdiff(get_CV_to_remove(params[["dat"]],
-                                         threshold = params[["cv_threshold"]]/100),
-                        unlist(attr(params[["dat"]], "removed")))
+CV_to_remove <- get_CV_to_remove(params[["dat"]],
+                                 threshold = params[["cv_threshold"]]/100)
 
 if(length(CV_to_remove) == 0){
   cat("There were no metabolites with CV greater than the threshold.  \n   \n")
@@ -217,14 +215,12 @@ if(!is.null(attr(params[["dat"]], "removed")[["QC"]])){
 }else cat("No metabolites were removed based on the CV.  \n")
 ```
 
-```{r, results = "asis", eval=!is.null(attr(params[["dat"]], "cv"))}
-cat("## Outlier detection   \n   \n
-    For the biplot based on the PCA including all sample types, the threshold
-    was set to ",
+```{r, results='asis', eval=!is.null(attr(params[["dat"]], "cv"))}
+cat("## Outlier detection   \n   \n")
+cat("For the biplot based on the PCA including all sample types, the threshold was set to ",
     params[["sample_type_PCA_threshold"]],
     "%. ", sep = "")
-cat("For the plot of variance explained by each principal component, the
-    threshold was set to ",
+cat("For the plot of variance explained by each principal component, the threshold was set to ",
     params[["sample_type_PCA_variance_threshold"]],
     "%. ", sep = "")
 cat("The maximum number of visible principal components was set to ",
@@ -257,7 +253,7 @@ ggarrange(sample_pca_plt, sample_biplot, sample_pca_variance_plt,
           labels = "auto", ncol = 1)
 ```
 
-```{r, results = "asis", eval=(!is.null(attr(params[["dat"]], "cv")) & !is.null(attr(params[["dat"]], "group")))}
+```{r, results='asis', eval=(!is.null(attr(params[["dat"]], "cv")) & !is.null(attr(params[["dat"]], "group")))}
 cat("For the biplot based on the PCA including only samples, the threshold
     was set to ",
     params[["group_PCA_threshold"]],

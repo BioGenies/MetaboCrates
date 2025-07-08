@@ -26,7 +26,8 @@
 add_group <- function(dat, group_names) {
   
   if(!all(group_names %in% colnames(dat)))
-    stop(paste0("Some of the provided columns: ", group_names, 
+    stop(paste0("Some of the provided columns: ",
+                paste(group_names, sep = ", "), 
                 ", can't be found in your data!"))
   
   if(!is.null(attr(dat, "group")))
@@ -119,23 +120,19 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
   }
 
   if(use_group) {
-    to_remove <- attr(dat, "NA_info")[["NA_ratios_group"]] %>%
-      filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
+    attr(dat, "NA_info")[["NA_ratios_group"]] %>%
       group_by(metabolite) %>%
       filter(all(NA_frac >= threshold)) %>%
       pull(metabolite) %>% 
       unique()
   } else {
-    to_remove <- attr(dat, "NA_info")[["NA_ratios_type"]] %>% 
-      filter(!(metabolite %in% c(attr(dat, "removed")[["LOD"]], attr(dat, "removed")[["LOD"]]))) %>%
+    attr(dat, "NA_info")[["NA_ratios_type"]] %>%
       group_by(metabolite) %>% 
       reframe(NA_frac = sum(NA_frac)) %>% 
       filter(NA_frac >= threshold) %>% 
       pull(metabolite) %>% 
       unique()
   }
-  
-  to_remove
 }
 
 
@@ -150,8 +147,7 @@ get_LOD_to_remove <- function(dat, threshold = 0.8, use_group = TRUE){
 #' @param metabolites_to_remove a character string or vector specifying the
 #' names of metabolites to remove.
 #' @param type a character string specifying the criterion used to evaluate
-#' whether a metabolite should be removed. Can be one of `LOD`, `QC` or
-#' `QC_man`.
+#' whether a metabolite should be removed. Can be `LOD` or `QC`.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -167,7 +163,7 @@ remove_metabolites <- function(dat, metabolites_to_remove, type) {
   if(any(metabolites_to_remove %in% attr(dat, "removed")))
     stop("Some of the provided metabolites have already been removed.")
   
-  type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
+  type <- match.arg(arg = type, choices = c("LOD", "QC"))
   attr(dat, "removed")[[type]] <- 
     c(attr(dat, "removed")[[type]], metabolites_to_remove)
   
@@ -196,7 +192,7 @@ remove_metabolites <- function(dat, metabolites_to_remove, type) {
 #' @export
 #' 
 unremove_all <- function(dat, type) {
-  type <- match.arg(arg = type, choices = c("LOD", "QC", "QC_man"))
+  type <- match.arg(arg = type, choices = c("LOD", "QC"))
   attr(dat, "removed")[type] <- list(NULL)
   
   dat

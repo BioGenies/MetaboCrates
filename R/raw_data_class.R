@@ -103,11 +103,6 @@ validate_raw_data <- function(raw_data) {
   group_names <- attr(raw_data, "group")
   
   if(!is.null(group_names)) {
-    if(!all(group_names %in% colnames(raw_data)))
-      stop(
-        paste0("At least one of the provided grouping columns: ", group_name,
-               " is not present in the data.")
-      )
     
     samples_data <- raw_data %>% 
       filter(`sample type` == "Sample")
@@ -271,7 +266,7 @@ raw_data <- function(metabolomics_matrix,
       metabolites = metabolites,
       samples = samples,
       group = group,
-      removed = list(LOD = NULL, QC = NULL, QC_man = NULL),
+      removed = list(LOD = NULL, QC = NULL),
       completed = NULL,
       cv = NULL
     )
