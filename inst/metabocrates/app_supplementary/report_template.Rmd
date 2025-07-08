@@ -216,13 +216,11 @@ if(!is.null(attr(params[["dat"]], "removed")[["QC"]])){
 ```
 
 ```{r, results='asis', eval=!is.null(attr(params[["dat"]], "cv"))}
-cat("## Outlier detection   \n   \n
-    For the biplot based on the PCA including all sample types, the threshold
-    was set to ",
+cat("## Outlier detection   \n   \n")
+cat("For the biplot based on the PCA including all sample types, the threshold was set to ",
     params[["sample_type_PCA_threshold"]],
     "%. ", sep = "")
-cat("For the plot of variance explained by each principal component, the
-    threshold was set to ",
+cat("For the plot of variance explained by each principal component, the threshold was set to ",
     params[["sample_type_PCA_variance_threshold"]],
     "%. ", sep = "")
 cat("The maximum number of visible principal components was set to ",
@@ -255,7 +253,7 @@ ggarrange(sample_pca_plt, sample_biplot, sample_pca_variance_plt,
           labels = "auto", ncol = 1)
 ```
 
-```{r, results = "asis", eval=(!is.null(attr(params[["dat"]], "cv")) & !is.null(attr(params[["dat"]], "group")))}
+```{r, results='asis', eval=(!is.null(attr(params[["dat"]], "cv")) & !is.null(attr(params[["dat"]], "group")))}
 cat("For the biplot based on the PCA including only samples, the threshold
     was set to ",
     params[["group_PCA_threshold"]],
