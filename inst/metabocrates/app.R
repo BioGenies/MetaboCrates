@@ -308,11 +308,11 @@ ui <- navbarPage(
                                  br(),
                                  br(),
                                  br(),
-                                 column(12, htmlOutput("LOD_to_remove_txt")),
-                                 br(),
-                                 br(),
-                                 br(),
-                                 column(6, align = "center", 
+                                 column(12,
+                                        htmlOutput("LOD_to_remove_txt"),
+                                        br()
+                                 ),
+                                 column(6, align = "center",
                                         actionButton("LOD_remove_btn", label = "Remove")),
                                  column(6, align = "center",
                                         actionButton("LOD_undo_btn", label = "Undo")),
@@ -1240,13 +1240,16 @@ server <- function(input, output, session) {
   output[["LOD_to_remove_txt"]] <- renderUI({
     req(to_remove)
     
-    ro_remove_display <- unique(c(intersect(to_remove(), input[["LOD_to_remove"]]),
-                                  input[["LOD_to_remove"]]))
+    ro_remove_display <- factor(
+      unique(c(intersect(to_remove(), input[["LOD_to_remove"]]),
+               input[["LOD_to_remove"]])),
+      levels = attr(dat[["metabocrates_dat_group"]], "metabolites")
+    )
     
     if(length(ro_remove_display) == 0)
       HTML("none")
     else {
-      HTML(paste0(ro_remove_display, collapse = ", "))
+      HTML(paste0(sort(ro_remove_display), collapse = ", "))
     }
   })
   
@@ -1254,12 +1257,14 @@ server <- function(input, output, session) {
   output[["LOD_removed_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
-    removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]]
+    removed <- factor(attr(dat[["metabocrates_dat_group"]], "removed")[["LOD"]],
+                      levels = attr(dat[["metabocrates_dat_group"]],
+                                    "metabolites"))
     
     if(length(removed) == 0)
       HTML("none")
     else {
-      HTML(paste0(removed, collapse = ", "))
+      HTML(paste0(sort(removed), collapse = ", "))
     }
   })
   
@@ -1624,26 +1629,30 @@ server <- function(input, output, session) {
   })
   
   output[["CV_to_remove_txt"]] <- renderUI({
-    to_remove_CV_display <- unique(c(intersect(to_remove_CV(),
-                                               input[["CV_to_remove"]]),
-                                     input[["CV_to_remove"]]))
+    to_remove_CV_display <- factor(
+      unique(c(intersect(to_remove_CV(), input[["CV_to_remove"]]),
+               input[["CV_to_remove"]])),
+      levels = attr(dat[["metabocrates_dat_group"]], "metabolites")
+    )
     
     if(length(to_remove_CV_display) == 0)
       HTML("none")
     else {
-      HTML(paste0(to_remove_CV_display, collapse = ", "))
+      HTML(paste0(sort(to_remove_CV_display), collapse = ", "))
     }
   })
   
   output[["CV_removed_txt"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
     
-    removed <- attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]]
+    removed <- factor(attr(dat[["metabocrates_dat_group"]], "removed")[["QC"]],
+                      levels = attr(dat[["metabocrates_dat_group"]],
+                                    "metabolites"))
     
     if(length(removed) == 0)
       HTML("none")
     else {
-      HTML(paste0(removed, collapse = ", "))
+      HTML(paste0(sort(removed), collapse = ", "))
     }
   })
   
