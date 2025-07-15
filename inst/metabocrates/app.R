@@ -1347,10 +1347,21 @@ server <- function(input, output, session) {
   })
   
   output[["NA_ratios_plt_ui"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    
+    len <- attr(dat[["metabocrates_dat_group"]], "NA_info")[["NA_ratios_type"]] %>%
+      filter(NA_frac > 0,
+             !(metabolite %in% c(unlist(attr(dat[["metabocrates_dat_group"]],
+                                             "removed"))))) %>%
+      select(metabolite) %>%
+      unique() %>%
+      nrow()
+    
     if(is.null(NA_ratios_plt()))
       create_message_box("No missing values found", type = "warning")
     else
-      plot_with_button_UI("NA_ratios_plt")
+      plot_with_button_UI("NA_ratios_plt",
+                          height = paste0(max(len/4, 5), "in"))
   })
   
   outputOptions(output, "NA_ratios_plt_ui", suspendWhenHidden = FALSE)

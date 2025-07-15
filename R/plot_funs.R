@@ -241,12 +241,14 @@ plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
     labs(x = "% Missing in metabolite", y = "Metabolite") +
     scale_x_continuous(labels = scales::percent, expand = c(0, 0.18)) +
     scale_fill_metabocrates_discrete() +
-    metabocrates_theme()
+    metabocrates_theme() +
+    theme(legend.justification.right = "top")
   
   if(interactive)
     girafe(
       ggobj = plt,
-      height_svg = 4 + length(unique(filtered_dat[["metabolite"]]))/20,
+      width_svg = 8,
+      height_svg = max(length(unique(filtered_dat[["metabolite"]]))/4, 5),
       options = list(
         opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                      opacity = 0.9),
