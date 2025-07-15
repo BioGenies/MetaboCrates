@@ -532,11 +532,13 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
   uncomp_metabo_vals <- dat %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(c(metabolite, "sample identification"))) %>%
-    mutate(across(all_of(metabolite), ~ as.numeric(.)))
+    mutate(across(all_of(metabolite), ~ suppressWarnings(as.numeric(.)))) %>%
+    na.omit()
   
   comp_metabo_vals <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(c(metabolite, "sample identification")))
+    select(all_of(c(metabolite, "sample identification"))) %>%
+    na.omit()
   
   if(all(is.na(uncomp_metabo_vals)) & all(is.na(comp_metabo_vals))) stop()
   
@@ -608,6 +610,7 @@ create_boxplot <- function(dat, metabolite){
     mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
                              nrow(comp_metabo_vals)))) %>%
+    na.omit() %>%
     ggplot(aes(x = Type, y = get(metabolite),
                fill = Type, color = Type)) +
     geom_boxplot(alpha = 0.4, outlier.alpha = 1) +
@@ -657,6 +660,7 @@ create_qqplot <- function(dat, metabolite){
     mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
                              nrow(comp_metabo_vals)))) %>%
+    na.omit() %>%
     ggplot(aes(sample = get(metabolite), color = Type)) +
     geom_qq() +
     geom_qq_line() +
@@ -849,7 +853,8 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
                     metabolite1, metabolite2))) %>%
     mutate(tooltip = paste0("Sample id: ", `sample identification`,
                             "<br>", metabolite1, ": ", get(metabolite1),
-                            "<br>", metabolite2, ": ", get(metabolite2)))
+                            "<br>", metabolite2, ": ", get(metabolite2))) %>%
+    na.omit()
   
   palette <- c("#54F3D3", "#2B2A29", "#09edfd", "#DCFFDB", "#FFEA8F", "#BA7B28",
                "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
@@ -1046,7 +1051,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
     na.omit() %>%
     select(where(~ n_distinct(.) > 1)) %>%
-    left_join(completed_with_tooltips)
+    left_join(completed_with_tooltips, by = join_by(tmp_id))
   
   if(group_by == "group"){
     mod_dat <- mod_dat %>%
@@ -1082,7 +1087,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
   
   pca_res <- prcomp(~ ., data = metabo_dat, scale. = TRUE, na.action = na.omit)
   
-  if(type == "biplot") {
+  if(type == "biplot"){
     plt_dat <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites) %>%
@@ -1125,7 +1130,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
     
     plt <- ggplot(pca_df, aes(x = PC1, y = PC2, color = col_type)) +
       geom_point_interactive(aes(tooltip = tooltip), size = 2) +
-      stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
+      stat_ellipse(type = "norm", linetype = 2, linewidth = 1, na.rm = TRUE) +
       scale_color_manual(values = pca_exact_colors,
                          name = ifelse(group_by == "sample_type",
                                        "Sample types",
@@ -1245,9 +1250,15 @@ create_venn_diagram <- function(dat, threshold){
   
   if(length(NA_metabo_group) == 0) return(NULL)
   
-  ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
-         fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group)),
-         set_name_size = 3) +
+  plt <- suppressWarnings(
+    ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
+           fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group)),
+           set_name_size = 3)
+  )
+  
+  plt$scales$scales <- list()
+  
+  plt +
     scale_fill_metabocrates_discrete() +
     scale_color_metabocrates_discrete()
 }
@@ -1278,9 +1289,9 @@ create_empirical_qqplot <- function(dat, metabolite){
            after)
   
   quants <- plt_dat %>%
-    mutate(before = as.numeric(before))
+    mutate(before = suppressWarnings(as.numeric(before)))
   
-  if(length(na.omit(as.numeric(plt_dat[["before"]]))) ==
+  if(length(na.omit(suppressWarnings(as.numeric(plt_dat[["before"]])))) ==
      length(na.omit(plt_dat[["after"]])))
     quants <- quants %>%
       na.omit()
