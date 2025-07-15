@@ -370,8 +370,10 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
   
   fill_vals[["Observed"]] <- "#2B2A29"
   
+  uncomp_metabo_vals <- na.omit(uncomp_metabo_vals)
   
-   comp_metabo_vals %>%
+  comp_metabo_vals %>%
+    na.omit() %>%
     ggplot() +
     geom_histogram(aes(x = get(metabolite), y = after_stat(count),
                        fill = names(fill_vals)[1]), bins = bins,
@@ -399,7 +401,9 @@ create_density <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     linetype = "sample LOD"
   )
   
-  plt_comp <- ggplot(comp_metabo_vals) +
+  plt_comp <- comp_metabo_vals %>%
+    na.omit %>%
+    ggplot() +
     geom_density(aes(x = get(metabolite), y = after_stat(density),
                      fill = "Completed"), color = "#54F3D3", alpha = 0.6) +
     scale_fill_manual(name = NULL,
@@ -407,7 +411,9 @@ create_density <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     labs(x = metabolite, y = "Density") +
     metabocrates_theme()
   
-  plt_uncomp <- ggplot(uncomp_metabo_vals) +
+  plt_uncomp <- uncomp_metabo_vals %>%
+    na.omit() %>%
+    ggplot() +
     geom_density(
       aes(x = get(metabolite), y = after_stat(-density),
           fill = "Observed"),
@@ -486,10 +492,10 @@ create_beeswarm <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
                     rep("Completed", nrow(comp_metabo_vals))),
            tooltip = paste0("Sample id: ", `sample identification`,
-                            "<br>Value: ", get(metabolite)))
-  
-  plt <- ggplot(plt_dat, aes(x = Type, y = get(metabolite),
-                             tooltip = tooltip, color = Type)) +
+                            "<br>Value: ", get(metabolite))) %>%
+    na.omit() %>%
+    ggplot(aes(x = Type, y = get(metabolite),
+               tooltip = tooltip, color = Type)) +
     labs(x = "", y = metabolite) +
     metabocrates_theme() +
     scale_color_metabocrates_discrete(2)
@@ -534,13 +540,11 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
   uncomp_metabo_vals <- dat %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(c(metabolite, "sample identification"))) %>%
-    mutate(across(all_of(metabolite), ~ suppressWarnings(as.numeric(.)))) %>%
-    na.omit()
+    mutate(across(all_of(metabolite), ~ suppressWarnings(as.numeric(.))))
   
   comp_metabo_vals <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
-    select(all_of(c(metabolite, "sample identification"))) %>%
-    na.omit()
+    select(all_of(c(metabolite, "sample identification")))
   
   if(all(is.na(uncomp_metabo_vals)) & all(is.na(comp_metabo_vals))) stop()
   
