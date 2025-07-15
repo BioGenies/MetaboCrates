@@ -241,12 +241,14 @@ plot_NA_percent <- function(dat, type = "joint", interactive = TRUE){
     labs(x = "% Missing in metabolite", y = "Metabolite") +
     scale_x_continuous(labels = scales::percent, expand = c(0, 0.18)) +
     scale_fill_metabocrates_discrete() +
-    metabocrates_theme()
+    metabocrates_theme() +
+    theme(legend.justification.right = "top")
   
   if(interactive)
     girafe(
       ggobj = plt,
-      height_svg = 4 + length(unique(filtered_dat[["metabolite"]]))/20,
+      width_svg = 8,
+      height_svg = max(length(unique(filtered_dat[["metabolite"]]))/4, 5),
       options = list(
         opts_tooltip(css = "background-color:black;color:white;padding:10px;border-radius:10px;font-family:Arial;font-size:11px;",
                      opacity = 0.9),
@@ -368,8 +370,10 @@ create_histogram <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite,
   
   fill_vals[["Observed"]] <- "#2B2A29"
   
+  uncomp_metabo_vals <- na.omit(uncomp_metabo_vals)
   
-   comp_metabo_vals %>%
+  comp_metabo_vals %>%
+    na.omit() %>%
     ggplot() +
     geom_histogram(aes(x = get(metabolite), y = after_stat(count),
                        fill = names(fill_vals)[1]), bins = bins,
@@ -397,7 +401,9 @@ create_density <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     linetype = "sample LOD"
   )
   
-  plt_comp <- ggplot(comp_metabo_vals) +
+  plt_comp <- comp_metabo_vals %>%
+    na.omit %>%
+    ggplot() +
     geom_density(aes(x = get(metabolite), y = after_stat(density),
                      fill = "Completed"), color = "#54F3D3", alpha = 0.6) +
     scale_fill_manual(name = NULL,
@@ -405,7 +411,9 @@ create_density <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     labs(x = metabolite, y = "Density") +
     metabocrates_theme()
   
-  plt_uncomp <- ggplot(uncomp_metabo_vals) +
+  plt_uncomp <- uncomp_metabo_vals %>%
+    na.omit() %>%
+    ggplot() +
     geom_density(
       aes(x = get(metabolite), y = after_stat(-density),
           fill = "Observed"),
@@ -484,10 +492,10 @@ create_beeswarm <- function(uncomp_metabo_vals, comp_metabo_vals, metabolite){
     mutate(Type = c(rep("Observed", nrow(uncomp_metabo_vals)),
                     rep("Completed", nrow(comp_metabo_vals))),
            tooltip = paste0("Sample id: ", `sample identification`,
-                            "<br>Value: ", get(metabolite)))
-  
-  plt <- ggplot(plt_dat, aes(x = Type, y = get(metabolite),
-                             tooltip = tooltip, color = Type)) +
+                            "<br>Value: ", get(metabolite))) %>%
+    na.omit() %>%
+    ggplot(aes(x = Type, y = get(metabolite),
+               tooltip = tooltip, color = Type)) +
     labs(x = "", y = metabolite) +
     metabocrates_theme() +
     scale_color_metabocrates_discrete(2)
@@ -532,7 +540,7 @@ create_distribution_plot <- function(dat, metabolite, type = "histogram",
   uncomp_metabo_vals <- dat %>%
     filter(`sample type` == "Sample") %>%
     select(all_of(c(metabolite, "sample identification"))) %>%
-    mutate(across(all_of(metabolite), ~ as.numeric(.)))
+    mutate(across(all_of(metabolite), ~ suppressWarnings(as.numeric(.))))
   
   comp_metabo_vals <- attr(dat, "completed") %>%
     filter(`sample type` == "Sample") %>%
@@ -608,6 +616,7 @@ create_boxplot <- function(dat, metabolite){
     mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
                              nrow(comp_metabo_vals)))) %>%
+    na.omit() %>%
     ggplot(aes(x = Type, y = get(metabolite),
                fill = Type, color = Type)) +
     geom_boxplot(alpha = 0.4, outlier.alpha = 1) +
@@ -657,6 +666,7 @@ create_qqplot <- function(dat, metabolite){
     mutate(Type = rep(c("Observed", "Completed"),
                            c(nrow(uncomp_metabo_vals),
                              nrow(comp_metabo_vals)))) %>%
+    na.omit() %>%
     ggplot(aes(sample = get(metabolite), color = Type)) +
     geom_qq() +
     geom_qq_line() +
@@ -849,7 +859,8 @@ create_plot_of_2_metabolites <- function(dat, metabolite1, metabolite2,
                     metabolite1, metabolite2))) %>%
     mutate(tooltip = paste0("Sample id: ", `sample identification`,
                             "<br>", metabolite1, ": ", get(metabolite1),
-                            "<br>", metabolite2, ": ", get(metabolite2)))
+                            "<br>", metabolite2, ": ", get(metabolite2))) %>%
+    na.omit()
   
   palette <- c("#54F3D3", "#2B2A29", "#09edfd", "#DCFFDB", "#FFEA8F", "#BA7B28",
                "#C1BE3C", "#00894E", "#731CA2", "#FF7B00")
@@ -1046,7 +1057,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
     na.omit() %>%
     select(where(~ n_distinct(.) > 1)) %>%
-    left_join(completed_with_tooltips)
+    left_join(completed_with_tooltips, by = join_by(tmp_id))
   
   if(group_by == "group"){
     mod_dat <- mod_dat %>%
@@ -1082,7 +1093,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
   
   pca_res <- prcomp(~ ., data = metabo_dat, scale. = TRUE, na.action = na.omit)
   
-  if(type == "biplot") {
+  if(type == "biplot"){
     plt_dat <- as.data.frame(pca_res[["rotation"]]) %>%
       select(PC1, PC2) %>%
       mutate(Variable = pca_metabolites) %>%
@@ -1125,7 +1136,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
     
     plt <- ggplot(pca_df, aes(x = PC1, y = PC2, color = col_type)) +
       geom_point_interactive(aes(tooltip = tooltip), size = 2) +
-      stat_ellipse(type = "norm", linetype = 2, linewidth = 1) +
+      stat_ellipse(type = "norm", linetype = 2, linewidth = 1, na.rm = TRUE) +
       scale_color_manual(values = pca_exact_colors,
                          name = ifelse(group_by == "sample_type",
                                        "Sample types",
@@ -1245,9 +1256,15 @@ create_venn_diagram <- function(dat, threshold){
   
   if(length(NA_metabo_group) == 0) return(NULL)
   
-  ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
-         fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group)),
-         set_name_size = 3) +
+  plt <- suppressWarnings(
+    ggvenn(NA_metabo_group, show_outside = "none", stroke_color = "white",
+           fill_alpha = 0.6, show_percentage = any(unlist(NA_metabo_group)),
+           set_name_size = 3)
+  )
+  
+  plt$scales$scales <- list()
+  
+  plt +
     scale_fill_metabocrates_discrete() +
     scale_color_metabocrates_discrete()
 }
@@ -1278,9 +1295,9 @@ create_empirical_qqplot <- function(dat, metabolite){
            after)
   
   quants <- plt_dat %>%
-    mutate(before = as.numeric(before))
+    mutate(before = suppressWarnings(as.numeric(before)))
   
-  if(length(na.omit(as.numeric(plt_dat[["before"]]))) ==
+  if(length(na.omit(suppressWarnings(as.numeric(plt_dat[["before"]])))) ==
      length(na.omit(plt_dat[["after"]])))
     quants <- quants %>%
       na.omit()

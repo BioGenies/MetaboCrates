@@ -1,9 +1,9 @@
-plot_with_button_UI <- function(id){
+plot_with_button_UI <- function(id, height = "500px"){
   ns <- NS(id)
   
   plt <- if(id %in% c("NA_ratios_plt", "Beeswar", "sample_type_PCA_plt",
                       "group_PCA_plt")) {
-    withSpinner(ggiraph::girafeOutput(ns("plot")))
+    withSpinner(ggiraph::girafeOutput(ns("plot"), height = height))
   } else
     withSpinner(plotOutput(ns("plot")))
   
