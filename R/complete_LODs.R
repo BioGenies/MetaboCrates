@@ -104,6 +104,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
       mutate_at(all_of(attr(dat, "metabolites")), as.numeric)
   })
   
+  
   tmp_dat <- dat
   tmp_dat[, colnames(completed_dat)] <- completed_dat
   attr(dat, "completed") <- tmp_dat
@@ -116,7 +117,7 @@ complete_data <- function(dat, LOD_method = NULL, LLOQ_method = NULL,
 #' 
 #' @importFrom stringr str_extract
 #' @importFrom stats runif
-#' @importFrom logspline logspline qlogspline
+#' @importFrom logspline logspline rlogspline
 #' 
 #' @inheritParams complete_data
 #'
@@ -175,27 +176,33 @@ complete_LOD <- function(gathered_data, LOD_type, LOD_method, LOD_vals) {
                               value))
     },
     logspline = {
-      models <- merged_dat %>%
-        group_by(compound) %>%
-        mutate(value = suppressWarnings(as.numeric(value))) %>%
-        filter(!is.na(value)) %>%
-        summarise(
-          model = list({
-            if((length(value) < 10) || length(unique(value)) < 3) NA
-            else logspline(value)
-            })
-        )
+      wide_gathered_dat <- gathered_data %>%
+        pivot_wider(names_from = compound,
+                    values_from = value)
+      
+      imp_vals <- unlist(sapply(
+        wide_gathered_dat[5:ncol(wide_gathered_dat)],
+        function(vals){
+          model <- tryCatch(
+            logspline(na.omit(suppressWarnings(as.numeric(vals)))),
+            error = function(e) NA,
+            warning = function(w) NA
+          )
+          
+          to_imp <- sum(vals == "< LOD" & !is.na(vals))
+          
+          if(all(is.na(model)))
+            rep(NA, to_imp)
+          else
+            rlogspline(to_imp, model)
+        }
+      ))
       
       merged_dat %>%
-        left_join(models) %>%
-        rowwise() %>%
-        mutate(value = list({
-          if(value == "< LOD" & !is.na(value)){
-            if(all(is.na(model))) NA
-            else qlogspline(0.05, model)
-          }else value
-        })) %>%
-        select(- model)
+        mutate(value = {
+          value[value == "< LOD" & !is.na(value)] <- imp_vals
+          value
+        })
     }
   )
   

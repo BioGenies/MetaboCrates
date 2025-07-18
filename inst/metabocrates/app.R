@@ -374,7 +374,8 @@ ui <- navbarPage(
                                            h4("< LOD values"),
                                            selectInput(inputId = 'LOD_method',
                                                        label = "< LOD imputation method",
-                                                       choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none")
+                                                       choices = c("halfmin", "random", "halflimit",
+                                                                   "limit", "limit-0.2min", "logspline", "none")
                                            ),
                                            selectInput(inputId = 'LOD_type',
                                                        label = "Type of < LOD values",

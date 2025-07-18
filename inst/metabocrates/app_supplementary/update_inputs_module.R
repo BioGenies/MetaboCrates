@@ -119,11 +119,16 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
             select(all_of(c(attr(dat[["metabocrates_dat_group"]], "metabolites"), "tmp_id"))) %>%
             select(where(~ n_distinct(na.omit(.)) > 1)) %>%
             na.omit() %>%
-            select(where(~ n_distinct(.) > 1)) %>%
-            left_join(select(attr(dat[["metabocrates_dat_group"]], "completed"),
-                             all_of(c("tmp_id", "sample type")))) %>%
-            select("sample type") %>%
-            unlist()
+            select(where(~ n_distinct(.) > 1))
+          
+          if(nrow(types) > 0){
+            types <- types %>%
+              left_join(select(attr(dat[["metabocrates_dat_group"]], "completed"),
+                               all_of(c("tmp_id", "sample type")))) %>%
+              select("sample type") %>%
+              unlist()
+          }else
+            types <- character(0)
           
           updateCheckboxGroupInput(main_session,
                                    inputId = "sample_type_PCA_types",
