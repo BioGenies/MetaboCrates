@@ -947,7 +947,7 @@ pca_variance <- function(dat, threshold, group_by = "sample_type",
     filt_dat <- filt_dat %>%
       select(where(~ var(.) > 0)) 
   }else
-    stop("All observations contain missing values.")
+    stop("Not enough complete data.")
   
   pca_result <- prcomp(filt_dat, scale. = TRUE, center = TRUE)
   
@@ -1067,7 +1067,7 @@ create_PCA_plot <- function(dat, type = "scatterplot",
       select(where(~ n_distinct(.) > 1)) %>%
       left_join(completed_with_tooltips, by = join_by(tmp_id))
   }else
-    stop("All observations contain missing values.")
+    stop("Not enough complete data.")
   
   if(group_by == "group"){
     mod_dat <- mod_dat %>%
