@@ -941,8 +941,13 @@ pca_variance <- function(dat, threshold, group_by = "sample_type",
     select(all_of(setdiff(attr(dat, "metabolites"),
                           unlist(attr(dat, "removed"))))) %>%
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
-    na.omit() %>%
-    select(where(~ var(.) > 0))
+    na.omit()
+  
+  if(nrow(filt_dat) > 0){
+    filt_dat <- filt_dat %>%
+      select(where(~ var(.) > 0)) 
+  }else
+    stop("All observations contain missing values.")
   
   pca_result <- prcomp(filt_dat, scale. = TRUE, center = TRUE)
   
@@ -1055,9 +1060,14 @@ create_PCA_plot <- function(dat, type = "scatterplot",
   mod_dat <- attr(dat, "completed") %>%
     select(all_of(c(attr(dat, "metabolites"), "tmp_id"))) %>%
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
-    na.omit() %>%
-    select(where(~ n_distinct(.) > 1)) %>%
-    left_join(completed_with_tooltips, by = join_by(tmp_id))
+    na.omit()
+  
+  if(nrow(mod_dat) > 0){
+    mod_dat <- mod_dat %>%
+      select(where(~ n_distinct(.) > 1)) %>%
+      left_join(completed_with_tooltips, by = join_by(tmp_id))
+  }else
+    stop("All observations contain missing values.")
   
   if(group_by == "group"){
     mod_dat <- mod_dat %>%
