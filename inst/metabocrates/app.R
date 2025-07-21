@@ -393,7 +393,8 @@ ui <- navbarPage(
                                            selectInput(
                                              inputId = 'ULOQ_method',
                                              label = "> ULOQ imputation method",
-                                             choices = c("limit", "third quartile", "none")
+                                             choices = c("limit", "third quartile",
+                                                         "scaled random", "none")
                                            ),
                                            br(),
                                            br(),

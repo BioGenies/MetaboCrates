@@ -18,7 +18,7 @@
 #' Currently, the only available method is: `limit`.
 #' @param ULOQ_method a character string specifying the imputation method to be
 #' applied to `> ULOQ` values, or `NULL` if these values should not be imputed.
-#' Available methods are: `limit` and `third quartile`.
+#' Available methods are: `limit`, `third quartile` and `scaled random`.
 #' @param LOD_type a character string specifying which LOD type to use for
 #' imputing values. Possible values are `"OP"` and `"calc"`.
 #'
@@ -191,10 +191,12 @@ complete_LOD <- function(gathered_data, LOD_type, LOD_method, LOD_vals) {
           
           to_imp <- sum(vals == "< LOD" & !is.na(vals))
           
-          if(all(is.na(model)))
-            rep(NA, to_imp)
+          imp_val <- if(all(is.na(model)))
+            NA
           else
-            rlogspline(to_imp, model)
+            rlogspline(1, model)
+          
+          rep(imp_val, to_imp)
         }
       ))
       
@@ -256,7 +258,8 @@ match_plate_codes <- function(LOD_table, sets) {
 
 complete_ULOQ <- function(gathered_data, ULOQ_method, LOD_vals) {
   
-  method <- match.arg(ULOQ_method, c("limit", "third quartile"))
+  method <- match.arg(ULOQ_method,
+                      c("limit", "third quartile", "scaled random"))
   
   merged_dat <- gathered_data %>% 
     merge(filter(LOD_vals, type == "ULOQ"), 
@@ -274,8 +277,16 @@ complete_ULOQ <- function(gathered_data, ULOQ_method, LOD_vals) {
         mutate(value = ifelse(value == "> ULOQ",
                               general_third_quartile(value),
                               value))
+    },
+    `scaled random` = {
+      merged_dat %>%
+        group_by(compound) %>%
+        mutate(value = ifelse(value == "> ULOQ",
+                              runif(1, thresh_est, 2*thresh_est),
+                              value))
     }
   )
+  
   merged_dat %>% 
     select(- type, -thresh_est)
 }
