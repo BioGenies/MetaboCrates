@@ -166,16 +166,21 @@ attr(unremove_all(rm_dat, "LOD"), "removed")
 
 ## Gaps completing
 
-Aside from removing metabolites, missing values can be also imputed using the `complete_data()` function. It completes missing values related to the limits of quantification and detection. Imputation of values below the limit of detection (`< LOD`) can be performed in one of six ways:
+Aside from removing metabolites, missing values can be also imputed using the `complete_data()` function. It completes missing values related to the limits of quantification and detection. Imputation of values below the limit of detection (`< LOD`) can be performed in one of seven ways:
 
 * `NULL` - skipping imputation,
 * `halfmin` - half of the minimum observed value,
 * `halflimit` - half of the detection limit,
 * `random` - random number not smaller than the limit of detection and not bigger than the minimum observed value,
 * `limit` - the detection limit,
-* `limit-0.2min` - the detection limit minus 0.2 times the minimum observed value.
+* `limit-0.2min` - the detection limit minus 0.2 times the minimum observed value,
+* `logspline` - random number from a logspline density fitted to the observed values.
 
-Values below the quantification limit (`< LLOQ`) can be imputed using either `NULL` or `limit` methods.  Similarly, values above the upper limit of quantification (`> ULOQ`) can be imputed using the `NULL` or `limit` methods, and additionally with the `third quartile` method, which assigns the third quartile of the observed values.
+Values below the quantification limit (`< LLOQ`) can be imputed using either `NULL` or `limit` methods.  Similarly, values above the upper limit of quantification (`> ULOQ`) can be imputed using the `NULL` and `limit` methods or
+
+* `third quartile` - third quartile of the observed values,
+* `scaled random` - random number higher than the upper limit of quantification
+but lower than its double.
 
 Completed dataset is then stored as the `completed` attribute.
 

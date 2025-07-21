@@ -11,7 +11,7 @@ complete_ULOQ(gathered_data, ULOQ_method, LOD_vals)
 
 \item{ULOQ_method}{a character string specifying the imputation method to be
 applied to \verb{> ULOQ} values, or \code{NULL} if these values should not be imputed.
-Available methods are: \code{limit} and \verb{third quartile}.}
+Available methods are: \code{limit}, \verb{third quartile} and \verb{scaled random}.}
 
 \item{LOD_vals}{a long-format table containing limits of
 detection/quantification and corresponding plate bar codes.}

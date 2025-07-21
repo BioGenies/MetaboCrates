@@ -374,7 +374,8 @@ ui <- navbarPage(
                                            h4("< LOD values"),
                                            selectInput(inputId = 'LOD_method',
                                                        label = "< LOD imputation method",
-                                                       choices = c("halfmin", "random", "halflimit", "limit", "limit-0.2min", "none")
+                                                       choices = c("halfmin", "random", "halflimit",
+                                                                   "limit", "limit-0.2min", "logspline", "none")
                                            ),
                                            selectInput(inputId = 'LOD_type',
                                                        label = "Type of < LOD values",
@@ -392,7 +393,8 @@ ui <- navbarPage(
                                            selectInput(
                                              inputId = 'ULOQ_method',
                                              label = "> ULOQ imputation method",
-                                             choices = c("limit", "third quartile", "none")
+                                             choices = c("limit", "third quartile",
+                                                         "scaled random", "none")
                                            ),
                                            br(),
                                            br(),
@@ -642,18 +644,7 @@ ui <- navbarPage(
                                            h2("Outlier detection (step 6/8)"),
                                            h3("next: Summary")
                                     ),
-                                    column(9, align = "center",
-                                           conditionalPanel(
-                                             condition = "input.sample_type_PCA_type == `biplot`",
-                                             create_message_box("Biplot visualizes metabolite contributions to principal components,
-                                                                highlighting groups with similar correlations.",
-                                                                type = "description"),
-                                             br()
-                                           )
-                                    ),
-                                    column(7, offset = 1,
-                                           uiOutput("sample_type_cond_pca_plt")
-                                    )
+                                    uiOutput("sample_type_cond_pca_plt")
                            ),
                            tabPanel("Group PCA",
                                     column(3,
@@ -1723,11 +1714,17 @@ server <- function(input, output, session) {
         types_to_display <- input[["sample_type_PCA_types"]]
       else types_to_display <- "all"
       
-      create_PCA_plot(dat[["metabocrates_dat_group"]],
-                      group_by = "sample_type",
-                      type = input[["sample_type_PCA_type"]],
-                      types_to_display = input[["sample_type_PCA_types"]],
-                      threshold = input[["sample_type_PCA_threshold"]]/100)
+      tryCatch(
+        create_PCA_plot(dat[["metabocrates_dat_group"]],
+                        group_by = "sample_type",
+                        type = input[["sample_type_PCA_type"]],
+                        types_to_display = input[["sample_type_PCA_types"]],
+                        threshold = input[["sample_type_PCA_threshold"]]/100),
+        error = function(e){
+          if(e == "Not enough complete data.")
+            NULL
+        }
+      )
     }
   })
   
@@ -1744,8 +1741,7 @@ server <- function(input, output, session) {
                     type = input[["sample_type_PCA_type"]],
                     types_to_display = input[["sample_type_PCA_types"]],
                     threshold = input[["sample_type_PCA_threshold"]]/100,
-                    interactive = FALSE
-    )
+                    interactive = FALSE)
   })
   
   plot_with_button_SERVER("sample_type_PCA_plt", sample_type_PCA_plt, full_plt = sample_type_PCA_plt_full)
@@ -1766,11 +1762,46 @@ server <- function(input, output, session) {
   
   plot_with_button_SERVER("sample_type_PCA_variance_plt", sample_type_PCA_variance_plt)
   
+  sample_type_PCA_rows_num <- reactive({
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    
+    attr(dat[["metabocrates_dat_group"]], "completed") %>%  
+      select(all_of(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                            unlist(attr(dat[["metabocrates_dat_group"]], "removed"))))) %>%
+      select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+      na.omit() %>%
+      nrow()
+  })
+  
   output[["sample_type_cond_pca_plt"]] <- renderUI({
-    if(input[["sample_type_PCA_type"]] == "variance"){
-      plot_with_button_UI("sample_type_PCA_variance_plt")
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    req(input[["sample_type_PCA_type"]])
+    
+    if(sample_type_PCA_rows_num() == 0){
+      column(9,
+             create_message_box("Not enough complete data",
+                                type = "warning")
+      )
+    }else if(input[["sample_type_PCA_type"]] == "variance"){
+      column(7,
+             plot_with_button_UI("sample_type_PCA_variance_plt")
+      )
+    }else if(input[["sample_type_PCA_type"]] == "biplot"){
+      tagList(
+        column(9,
+               create_message_box("Biplot visualizes metabolite contributions to principal components,
+                                    highlighting groups with similar correlations.",
+                                  type = "description"),
+               br()
+        ),
+        column(7, offset = 1,
+               plot_with_button_UI("sample_type_PCA_plt")
+        )
+      )
     }else{
-      plot_with_button_UI("sample_type_PCA_plt")
+      column(7,
+             plot_with_button_UI("sample_type_PCA_plt") 
+      )
     }
   })
   
@@ -1783,10 +1814,16 @@ server <- function(input, output, session) {
     if(input[["group_PCA_type"]] == "variance") req(NULL)
     if(input[["group_PCA_type"]] == "biplot") req(input[["group_PCA_threshold"]])
       
+    tryCatch(
       create_PCA_plot(dat[["metabocrates_dat_group"]],
                       group_by = "group",
                       type = input[["group_PCA_type"]],
-                      threshold = input[["group_PCA_threshold"]]/100)
+                      threshold = input[["group_PCA_threshold"]]/100),
+      error = function(e){
+        if(e == "Not enough complete data.")
+          NULL
+      }
+    )
   })
   
   group_PCA_plt_full <- reactive({
@@ -1815,26 +1852,51 @@ server <- function(input, output, session) {
     req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
-    pca_variance(dat[["metabocrates_dat_group"]],
-                 group_by = "group",
-                 threshold = input[["group_PCA_variance_threshold"]]/100,
-                 max_num = input[["group_PCA_variance_max_num"]],
-                 cumulative = input[["group_PCA_variance_cum"]])
+    tryCatch(
+      pca_variance(dat[["metabocrates_dat_group"]],
+                   group_by = "group",
+                   threshold = input[["group_PCA_variance_threshold"]]/100,
+                   max_num = input[["group_PCA_variance_max_num"]],
+                   cumulative = input[["group_PCA_variance_cum"]]),
+      error = function(e){
+        if(e == "Not enough complete data.")
+          NULL
+      }
+    )
   })
   
   plot_with_button_SERVER("group_PCA_variance_plt", group_PCA_variance_plt)
   
+  group_PCA_rows_num <- reactive({
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    
+    attr(dat[["metabocrates_dat_group"]], "completed") %>%
+      filter(`sample type` == "Sample") %>%
+      select(all_of(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                            unlist(attr(dat[["metabocrates_dat_group"]], "removed"))))) %>%
+      select(where(~ n_distinct(na.omit(.)) > 1)) %>%
+      na.omit() %>%
+      nrow()
+  })
+  
   output[["group_cond_pca_plt"]] <- renderUI({
-    if(is.null(attr(dat[["metabocrates_dat_group"]], "group")))
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+    req(input[["group_PCA_type"]])
+    
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
       column(9,
              create_message_box("Group data to see plots", type = "warning") 
       )
-    else{
-      if(input[["group_PCA_type"]] == "variance"){
+    }else if(group_PCA_rows_num() == 0){
+      column(9,
+             create_message_box("Not enough complete data",
+                                type = "warning")
+      )
+    }else if(input[["group_PCA_type"]] == "variance"){
         column(7, offset = 1,
                plot_with_button_UI("group_PCA_variance_plt")
         )
-      }else if(input[["group_PCA_type"]] == "biplot"){
+    }else if(input[["group_PCA_type"]] == "biplot"){
         tagList(
           column(9,
                  create_message_box("Biplot shows metabolite contributions to principal components,
@@ -1846,11 +1908,10 @@ server <- function(input, output, session) {
                  plot_with_button_UI("group_PCA_plt")
           )
         )
-      }else{
+    }else{
         column(7, offset = 1,
                plot_with_button_UI("group_PCA_plt")
         )
-      }
     }
   })
   

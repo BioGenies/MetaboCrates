@@ -27,7 +27,7 @@ Currently, the only available method is: \code{limit}.}
 
 \item{ULOQ_method}{a character string specifying the imputation method to be
 applied to \verb{> ULOQ} values, or \code{NULL} if these values should not be imputed.
-Available methods are: \code{limit} and \verb{third quartile}.}
+Available methods are: \code{limit}, \verb{third quartile} and \verb{scaled random}.}
 
 \item{LOD_type}{a character string specifying which LOD type to use for
 imputing values. Possible values are \code{"OP"} and \code{"calc"}.}

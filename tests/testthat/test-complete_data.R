@@ -86,6 +86,16 @@ test_that("Proper ULOQ values were imputed with third quartile method", {
 })
 
 
+set.seed(12)
+dat_completed <- complete_data(dat, ULOQ_method = "scaled random")
+completed <- attributes(dat_completed)[["completed"]]
+
+test_that("Proper ULOQ values were imputed with scaled random method", {
+  expect_equal(round(completed[30, 19], 4), 106.9361)
+  expect_equal(round(completed[17, 26], 5), 11.69348)
+})
+
+
 dat_completed <- complete_data(dat, LOD_method = "halfmin")
 completed <- attributes(dat_completed)[["completed"]]
 
@@ -114,13 +124,13 @@ test_that("Proper LOD values were imputed with limit-0.2min method", {
   expect_equal(completed[7, 26], 0.066)
 })
 
-
+set.seed(12)
 dat_completed <- complete_data(dat, LOD_method = "logspline")
 completed <- attributes(dat_completed)[["completed"]]
 
 test_that("Proper LOD values were imputed with logspline method", {
   expect_equal(completed[5, 23], as.double(NA))
-  expect_equal(round(completed[7, 26], 6), 0.114104)
+  expect_equal(round(completed[7, 26], 7),  0.1502473)
 })
 
 
@@ -131,12 +141,14 @@ test_that("Imputation of only LODs", {
   expect_equal(sum(is.na(dat_completed)), 198)
 })
 
+
 dat_completed <- complete_data(dat, LLOQ_method = "limit")
 dat_completed <- attributes(dat_completed)[["completed"]]
 
 test_that("Imputation of only LLOQs", {
   expect_equal(sum(is.na(dat_completed)), 324)
 })
+
 
 dat_completed <- complete_data(dat, ULOQ_method = "limit")
 dat_completed <- attributes(dat_completed)[["completed"]]
