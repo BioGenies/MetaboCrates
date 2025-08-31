@@ -1550,16 +1550,16 @@ server <- function(input, output, session) {
     else
       column(9,
              br(),
-             plot_with_button_UI(substr(input[["dist_plt_type"]], 1, 7))
+             plot_with_button_UI(input[["dist_plt_type"]])
       )
   })
   
   observe({
     if(input[["dist_plt_type"]] == "Beeswarm")
-      plot_with_button_SERVER(substr(input[["dist_plt_type"]], 1, 7), dist_plt,
+      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt,
                               full_plt = full_dist_plt)
     else
-      plot_with_button_SERVER(substr(input[["dist_plt_type"]], 1, 7), dist_plt)
+      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt)
   })
   
   ######## Quality control
