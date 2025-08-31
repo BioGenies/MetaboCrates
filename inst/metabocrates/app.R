@@ -1490,7 +1490,8 @@ server <- function(input, output, session) {
   missing_heatmap_height <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                   unlist(attr(dat[["metabocrates_dat_group"]], "removed"))))
   })
   
   plot_with_button_SERVER("missing_heatmap", missing_heatmap,
