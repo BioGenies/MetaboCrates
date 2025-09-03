@@ -39,7 +39,7 @@ ui <- navbarPage(
   id = "main",
   
   includeCSS("www/style.css"),
-  footer = HTML("<img src='readme_files/funding.png' style='height: 90px'>"),
+  footer = uiOutput("footer"),
   
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
@@ -814,6 +814,13 @@ server <- function(input, output, session) {
   
   callModule(nav_btns_SERVER, "Download", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Download")
+  
+  output[["footer"]] <- renderUI({
+    if(input[["main"]] == "About")
+      HTML("<img src='readme_files/funding.png' style='height: 90px'>")
+    else
+      NULL
+  })
   
   ##### uploading data
   
