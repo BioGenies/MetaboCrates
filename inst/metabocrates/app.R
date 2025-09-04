@@ -39,7 +39,7 @@ ui <- navbarPage(
   id = "main",
   
   includeCSS("www/style.css"),
-  footer = HTML("<img src='funding.png' style='height: 90px'>"),
+  footer = uiOutput("footer"),
   
   theme = shinytheme("sandstone"),
   title = "MetaboCrates",
@@ -815,6 +815,13 @@ server <- function(input, output, session) {
   callModule(nav_btns_SERVER, "Download", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Download")
   
+  output[["footer"]] <- renderUI({
+    if(input[["main"]] == "About")
+      HTML("<img src='readme_files/funding.png' style='height: 90px'>")
+    else
+      NULL
+  })
+  
   ##### uploading data
   
   ## users data
@@ -1490,7 +1497,8 @@ server <- function(input, output, session) {
   missing_heatmap_height <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
-    length(attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+                   unlist(attr(dat[["metabocrates_dat_group"]], "removed"))))
   })
   
   plot_with_button_SERVER("missing_heatmap", missing_heatmap,
@@ -1549,16 +1557,19 @@ server <- function(input, output, session) {
     else
       column(9,
              br(),
-             plot_with_button_UI(substr(input[["dist_plt_type"]], 1, 7))
+             plot_with_button_UI(paste0(unlist(strsplit(input[["dist_plt_type"]], " ")),
+                                        collapse = "_"))
       )
   })
   
   observe({
     if(input[["dist_plt_type"]] == "Beeswarm")
-      plot_with_button_SERVER(substr(input[["dist_plt_type"]], 1, 7), dist_plt,
+      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt,
                               full_plt = full_dist_plt)
     else
-      plot_with_button_SERVER(substr(input[["dist_plt_type"]], 1, 7), dist_plt)
+      plot_with_button_SERVER(paste0(unlist(strsplit(input[["dist_plt_type"]], " ")),
+                                     collapse = "_"),
+                              dist_plt)
   })
   
   ######## Quality control

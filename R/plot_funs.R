@@ -12,7 +12,8 @@ metabocrates_theme <- function(){
     plot.title = element_text(face = "bold", hjust = 0.5,
                               margin = margin(b = 10)),
     axis.text.x = element_text(margin = margin(b = 5)),
-    axis.text.y = element_text(margin = margin(l = 5))
+    axis.text.y = element_text(margin = margin(l = 5)),
+    text = element_text(family = "sans")
   )
 }
 

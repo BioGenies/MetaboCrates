@@ -1,7 +1,7 @@
 plot_with_button_UI <- function(id, height = "500px"){
   ns <- NS(id)
   
-  plt <- if(id %in% c("NA_ratios_plt", "Beeswar", "sample_type_PCA_plt",
+  plt <- if(id %in% c("NA_ratios_plt", "Beeswarm", "sample_type_PCA_plt",
                       "group_PCA_plt")) {
     withSpinner(ggiraph::girafeOutput(ns("plot"), height = height))
   } else
@@ -81,12 +81,12 @@ plot_with_button_SERVER <- function(id, plot_reactive, height = "auto",
                    Density = "density",
                    Beeswarm = "beeswarm",
                    Boxplot = "boxplot",
-                   `Theoretical Q-Q plot` = "theoretical_qq_plot",
-                   `Empirical Q-Q plot` = "empirical_qq_plot",
+                   `Theoretical_Q-Q_plot` = "theoretical_qq_plot",
+                   `Empirical_Q-Q_plot` = "empirical_qq_plot",
                    sample_type_PCA_plt = "sample_type_PCA_plot",
-                   group_type_PCA_plt = "group_PCA_plot",
-                   sample_type_PCA_variance = "sample_type_variance_explained_plot",
-                   group_PCA_variance = "group_variance_explained_plot")
+                   group_PCA_plt = "group_PCA_plot",
+                   sample_type_PCA_variance_plt = "sample_type_variance_explained_plot",
+                   group_PCA_variance_plt = "group_variance_explained_plot")
     
     output[["download_button_pdf"]] <- downloadHandler(
       filename = function() paste0(name, ".pdf"),
