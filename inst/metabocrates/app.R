@@ -1557,7 +1557,8 @@ server <- function(input, output, session) {
     else
       column(9,
              br(),
-             plot_with_button_UI(input[["dist_plt_type"]])
+             plot_with_button_UI(paste0(unlist(strsplit(input[["dist_plt_type"]], " ")),
+                                        collapse = "_"))
       )
   })
   
@@ -1566,7 +1567,9 @@ server <- function(input, output, session) {
       plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt,
                               full_plt = full_dist_plt)
     else
-      plot_with_button_SERVER(input[["dist_plt_type"]], dist_plt)
+      plot_with_button_SERVER(paste0(unlist(strsplit(input[["dist_plt_type"]], " ")),
+                                     collapse = "_"),
+                              dist_plt)
   })
   
   ######## Quality control
