@@ -944,7 +944,7 @@ pca_variance <- function(dat, threshold, group_by = "sample_type",
     select(where(~ n_distinct(na.omit(.)) > 1)) %>%
     na.omit()
   
-  if(nrow(filt_dat) > 0){
+  if(nrow(filt_dat) > 1){
     filt_dat <- filt_dat %>%
       select(where(~ var(.) > 0)) 
   }else
@@ -1126,8 +1126,13 @@ create_PCA_plot <- function(dat, type = "scatterplot",
       geom_text_repel(aes(x = PC1, y = PC2, label = label),
                       size = 3, show.legend = FALSE, direction = "both",
                       segment.size = 0.3, max.overlaps = Inf, force = 1.5) +
-      scale_alpha_manual(values = c("b" = 0.2, "l" = 1)) +
       metabocrates_theme()
+    
+    if(nrow(plt_dat) == 0)
+      warning("No data to display. Consider using a lower threshold.")
+    else
+      plt <- plt +
+        scale_alpha_manual(values = c("b" = 0.2, "l" = 1))
   }else{
     pca_colors <- c("#54F3D3", "#2B2A29", "#F39C12", "#E74C3C", "#8E44AD",
                     "#2980B9", "#27AE60", "#D35400")
