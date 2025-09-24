@@ -26,7 +26,9 @@ download_UI <- function(id){
   
 }
 
-download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
+download_SERVER <- function(id, dat, main_input,
+                            filtering_threshold_ex = NULL,
+                            outlier_detection_ex = NULL){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -44,8 +46,11 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
           else
             download_dat <- dat[["metabocrates_dat_group"]]
           
-          saveRDS(download_dat, file)
-          
+          saveRDS(list(data = download_dat,
+                       input = main_input,
+                       filtering_threshold_ex = filtering_threshold_ex,
+                       outlier_detection_ex = outlier_detection_ex),
+                  file)
         }
       )
     }else if(id == "download_matrix"){
@@ -388,50 +393,18 @@ download_SERVER <- function(id, dat, main_input, filtering_threshold_ex = NULL){
         }
       )
     }else if(id == "download_pdf"){
-        output[["download"]] <- downloadHandler(
-          filename = "report.pdf",
-          content = function(file){
-            showModal(modalDialog("Creating report, please wait...",
-                                  footer = NULL))
-            on.exit(removeModal())
-            
-            params <- list("filtering_threshold",
-                           "LOD_method",
-                           "LLOQ_method",
-                           "ULOQ_method",
-                           "LOD_type",
-                           "cv_threshold",
-                           "sample_type_PCA_types",
-                           "sample_type_PCA_threshold",
-                           "sample_type_PCA_variance_threshold",
-                           "sample_type_PCA_variance_max_num",
-                           "sample_type_PCA_variance_cum",
-                           "group_PCA_threshold",
-                           "group_PCA_variance_threshold",
-                           "group_PCA_variance_max_num",
-                           "group_PCA_variance_cum")
-            
-            params_lst <- setNames(
-              lapply(params, function(param) main_input[[param]]),
-              params
-            )
-            
-            if(is.null(dat[["metabocrates_dat_group"]]))
-              params_lst[["dat"]] <- dat[["metabocrates_dat"]]
-            else
-              params_lst[["dat"]] <- dat[["metabocrates_dat_group"]]
-            
-            params_lst[["filtering_threshold_ex"]] <- filtering_threshold_ex()
-              
-            params_lst <- params_lst[lengths(params_lst) != 0]
-              
-            rmarkdown::render("./app_supplementary/report_template.Rmd",
-                              output_file = file,
-                              envir = new.env(parent = globalenv()),
-                              params = params_lst)
-            
-          }
-        )
+      output[["download"]] <- downloadHandler(
+        filename = "report.pdf",
+        content = function(file){
+          showModal(modalDialog("Creating report, please wait...",
+                                footer = NULL))
+          on.exit(removeModal())
+          
+          rmarkdown::render("./app_supplementary/report_template.Rmd",
+                            output_file = file)
+        
+         }
+      )
     }
   })
 }

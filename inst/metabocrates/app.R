@@ -10,6 +10,7 @@ library(shinyWidgets)
 library(shinycssloaders)
 library(DT)
 library(shinyhelper)
+library(shinyjs)
 
 addResourcePath("readme_files", system.file("metabocrates/www", package = "MetaboCrates"))
 
@@ -785,6 +786,15 @@ server <- function(input, output, session) {
   ##### reactive variables
   
   dat <- reactiveValues()
+  filtering_threshold_ex <- reactiveVal(FALSE)
+  outlier_detection_ex <- reactiveVal(FALSE)
+  
+  observeEvent(input[["run"]], {
+    if(input[["run"]] == "Filtering")
+      filtering_threshold_ex(TRUE)
+    else if(input[["run"]] == "Outlier detection")
+      outlier_detection_ex(TRUE)
+  })
   
   ##### navigation modules
   
@@ -856,6 +866,10 @@ server <- function(input, output, session) {
     
     dat[["metabocrates_dat"]] <- uploaded_data
     
+    reset()
+    filtering_threshold_ex(FALSE)
+    outlier_detection_ex(FALSE)
+    dat[["metabocrates_dat_group"]] <- NULL
   })
   
   ## previous project
@@ -878,8 +892,12 @@ server <- function(input, output, session) {
       dat[["metabocrates_dat"]] <- NULL
       req(NULL)
     }
-    
-    dat[["metabocrates_dat"]] <- uploaded_project
+
+    dat[["metabocrates_dat_group"]] <- uploaded_project[["data"]]
+    dat[["metabocrates_dat"]] <- uploaded_project[["data"]]
+    input <- uploaded_project[["input"]]
+    filtering_threshold_ex <- uploaded_project[["filtering_threshold_ex"]]
+    outlier_detection_ex <- uploaded_project[["outlier_detection_ex"]]
   })
   
   ## example data
@@ -887,6 +905,11 @@ server <- function(input, output, session) {
   observeEvent(input[["example_dat"]], {
     path <- get_example_data("Submission_1.xlsx")
     dat[["metabocrates_dat"]] <- read_data(path)
+    
+    reset()
+    filtering_threshold_ex(FALSE)
+    outlier_detection_ex(FALSE)
+    dat[["metabocrates_dat_group"]] <- NULL
   }, ignoreInit = TRUE)
   
   ## display informations
@@ -1211,13 +1234,6 @@ server <- function(input, output, session) {
   outputOptions(output, "groups_plt_ui", suspendWhenHidden = FALSE)
   
   ######### filtering
-  
-  filtering_threshold_ex <- reactiveVal(FALSE)
-  
-  observeEvent(input[["run"]], {
-    if(input[["run"]] == "Filtering")
-      filtering_threshold_ex(TRUE)
-  })
   
   to_remove <- reactive({
     req(dat[["metabocrates_dat_group"]])
@@ -1732,7 +1748,9 @@ server <- function(input, output, session) {
                         types_to_display = input[["sample_type_PCA_types"]],
                         threshold = input[["sample_type_PCA_threshold"]]/100),
         error = function(e){
-          if(e == "Not enough complete data.")
+          if(grepl("Not enough complete data.",
+                   conditionMessage(e),
+                   fixed = TRUE))
             NULL
         }
       )
@@ -1764,11 +1782,19 @@ server <- function(input, output, session) {
     req(length(setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
                        unlist(attr(dat[["metabocrates_dat_group"]], "removed")))) > 1)
     
-    pca_variance(dat[["metabocrates_dat_group"]],
-                 group_by = "sample_type",
-                 threshold = input[["sample_type_PCA_variance_threshold"]]/100,
-                 max_num = input[["sample_type_PCA_variance_max_num"]],
-                 cumulative = input[["sample_type_PCA_variance_cum"]])
+    tryCatch(
+      pca_variance(dat[["metabocrates_dat_group"]],
+                   group_by = "sample_type",
+                   threshold = input[["sample_type_PCA_variance_threshold"]]/100,
+                   max_num = input[["sample_type_PCA_variance_max_num"]],
+                   cumulative = input[["sample_type_PCA_variance_cum"]]),
+      error = function(e){
+        if(grepl("Not enough complete data.",
+                 conditionMessage(e),
+                 fixed = TRUE))
+          NULL
+      }
+    )
   })
   
   plot_with_button_SERVER("sample_type_PCA_variance_plt", sample_type_PCA_variance_plt)
@@ -1788,7 +1814,7 @@ server <- function(input, output, session) {
     req(attr(dat[["metabocrates_dat_group"]], "completed"))
     req(input[["sample_type_PCA_type"]])
     
-    if(sample_type_PCA_rows_num() == 0){
+    if(sample_type_PCA_rows_num() < 2){
       column(9,
              create_message_box("Not enough complete data",
                                 type = "warning")
@@ -1831,7 +1857,9 @@ server <- function(input, output, session) {
                       type = input[["group_PCA_type"]],
                       threshold = input[["group_PCA_threshold"]]/100),
       error = function(e){
-        if(e == "Not enough complete data.")
+        if(grepl("Not enough complete data.",
+                 conditionMessage(e),
+                 fixed = TRUE))
           NULL
       }
     )
@@ -1870,7 +1898,9 @@ server <- function(input, output, session) {
                    max_num = input[["group_PCA_variance_max_num"]],
                    cumulative = input[["group_PCA_variance_cum"]]),
       error = function(e){
-        if(e == "Not enough complete data.")
+        if(grepl("Not enough complete data.",
+                 conditionMessage(e),
+                 fixed = TRUE))
           NULL
       }
     )
@@ -1898,7 +1928,7 @@ server <- function(input, output, session) {
       column(9,
              create_message_box("Group data to see plots", type = "warning") 
       )
-    }else if(group_PCA_rows_num() == 0){
+    }else if(group_PCA_rows_num() < 2){
       column(9,
              create_message_box("Not enough complete data",
                                 type = "warning")
@@ -2036,7 +2066,8 @@ server <- function(input, output, session) {
   download_SERVER("download_tables", dat, input)
   download_SERVER("download_zip", dat, input)
   download_SERVER("download_pdf", dat, input,
-                  filtering_threshold_ex = filtering_threshold_ex)
+                  filtering_threshold_ex = filtering_threshold_ex,
+                  outlier_detection_ex = outlier_detection_ex)
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
