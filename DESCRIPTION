@@ -1,29 +1,28 @@
 Package: MetaboCrates
 Title: Processing and Analysis of Biocrates® Metabolomics Data
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
           person("Krystyna", "Grzesiak", 
               email = "krygrz11@gmail.com", 
               comment = c(ORCID = "0000-0003-2581-7722"),
               role = c("aut", "cre")),
-          person("Michał", "Burdukiewicz", ,
+          person("Michał", "Burdukiewicz",
               email = "michalburdukiewicz@gmail.com",
               comment = c(ORCID = "0000-0001-8926-582X"),
               role = c("aut", "ctb")),
-          person("Filip", "Gaj", , 
+          person("Filip", "Gaj",
               email = "f.gaj16@gmail.com", 
               role = c("aut", "ctb")),
-          person("Joanna", "Pokora", , 
+          person("Joanna", "Pokora",
               email = "pokorajo@gmail.com", 
               role = c("aut", "ctb"))
           )
-Maintainer: Krystyna Grzesiak <krygrz11@gmail.com>
-Description: This package provides functionality for post-processing and 
+Description: A tool for post-processing and 
     analysis of metabolomics data.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     rmarkdown,
