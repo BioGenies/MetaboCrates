@@ -719,7 +719,7 @@ create_correlations_heatmap <- function(dat, type = "completed",
       filter(`sample type` == "Sample") %>%
       select(all_of(setdiff(attr(dat, "metabolites"),
                             unlist(attr(dat, "removed"))))) %>%
-      mutate(across(everything(), suppressWarnigs(as.numeric))) %>%
+      mutate(across(everything(), suppressWarnings(as.numeric))) %>%
       select(where(~ !is.na(sd(., na.rm = TRUE)) & sd(., na.rm = TRUE) != 0))
   }
   
