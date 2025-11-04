@@ -2,7 +2,9 @@
 custom_datatable <- function(dat,
                              paging = TRUE,
                              scrollY = 380,
-                             selection = list(selectable = FALSE)) {
+                             selection = list(selectable = FALSE),
+                             container = NULL) {
+  
   DT::datatable(dat,
                 editable = FALSE,
                 selection = selection,
@@ -15,7 +17,8 @@ custom_datatable <- function(dat,
                                dom = 'Bfrtip',
                                buttons = c("csv", "excel", "pdf")),
                 class = "display nowrap",
-                rownames = FALSE)
+                rownames = FALSE,
+                container = container)
 }
 
 

@@ -157,6 +157,22 @@
       ],
       "Hash": "1b2ca1972e3b00cd0bb5a98e16403028"
     },
+    "SLOPE": {
+      "Package": "SLOPE",
+      "Version": "1.0.1",
+      "Source": "Repository",
+      "Repository": "https://packagemanager.posit.co/cran/2025-07-31",
+      "Requirements": [
+        "BH",
+        "Matrix",
+        "R",
+        "Rcpp",
+        "RcppEigen",
+        "bigmemory",
+        "methods"
+      ],
+      "Hash": "28b1ba8caaf386b319a8bba03cdf601f"
+    },
     "SparseM": {
       "Package": "SparseM",
       "Version": "1.84-2",
@@ -238,6 +254,32 @@
       ],
       "Hash": "0f4e9d8caa6feaa7e409ae6c30f2ca66"
     },
+    "bigmemory": {
+      "Package": "bigmemory",
+      "Version": "4.6.4",
+      "Source": "Repository",
+      "Repository": "https://packagemanager.posit.co/cran/2025-07-31",
+      "Requirements": [
+        "BH",
+        "R",
+        "Rcpp",
+        "bigmemory.sri",
+        "methods",
+        "utils",
+        "uuid"
+      ],
+      "Hash": "96b3f1272c36f003f6c6c34171a57e05"
+    },
+    "bigmemory.sri": {
+      "Package": "bigmemory.sri",
+      "Version": "0.1.8",
+      "Source": "Repository",
+      "Repository": "https://packagemanager.posit.co/cran/2025-07-31",
+      "Requirements": [
+        "methods"
+      ],
+      "Hash": "ca3079c10ffaf7c18b783f13d3a0bc2f"
+    },
     "boot": {
       "Package": "boot",
       "Version": "1.3-30",
@@ -262,7 +304,7 @@
     },
     "broom": {
       "Package": "broom",
-      "Version": "1.0.8",
+      "Version": "1.0.10",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -279,7 +321,7 @@
         "tibble",
         "tidyr"
       ],
-      "Hash": "f6ceb00b6c485a472516d8d6a884b84d"
+      "Hash": "ef7ec50d4928be47aeae566ac32ea4d5"
     },
     "bslib": {
       "Package": "bslib",
@@ -384,6 +426,16 @@
         "utils"
       ],
       "Hash": "1216ac65ac55ec0058a6f75d7ca0fd52"
+    },
+    "codetools": {
+      "Package": "codetools",
+      "Version": "0.2-20",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "61e097f35917d342622f21cdc79c256e"
     },
     "commonmark": {
       "Package": "commonmark",
@@ -616,6 +668,19 @@
       ],
       "Hash": "c2efdd5f0bcd1ea861c2d4e2a883a67d"
     },
+    "foreach": {
+      "Package": "foreach",
+      "Version": "1.5.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "codetools",
+        "iterators",
+        "utils"
+      ],
+      "Hash": "618609b42c9406731ead03adf5379850"
+    },
     "fs": {
       "Package": "fs",
       "Version": "1.6.3",
@@ -796,6 +861,24 @@
       ],
       "Hash": "76c1d0fc86099be703106f11ba755520"
     },
+    "glmnet": {
+      "Package": "glmnet",
+      "Version": "4.1-10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Matrix",
+        "R",
+        "Rcpp",
+        "RcppEigen",
+        "foreach",
+        "methods",
+        "shape",
+        "survival",
+        "utils"
+      ],
+      "Hash": "158d36283dd26ca74066e6c09226a72f"
+    },
     "glue": {
       "Package": "glue",
       "Version": "1.7.0",
@@ -950,6 +1033,17 @@
         "utils"
       ],
       "Hash": "0080607b4a1a7b28979aecef976d8bc2"
+    },
+    "iterators": {
+      "Package": "iterators",
+      "Version": "1.0.14",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "utils"
+      ],
+      "Hash": "8954069286b4b2b0d023d1b288dce978"
     },
     "jquerylib": {
       "Package": "jquerylib",
@@ -1712,6 +1806,19 @@
       ],
       "Hash": "c5bba8f0d1df8c4b9538a40570798d9b"
     },
+    "shape": {
+      "Package": "shape",
+      "Version": "1.4.6.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "stats"
+      ],
+      "Hash": "5c47e84dc0a3ca761ae1d307889e796d"
+    },
     "shiny": {
       "Package": "shiny",
       "Version": "1.8.1.1",
@@ -1850,7 +1957,7 @@
     },
     "stringr": {
       "Package": "stringr",
-      "Version": "1.5.1",
+      "Version": "1.5.2",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1863,7 +1970,7 @@
         "stringi",
         "vctrs"
       ],
-      "Hash": "960e2ae9e09656611e0b8214ad543207"
+      "Hash": "8f28c568a22dde52d2c8b11958776ac2"
     },
     "survival": {
       "Package": "survival",

@@ -54,6 +54,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                         choices = c("None"))
       
       attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
+      
+      updateSelectInput(main_session, "modeling_variable", choices = character(0))
+      updateSelectInput(main_session, "modeling_level", choices = character(0))
     }else if(id == "cv_update"){
       updateMultiInput(main_session, "CV_to_remove", 
                        choices = metabolites(), 
@@ -134,6 +137,26 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                                    inputId = "sample_type_PCA_types",
                                    choices = unique(types),
                                    selected = unique(types))
+        }
+        
+        if(!is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
+          modeling_variable <- attr(dat[["metabocrates_dat_group"]],
+                                    "completed") %>%
+            filter(`sample type` == "Sample") %>%
+            select(attr(dat[["metabocrates_dat_group"]], "group")) %>%
+            tidyr::pivot_longer(cols = everything()) %>%
+            group_by(across(everything())) %>%
+            count() %>%
+            filter(n > 1) %>%
+            group_by(name) %>%
+            count() %>%
+            filter(n > 1) %>%
+            select(name) %>%
+            unlist() %>%
+            setNames(NULL)
+          
+          updateSelectInput(inputId = "modeling_variable",
+                            choices = modeling_variable)
         }
       }
     }

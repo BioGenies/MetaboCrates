@@ -3,6 +3,7 @@ library(dplyr)
 library(stringr)
 library(openxlsx)
 library(ggpubr)
+library(htmltools)
 
 library(shiny)
 library(shinythemes)
@@ -33,7 +34,7 @@ options(
 
 panels_vec <- c("About", "Uploading data", "Group selection",
                 "Filtering", "Completing",  "Quality control",
-                "Outlier detection", "Summary", "Download")
+                "Outlier detection", "Modeling", "Summary", "Download")
 
 
 ui <- navbarPage(
@@ -120,7 +121,7 @@ ui <- navbarPage(
                    ),
                    column(9,
                           column(12, align = "right", 
-                                 h2("Uploading data (step 1/8)"),
+                                 h2("Uploading data (step 1/9)"),
                                  h3("next: Group selection")),
                           br(),
                           withSpinner(htmlOutput("raw_data_summary"))
@@ -159,7 +160,7 @@ ui <- navbarPage(
                    ),
                    column(9,
                           column(12, align = "right", 
-                                 h2("Uploading data (step 1/8)"),
+                                 h2("Uploading data (step 1/9)"),
                                  h3("next: Group selection")),
                           br(),
                           column(12,
@@ -200,7 +201,7 @@ ui <- navbarPage(
                    ),
                    column(9,
                           column(12, align = "right", 
-                                 h2("Uploading data (step 1/8)"),
+                                 h2("Uploading data (step 1/9)"),
                                  h3("next: Group selection")),
                           br(),
                           br(),
@@ -243,7 +244,7 @@ ui <- navbarPage(
                                  uiOutput("group_info")
                           ),
                           column(9, align = "right", 
-                                 h2("Group selection (step 2/8)"),
+                                 h2("Group selection (step 2/9)"),
                                  h3("next: Filtering"),
                           ),
                           column(7, offset = 1,
@@ -253,7 +254,7 @@ ui <- navbarPage(
                ),
                tabPanel("Group summary",
                         column(12, align = "right",
-                               h2("Group selection (step 2/8)"),
+                               h2("Group selection (step 2/9)"),
                                h3("next: Filtering"),
                         ),
                         uiOutput("groups_plt_ui")
@@ -326,7 +327,7 @@ ui <- navbarPage(
                           ),
                           column(8,
                                  column(12, align = "right",
-                                        h2("Compounds filtering (step 3/8)"),
+                                        h2("Compounds filtering (step 3/9)"),
                                         h3("next: Completing")
                                  ),
                                  br(),
@@ -335,7 +336,7 @@ ui <- navbarPage(
                  ),
                  tabPanel("Ratios visualization",
                           column(12, align = "right",
-                                 h2("Compounds filtering (step 3/8)"),
+                                 h2("Compounds filtering (step 3/9)"),
                                  h3("next: Completing")
                           ),
                           br(),
@@ -354,7 +355,7 @@ ui <- navbarPage(
                  ),
                  tabPanel("Venn diagram",
                           column(12, align = "right",
-                                 h2("Compounds filtering (step 3/8)"),
+                                 h2("Compounds filtering (step 3/9)"),
                                  h3("next: Completing")
                           ),
                           uiOutput("venn_diagram_ui")
@@ -413,7 +414,7 @@ ui <- navbarPage(
                                            br()
                                     ),
                                     column(9, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
+                                           h2("Gaps completing (step 4/9)"),
                                            h3("next: Quality control")
                                     ),
                                     column(9,
@@ -423,7 +424,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Table of limits",
                                     column(12, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
+                                           h2("Gaps completing (step 4/9)"),
                                            h3("next: Quality control")
                                     ),
                                     br(),
@@ -449,7 +450,7 @@ ui <- navbarPage(
                                           )
                                    ),
                                    column(9, align = "right",
-                                          h2("Gaps completing (step 4/8)"),
+                                          h2("Gaps completing (step 4/9)"),
                                           h3("next: Quality control")
                                    ),
                                    column(9,
@@ -493,7 +494,7 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
+                                           h2("Gaps completing (step 4/9)"),
                                            h3("next: Quality control")
                                     ),
                                     conditionalPanel(
@@ -569,7 +570,7 @@ ui <- navbarPage(
                                  actionButton("CV_undo_btn", label = "Undo")),
                    ),
                    column(8, align = "right",
-                          h2("Quality control (step 5/8)"),
+                          h2("Quality control (step 5/9)"),
                           h3("next: Outlier detection")
                    ),
                    column(6, offset = 1,
@@ -642,8 +643,8 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Outlier detection (step 6/8)"),
-                                           h3("next: Summary")
+                                           h2("Outlier detection (step 6/9)"),
+                                           h3("next: Modeling")
                                     ),
                                     uiOutput("sample_type_cond_pca_plt")
                            ),
@@ -698,7 +699,7 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Outlier detection (step 6/8)"),
+                                           h2("Outlier detection (step 6/9)"),
                                            h3("next: Summary")
                                     ),
                                     uiOutput("group_cond_pca_plt")
@@ -706,10 +707,40 @@ ui <- navbarPage(
                )
       ),
       #######
+      tabPanel("Modeling",
+        nav_btns_UI("Modeling"),
+        column(12, align = "right", 
+               h2("Summary (step 7/9)"),
+               h3("next: Summary")
+        ),
+        column(3, offset = 1,
+          selectInput("modeling_variable",
+                      label = "Choose the grouping variable",
+                      choices = character(0))
+        ),
+        column(3, offset = 1,
+               selectInput("modeling_level",
+                           label = "Choose the grouping level",
+                           choices = character(0))
+        ),
+        br(),
+        column(10, offset = 1,
+               column(4, offset = 1,
+                      table_with_button_UI("summary_general")
+               ),
+               column(5, offset = 1,
+                      table_with_button_UI("summary_full")
+               ),
+               column(5, offset = 1,
+                      table_with_button_UI("summary_reduced")
+               )
+        )
+      ),
+      #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
                column(12, align = "right", 
-                      h2("Summary (step 7/8)"),
+                      h2("Summary (step 8/9)"),
                       h3("next: Download")
                ),
                fluidRow(
@@ -757,7 +788,7 @@ ui <- navbarPage(
            column(9,
                   h2("Here you can download your results at any step of your work!")
            ),
-           column(3, align = "right", h2("Download (step 8/8)")),
+           column(3, align = "right", h2("Download (step 9/9)")),
            br(),
            br(),
            br(),
@@ -818,6 +849,9 @@ server <- function(input, output, session) {
   
   callModule(nav_btns_SERVER, id = "Outlier detection", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Outlier detection")
+  
+  callModule(nav_btns_SERVER, id = "Modeling", parent_session = session, 
+             panels_vec = panels_vec, panel_id = "Modeling")
   
   callModule(nav_btns_SERVER, "Summary", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Summary")
@@ -1955,6 +1989,67 @@ server <- function(input, output, session) {
         )
     }
   })
+  
+  ######### Modeling
+  
+  observeEvent(input[["modeling_variable"]], {
+    modeling_levels <- if(!is.null(attr(dat[["metabocrates_dat_group"]],
+                                        "completed"))){
+      lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        filter(`sample type` == "Sample") %>%
+        group_by(across(all_of(input[["modeling_variable"]]))) %>%
+        count() %>%
+        filter(n > 1) %>%
+        select(all_of(input[["modeling_variable"]])) %>%
+        unlist() %>%
+        setNames(NULL)
+      
+      if(length(lvls) < 2) character(0)
+      else lvls
+    } else
+      character(0)
+    
+    updateSelectInput(session, "modeling_level", choices = modeling_levels)
+  })
+  
+  models_reactive <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["modeling_variable"]]) 
+    
+    models <- build_models(dat[["metabocrates_dat_group"]],
+                         response = input[["modeling_variable"]],
+                         level = input[["modeling_level"]])
+    
+    get_models_info(models)
+  })
+  
+  summary_general <- reactive({
+    req(models_reactive)
+    
+    container <- htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(
+          th(rowspan = 3, "General"),
+          th(colspan = 5, "Full"),
+          th(colspan = 5, "Reduced")
+        ),
+        tr(lapply(
+          c("null.deviance", "df.null", "nobs",
+            rep(c("logLik", "AIC", "BIC", "deviance", "df.residual")), 2),
+          th))
+      )
+    ))
+    
+    models_reactive()[["summary"]] %>%
+      bind_cols() %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable(scrollY = 300,
+                       paging = TRUE,
+                       container = container)
+  })
+  
+  table_with_button_SERVER("summary_general", summary_general)
   
   ######## Summary
   
