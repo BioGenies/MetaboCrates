@@ -26,18 +26,20 @@ build_models <- function(dat, response, level = NULL){
   if(is.null(attr(dat, "completed")))
     stop("Complete data first.")
   
-  if(length(unique(dat[[response]])) > 2 && is.null(level))
+  model_dat <- attr(dat, "completed") %>%
+    filter(`sample type` == "Sample")
+  
+  if(length(unique(model_dat[[response]])) > 2 && is.null(level))
     stop("A specific level must be given when the response variable has three
           or more levels.")
   
-  if(!is.null(level) && !(level %in% dat[[response]]))
+  if(!is.null(level) && !(level %in% model_dat[[response]]))
     stop("Given level wasn't found in a response variable.")
   
-  if(length(unique(dat[[response]])) == 1)
+  if(length(unique(model_dat[[response]])) == 1)
     stop("Response variable has only one level.")
   
-  model_dat <- attr(dat, "completed") %>%
-    filter(`sample type` == "Sample") %>%
+  model_dat <- model_dat %>%
     select(all_of(c(attr(dat, "metabolites"),
                     response))) %>%
     na.omit() %>%
@@ -64,40 +66,59 @@ build_models <- function(dat, response, level = NULL){
   clean_model_dat <- model_dat %>%
     filter(.data[[response]] %in% aval_levels)
   
-  if(!is.null(level)){
-    clean_model_dat <- clean_model_dat %>%
-      mutate(dummy = as.factor(.data[[response]])) %>%
-      mutate(dummy = case_when(.data[[response]] == level ~ 1,
-                               .default = 0)) %>%
-      select(!all_of(response))
-    response <- sub(" ", "_", paste0(response, "_", level))
-    clean_model_dat <- rename_with(clean_model_dat, ~ paste0(response), dummy)
-  }
+  if(is.null(level))
+    level <- aval_levels[1]
   
   clean_model_dat <- clean_model_dat %>%
+    mutate(dummy = as.factor(.data[[response]]), .before = 1) %>%
+    mutate(dummy = case_when(.data[[response]] == level ~ 1,
+                             .default = 0)) %>%
+    select(!all_of(response))
+  
+  response <- sub(" ", "_", paste0(response, "_", level))
+  
+  clean_model_dat <- rename_with(clean_model_dat, ~ paste0(response), dummy) %>%
     mutate(across(all_of(response), as.factor))
   
-  list(
-    full = glm(paste0(response, "~ ."), clean_model_dat, family = "binomial"),
-    reduced = tryCatch(
-      trainSLOPE(x = select(clean_model_dat, !all_of(response)),
-                 y = clean_model_dat[[response]],
-                 family = "binomial"),
-      error = function(e){
-        warning("SLOPE regularization cannot be performed -
-                using ridge regression instead")
-        
-        lambda_best <- cv.glmnet(
-          x = as.matrix(select(clean_model_dat, !all_of(response))),
+  set.seed(12)
+  
+  reduced_model <- tryCatch({
+    tune <- cvSLOPE(x = select(clean_model_dat, !all_of(response)),
+                    y = clean_model_dat[[response]],
+                    family = "binomial",
+                    n_folds = 5)
+    SLOPE(x = select(clean_model_dat, !all_of(response)),
           y = clean_model_dat[[response]],
-          family = "binomial"
-        )[["lambda.min"]]
-        glmnet(x = as.matrix(select(clean_model_dat, !all_of(response))),
-               y = clean_model_dat[[response]],
-               family = "binomial", lambda = lambda_best)
-      }
-    )
+          family = "binomial",
+          alpha = tune[["optima"]][["alpha"]])
+    },
+    error = function(e){
+      warning("SLOPE regularization cannot be performed -
+                  using ridge regression instead")
+      
+      foldid <- sample(rep(seq(10), length.out = nrow(clean_model_dat)))
+                       
+      lambda_best <- cv.glmnet(
+        x = as.matrix(select(clean_model_dat, !all_of(response))),
+        y = clean_model_dat[[response]],
+        family = "binomial"
+      )[["lambda.min"]]
+      
+      glmnet(x = as.matrix(select(clean_model_dat, !all_of(response))),
+             y = clean_model_dat[[response]],
+             family = "binomial", lambda = lambda_best,
+             foldid = foldid)
+    }
   )
+  
+  if(nrow(clean_model_dat) <= ncol(clean_model_dat)){
+    warning("Design matrix isn't full rank - returning only reduced model")
+    list(reduced = reduced_model, data = clean_model_dat)
+  }else
+    list(
+      full = glm(paste0(response, "~ ."), clean_model_dat, family = "binomial"),
+      reduced = reduced_model
+    )
 }
 
 #' Get information about models
@@ -124,42 +145,96 @@ build_models <- function(dat, response, level = NULL){
 #' @export
 
 get_models_info <- function(models){
-  reduced_data <- models[["full"]][["model"]] %>%
-    select(c(1, attr(models[["reduced"]][["beta"]], "i") + 1)) %>%
+  reduced_model_coefs <- if("glmnet" %in% class(models[["reduced"]]))
+    which(models[["reduced"]][["beta"]][, 1] != 0)
+  else
+    which(models[["reduced"]][["nonzeros"]][[1]][, 1])
+  
+  reduced_coef_num <- length(reduced_model_coefs)
+  
+  model_data <- if(is.null(models[["full"]]))
+    models[["data"]]
+  else
+    models[["full"]][["model"]]
+  
+  reduced_data <- model_data %>%
+    select(c(1, reduced_model_coefs + 1)) %>%
     mutate(across(everything(), ~ as.numeric(as.character(.x)))) %>%
-    mutate(fitted = as.numeric(predict(models[["reduced"]],
-                            as.matrix(models[["full"]][["model"]][, -1]),
-                            type = "response")),
-           resid = sign(.[[1]] - fitted) *
-             sqrt(-2 * (.[[1]] * log(fitted) + (1 - .[[1]]) *
-                          log(1 - fitted))))
+    mutate(
+      fitted = as.numeric(predict(
+        models[["reduced"]],
+        as.matrix(model_data[, -1]),
+        type = "response"
+      )),
+      resid = sign(.[[1]] - fitted) *
+        sqrt(-2 * (.[[1]] * log(fitted) + (1 - .[[1]]) * log(1 - fitted)))
+    )
   
   reduced_deviance <- deviance(models[["reduced"]])
+  
+  reduced_df <- if("glmnet" %in% class(models[["reduced"]]))
+    models[["reduced"]][["df"]]
+  else
+    sum(models[["reduced"]][["nonzeros"]][[1]])
+  
+  nobs <- nrow(model_data)
+  null_deviance <- if("glmnet" %in% class(models[["reduced"]]))
+    models[["reduced"]][["nulldev"]]
+  else
+    models[["reduced"]][["null_deviance"]]
     
-  list(
+  info <- list(
     data = list(
-      full = augment(models[["full"]], type.predict = "response",
-                     type.residuals = "deviance"),
+      full = {
+        if(is.null(models[["full"]]))
+          model_data
+        else
+          augment(models[["full"]], type.predict = "response",
+                  type.residuals = "deviance")
+      },
       reduced = reduced_data
     ),
     summary = list(
-      general = glance(models[["full"]]) %>%
-        select(null.deviance, df.null, nobs),
-      full = glance(models[["full"]]) %>%
-        select(logLik, AIC, BIC, deviance, df.residual),
+      general = data.frame(
+        null.deviance = null_deviance,
+        df.null = nobs - 1,
+        nobs = nobs
+      ),
       reduced = data.frame(
         logLik = reduced_deviance/(-2),
-        AIC = 2 * models[["reduced"]][["df"]] + reduced_deviance,
-        BIC = models[["reduced"]][["df"]] * models[["reduced"]][["nobs"]] +
-          reduced_deviance,
+        AIC = 2 * reduced_df + reduced_deviance,
+        BIC = reduced_df * nobs + reduced_deviance,
         deviance = reduced_deviance,
-        df.residual = models[["reduced"]][["nobs"]] -
-          models[["reduced"]][["df"]]
+        df.residual = max(nobs - reduced_df, 0)
       )
     ),
-    coefficients = list(
-      full = tidy(models[["full"]]),
-      reduced = tidy(models[["reduced"]])
-    )
+    coefficients = {
+      coefs <- if("glmnet" %in% class(models[["reduced"]]))
+        select(tidy(models[["reduced"]]), term, estimate) %>%
+        mutate(term = gsub("`", "", term))
+      else
+        data.frame(
+          term = c("(Intercept)", models[["reduced"]][["variable_names"]]),
+          estimate = c(models[["reduced"]][["intercepts"]][[1]],
+                       models[["reduced"]][["coefficients"]][["p1"]][, 1])
+        )
+    }
   )
+  
+  if(!is.null(models[["full"]])){
+    info[["summary"]] <- list(
+      general = info[["summary"]][["general"]],
+      full = glance(models[["full"]]) %>%
+        select(logLik, AIC, BIC, deviance, df.residual),
+      reduced = info[["summary"]][["reduced"]]
+    )
+    
+    info[["coefficients"]] <- list(
+      full = suppressWarnings(tidy(models[["full"]])) %>%
+        mutate(term = gsub("`", "", term)),
+      reduced = info[["coefficients"]]
+    )
+  }
+  
+  info
 }
