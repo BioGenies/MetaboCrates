@@ -4,6 +4,7 @@ library(stringr)
 library(openxlsx)
 library(ggpubr)
 library(htmltools)
+library(rlang)
 
 library(shiny)
 library(shinythemes)
@@ -713,26 +714,28 @@ ui <- navbarPage(
                h2("Summary (step 7/9)"),
                h3("next: Summary")
         ),
-        column(3, offset = 1,
-          selectInput("modeling_variable",
-                      label = "Choose the grouping variable",
-                      choices = character(0))
+        column(12,
+               column(3, offset = 1,
+                      selectInput("modeling_variable",
+                                  label = "Choose the grouping variable",
+                                  choices = character(0))
+               ),
+               column(3, offset = 1,
+                      selectInput("modeling_level",
+                                  label = "Choose the grouping level",
+                                  choices = character(0)))
         ),
-        column(3, offset = 1,
-               selectInput("modeling_level",
-                           label = "Choose the grouping level",
-                           choices = character(0))
-        ),
-        br(),
         column(10, offset = 1,
+               br(),
+               table_with_button_UI("modeling_summary")
+        ),
+        column(12,
+               br(),
+               column(7,
+                 table_with_button_UI("modeling_data")
+               ),
                column(4, offset = 1,
-                      table_with_button_UI("summary_general")
-               ),
-               column(5, offset = 1,
-                      table_with_button_UI("summary_full")
-               ),
-               column(5, offset = 1,
-                      table_with_button_UI("summary_reduced")
+                 table_with_button_UI("modeling_coefficients")
                )
         )
       ),
@@ -1993,6 +1996,8 @@ server <- function(input, output, session) {
   ######### Modeling
   
   observeEvent(input[["modeling_variable"]], {
+    req(dat[["metabocrates_dat_group"]])
+    
     modeling_levels <- if(!is.null(attr(dat[["metabocrates_dat_group"]],
                                         "completed"))){
       lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
@@ -2004,17 +2009,17 @@ server <- function(input, output, session) {
         unlist() %>%
         setNames(NULL)
       
-      if(length(lvls) < 2) character(0)
-      else lvls
     } else
       character(0)
     
+    freezeReactiveValue(input, "modeling_level")
     updateSelectInput(session, "modeling_level", choices = modeling_levels)
   })
   
   models_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
-    req(input[["modeling_variable"]]) 
+    req(input[["modeling_variable"]])
+    req(input[["modeling_level"]])
     
     models <- build_models(dat[["metabocrates_dat_group"]],
                          response = input[["modeling_variable"]],
@@ -2023,33 +2028,174 @@ server <- function(input, output, session) {
     get_models_info(models)
   })
   
-  summary_general <- reactive({
+  modeling_summary <- reactive({
     req(models_reactive)
+    
+    model_aval <- setdiff(names(models_reactive()[["summary"]]), "general")
     
     container <- htmltools::withTags(table(
       class = 'display',
       thead(
         tr(
-          th(rowspan = 3, "General"),
-          th(colspan = 5, "Full"),
-          th(colspan = 5, "Reduced")
+          lapply(c("null.deviance", "df.null", "nobs"), function(name){
+            th(rowspan = 2, name)
+          }),
+          lapply(model_aval, function(name) th(colspan = 5, name))
         ),
-        tr(lapply(
-          c("null.deviance", "df.null", "nobs",
-            rep(c("logLik", "AIC", "BIC", "deviance", "df.residual")), 2),
-          th))
+        tr(
+          lapply(rep(c("logLik", "AIC", "BIC", "deviance", "df.residual"),
+                     length(model_aval)),
+                 th)
+        )
       )
     ))
     
     models_reactive()[["summary"]] %>%
       bind_cols() %>%
       mutate(across(everything(), display_short)) %>%
-      custom_datatable(scrollY = 300,
-                       paging = TRUE,
+      custom_datatable(scrollY = NULL,
+                       paging = FALSE,
+                       pageLength = 1,
                        container = container)
   })
   
-  table_with_button_SERVER("summary_general", summary_general)
+  table_with_button_SERVER("modeling_summary", modeling_summary)
+  
+  modeling_data <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(models_reactive)
+    
+    full_coef <- colnames(models_reactive()[["data"]][["full"]])
+    
+    if(!is.null(models_reactive()[["coefficients"]][["full"]])){
+      models_aval <- list(c("full", 6), c("reduced", 2))
+      container_cols <- c("fitted", "resid", "hat", "sigma", "cooksd",
+                          "std.resid", "fitted", "resid")
+      reduced_coef <- models_reactive()[["coefficients"]][["reduced"]]
+      full_coef <- full_coef[-((length(full_coef) - 5):length(full_coef))]
+    }
+    else{
+      models_aval <- list(c("reduced", 2))
+      container_cols <- c("fitted", "resid")
+      reduced_coef <- models_reactive()[["coefficients"]]
+    }
+    
+    container <- htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(lapply(models_aval,
+                  function(x) th(colspan = as.numeric(x[2]), x[1])),
+           lapply(full_coef, function(name){
+             th(rowspan = 2, name)
+           })
+        ),
+        tr(
+          lapply(container_cols, th)
+        )
+      )
+    ))
+    
+    imputed_metabos <- sapply(
+      attr(dat[["metabocrates_dat_group"]], "metabolites"),
+      function(name){
+        if(!(name %in% full_coef))
+          NULL
+        else
+          which(dat[["metabocrates_dat_group"]][[name]] != 
+                  attr(dat[["metabocrates_dat_group"]], "completed")[[name]])
+      }
+    )
+    imputed_metabos <- imputed_metabos[sapply(imputed_metabos, length) > 0]
+      
+    modeling_data_dt_style <- c(
+      list(list(
+        columns = as.character(unlist(select(reduced_coef, term)[-1,])),
+        backgroundColor = "#A6EDDE"
+      )),
+      lapply(names(imputed_metabos), function(name){
+        list(
+          columns = name,
+          fontWeight = styleRow(imputed_metabos[[name]], "bold")
+        )
+      })
+    )
+    
+    models_reactive()[["data"]][["full"]] %>%
+      mutate(models_reactive()[["data"]][["reduced"]]) %>%
+      relocate(!all_of(full_coef)) %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable(scrollY = 300,
+                       paging = TRUE,
+                       styles = modeling_data_dt_style,
+                       container = container)
+  })
+  
+  table_with_button_SERVER("modeling_data", modeling_data)
+  
+  modeling_coefficients <- reactive({
+    req(modeling_data)
+    
+    container <- if((is.null(models_reactive()[["coefficients"]][["full"]]))){
+      htmltools::withTags(table(
+        class = 'display',
+        thead(
+          tr(
+            th(rowspan = 2, "term"),
+            th(colspan = 1, "reduced")
+          ),
+          tr(
+            th("estimate")
+          )
+        )
+      ))
+    }else{
+      htmltools::withTags(table(
+        class = 'display',
+        thead(
+          tr(
+            th(rowspan = 2, "term"),
+            th(colspan = 4, "full"),
+            th(colspan = 1, "reduced")
+          ),
+          tr(
+            lapply(c("estimate", "std.error", "statistic",
+                     "p.value", "estimate"), th)
+          )
+        )
+      ))
+    }
+    
+    modeling_data_dt_style <- if(!is.null(
+      models_reactive()[["coefficients"]][["full"]]
+      )){
+      list(list(
+        columns = "term",
+        target = "row",
+        backgroundColor = styleEqual(
+          models_reactive()[["coefficients"]][["reduced"]][["term"]],
+          "#A6EDDE"
+        )
+      ))
+    }else
+      NULL
+    
+    model_coef <- if(is.null(models_reactive()[["coefficients"]][["full"]]))
+      models_reactive()[["coefficients"]]
+    else{
+      models_reactive()[["coefficients"]][["full"]] %>%
+        full_join(models_reactive()[["coefficients"]][["reduced"]],
+                  by = "term")
+    }
+      
+    model_coef %>%
+      mutate(across(!term, ~ display_short(.x, digits = 4))) %>%
+      custom_datatable(scrollY = 300,
+                       paging = TRUE,
+                       styles = modeling_data_dt_style,
+                       container = container)
+  })
+  
+  table_with_button_SERVER("modeling_coefficients", modeling_coefficients)
   
   ######## Summary
   
