@@ -721,9 +721,15 @@ ui <- navbarPage(
                                   choices = character(0))
                ),
                column(3, offset = 1,
-                      selectInput("modeling_level",
-                                  label = "Choose the grouping level",
-                                  choices = character(0)))
+                      conditionalPanel(
+                        condition = "input.modeling_level != `two_levels`",
+                        selectInput("modeling_level",
+                                    label = "Choose level",
+                                    choices = character(0)
+                        )
+                      )
+#                      uiOutput("modeling_level_ui")
+               )
         ),
         column(10, offset = 1,
                br(),
@@ -1995,25 +2001,52 @@ server <- function(input, output, session) {
   
   ######### Modeling
   
+  # output[["modeling_level_ui"]] <- renderUI({
+  #   req(input[["modeling_variable"]])
+  #   req(attr(dat[["metabocrates_dat_group"]], "completed"))
+  #   
+  #   lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+  #     filter(`sample type` == "Sample") %>%
+  #     group_by(across(all_of(input[["modeling_variable"]]))) %>%
+  #     count() %>%
+  #     filter(n > 1) %>%
+  #     select(all_of(input[["modeling_variable"]])) %>%
+  #     unlist() %>%
+  #     setNames(NULL)
+  #   
+  #   if(length(lvls) <= 2){
+  #     freezeReactiveValue(input, "modeling_level")
+  #     selectInput(inputId = "modeling_level",
+  #                 label = "Choose level",
+  #                 choices = lvls[1])
+  #   }
+  #   else{
+  #     freezeReactiveValue(input, "modeling_level")
+  #     selectInput(inputId = "modeling_level",
+  #                 label = "Choose level",
+  #                 choices = lvls) 
+  #   }
+  # })
+  
   observeEvent(input[["modeling_variable"]], {
-    req(dat[["metabocrates_dat_group"]])
+    req(input[["modeling_variable"]])
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
     
-    modeling_levels <- if(!is.null(attr(dat[["metabocrates_dat_group"]],
-                                        "completed"))){
-      lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-        filter(`sample type` == "Sample") %>%
-        group_by(across(all_of(input[["modeling_variable"]]))) %>%
-        count() %>%
-        filter(n > 1) %>%
-        select(all_of(input[["modeling_variable"]])) %>%
-        unlist() %>%
-        setNames(NULL)
-      
-    } else
-      character(0)
+    lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+      filter(`sample type` == "Sample") %>%
+      group_by(across(all_of(input[["modeling_variable"]]))) %>%
+      count() %>%
+      filter(n > 1) %>%
+      select(all_of(input[["modeling_variable"]])) %>%
+      unlist() %>%
+      setNames(NULL)
     
     freezeReactiveValue(input, "modeling_level")
-    updateSelectInput(session, "modeling_level", choices = modeling_levels)
+    
+    if(length(lvls) <= 2)
+      updateSelectInput(inputId = "modeling_level", choices = "two_levels")
+    else
+      updateSelectInput(inputId = "modeling_level", choices = lvls)
   })
   
   models_reactive <- reactive({
@@ -2021,9 +2054,14 @@ server <- function(input, output, session) {
     req(input[["modeling_variable"]])
     req(input[["modeling_level"]])
     
+    level <- if(input[["modeling_level"]] == "two_levels")
+      NULL
+    else
+      input[["modeling_level"]]
+    
     models <- build_models(dat[["metabocrates_dat_group"]],
-                         response = input[["modeling_variable"]],
-                         level = input[["modeling_level"]])
+                           response = input[["modeling_variable"]],
+                           level = level)
     
     get_models_info(models)
   })
@@ -2134,6 +2172,7 @@ server <- function(input, output, session) {
   
   modeling_coefficients <- reactive({
     req(modeling_data)
+    req(models_reactive)
     
     container <- if((is.null(models_reactive()[["coefficients"]][["full"]]))){
       htmltools::withTags(table(
