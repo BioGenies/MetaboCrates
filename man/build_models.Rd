@@ -2,7 +2,7 @@
 % Please edit documentation in R/modeling.R
 \name{build_models}
 \alias{build_models}
-\title{Build models}
+\title{Build linear models}
 \usage{
 build_models(dat, response, level = NULL)
 }
@@ -10,13 +10,14 @@ build_models(dat, response, level = NULL)
 \item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
 function.}
 
-\item{response}{a string specifying the response variable.}
+\item{response}{a string specifying the name of the response variable.}
 
-\item{level}{a string specifying which level of the response variable to
-consider. Required only if response variable has over two levels.}
+\item{level}{a string specifying the name of the level to model when
+the response has more than two levels.}
 }
 \description{
-\code{build_models()} returns the linear models with and without SLOPE coś tam
+\code{build_models()} fits full and penalized logistic models using the
+specified grouping column as the outcome.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

@@ -2,18 +2,16 @@
 % Please edit documentation in R/modeling.R
 \name{get_models_info}
 \alias{get_models_info}
-\title{Get information about models}
+\title{Get models summary}
 \usage{
 get_models_info(models)
 }
 \arguments{
-\item{response}{a string specifying the response variable.}
-
-\item{level}{a string specifying which level of the response variable to
-consider. Required only if response variable has over two levels.}
+\item{models}{the object returned by \code{\link[=build_models]{build_models()}}.}
 }
 \description{
-\code{build_models()} returns the linear models with and without SLOPE coś tam
+\code{get_models_info()} returns the summaries for models returned by
+\code{\link[=build_models]{build_models()}}.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

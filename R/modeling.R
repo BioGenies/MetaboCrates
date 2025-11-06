@@ -1,14 +1,15 @@
 
-#' Build models
+#' Build linear models
 #'
 #' @description
-#' `build_models()` returns the linear models with and without SLOPE coś tam
+#' `build_models()` fits full and penalized logistic models using the
+#' specified grouping column as the outcome.
 #' 
 #' @inheritParams add_group
 #' 
-#' @param response a string specifying the response variable.
-#' @param level a string specifying which level of the response variable to
-#' consider. Required only if response variable has over two levels.
+#' @param response a string specifying the name of the response variable.
+#' @param level a string specifying the name of the level to model when
+#' the response has more than two levels.
 #' 
 #' @importFrom SLOPE trainSLOPE
 #' @importFrom glmnet cv.glmnet glmnet
@@ -121,16 +122,13 @@ build_models <- function(dat, response, level = NULL){
     )
 }
 
-#' Get information about models
+#' Get models summary
 #'
 #' @description
-#' `build_models()` returns the linear models with and without SLOPE coś tam
+#' `get_models_info()` returns the summaries for models returned by
+#' [build_models()].
 #' 
-#' @inheritParams add_group
-#' 
-#' @param response a string specifying the response variable.
-#' @param level a string specifying which level of the response variable to
-#' consider. Required only if response variable has over two levels.
+#' @param models the object returned by [build_models()].
 #' 
 #' @importFrom broom augment glance tidy
 #' 
