@@ -714,36 +714,23 @@ ui <- navbarPage(
                h2("Summary (step 7/9)"),
                h3("next: Summary")
         ),
-        column(12,
-               column(3, offset = 1,
-                      selectInput("modeling_variable",
-                                  label = "Choose the grouping variable",
-                                  choices = character(0))
-               ),
-               column(3, offset = 1,
-                      conditionalPanel(
-                        condition = "input.modeling_level != `two_levels`",
-                        selectInput("modeling_level",
-                                    label = "Choose level",
-                                    choices = character(0)
+        conditionalPanel("input.modeling_variable != `none`",
+          column(12,
+                 column(3, offset = 1,
+                        selectInput("modeling_variable",
+                                    label = "Choose the grouping variable",
+                                    choices = character(0))
+                 ),
+                 column(3, offset = 1,
+                        conditionalPanel("input.modeling_level != `two_levels`",
+                                         selectInput("modeling_level",
+                                                     label = "Choose the grouping variable",
+                                                     choices = "two_levels")
                         )
-                      )
-#                      uiOutput("modeling_level_ui")
-               )
+                 )
+          )
         ),
-        column(10, offset = 1,
-               br(),
-               table_with_button_UI("modeling_summary")
-        ),
-        column(12,
-               br(),
-               column(7,
-                 table_with_button_UI("modeling_data")
-               ),
-               column(4, offset = 1,
-                 table_with_button_UI("modeling_coefficients")
-               )
-        )
+        uiOutput("modeling_ui")
       ),
       #######
       tabPanel("Summary",
@@ -2000,53 +1987,72 @@ server <- function(input, output, session) {
   })
   
   ######### Modeling
+
+  output[["modeling_ui"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
   
-  # output[["modeling_level_ui"]] <- renderUI({
-  #   req(input[["modeling_variable"]])
-  #   req(attr(dat[["metabocrates_dat_group"]], "completed"))
-  #   
-  #   lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-  #     filter(`sample type` == "Sample") %>%
-  #     group_by(across(all_of(input[["modeling_variable"]]))) %>%
-  #     count() %>%
-  #     filter(n > 1) %>%
-  #     select(all_of(input[["modeling_variable"]])) %>%
-  #     unlist() %>%
-  #     setNames(NULL)
-  #   
-  #   if(length(lvls) <= 2){
-  #     freezeReactiveValue(input, "modeling_level")
-  #     selectInput(inputId = "modeling_level",
-  #                 label = "Choose level",
-  #                 choices = lvls[1])
-  #   }
-  #   else{
-  #     freezeReactiveValue(input, "modeling_level")
-  #     selectInput(inputId = "modeling_level",
-  #                 label = "Choose level",
-  #                 choices = lvls) 
-  #   }
-  # })
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
+      updateSelectInput(inputId = "modeling_variable", choices = "none")
+      column(12,
+             create_message_box("Apply grouping to see models",
+                                type = "warning")
+      ) 
+    }else if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
+      updateSelectInput(inputId = "modeling_variable", choices = "none")
+      column(12,
+             create_message_box("Complete data to see models",
+                                type = "warning")
+      ) 
+    }else{
+      modeling_variable <- attr(dat[["metabocrates_dat_group"]],
+                                "completed") %>%
+        filter(`sample type` == "Sample") %>%
+        select(attr(dat[["metabocrates_dat_group"]], "group")) %>%
+        tidyr::pivot_longer(cols = everything()) %>%
+        group_by(across(everything())) %>%
+        count() %>%
+        filter(n > 1) %>%
+        group_by(name) %>%
+        count() %>%
+        filter(n > 1) %>%
+        select(name) %>%
+        unlist() %>%
+        setNames(NULL)
+      
+      updateSelectInput(inputId = "modeling_variable",
+                        choices = modeling_variable)
+      
+      column(12,
+             withSpinner(uiOutput("modeling_tables"))
+      )
+    }
+  })
   
+  outputOptions(output, "modeling_ui", suspendWhenHidden = FALSE)
+
   observeEvent(input[["modeling_variable"]], {
     req(input[["modeling_variable"]])
     req(attr(dat[["metabocrates_dat_group"]], "completed"))
-    
-    lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
-      filter(`sample type` == "Sample") %>%
-      group_by(across(all_of(input[["modeling_variable"]]))) %>%
-      count() %>%
-      filter(n > 1) %>%
-      select(all_of(input[["modeling_variable"]])) %>%
-      unlist() %>%
-      setNames(NULL)
-    
-    freezeReactiveValue(input, "modeling_level")
-    
-    if(length(lvls) <= 2)
-      updateSelectInput(inputId = "modeling_level", choices = "two_levels")
-    else
-      updateSelectInput(inputId = "modeling_level", choices = lvls)
+
+    if(input[["modeling_variable"]] != "none"){
+      lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        filter(`sample type` == "Sample") %>%
+        group_by(across(all_of(input[["modeling_variable"]]))) %>%
+        count() %>%
+        filter(n > 1) %>%
+        select(all_of(input[["modeling_variable"]])) %>%
+        unlist() %>%
+        setNames(NULL)
+      
+      freezeReactiveValue(input, "modeling_level")
+      
+      if(length(lvls) == 2){
+        updateSelectInput(inputId = "modeling_level", choices = "two_levels")
+      }
+      else{
+        updateSelectInput(inputId = "modeling_level", choices = lvls)
+      } 
+    }
   })
   
   models_reactive <- reactive({
@@ -2054,16 +2060,52 @@ server <- function(input, output, session) {
     req(input[["modeling_variable"]])
     req(input[["modeling_level"]])
     
-    level <- if(input[["modeling_level"]] == "two_levels")
-      NULL
+    if(input[["modeling_variable"]] != "none"){
+      level <- if(input[["modeling_level"]] == "two_levels")
+        NULL
+      else
+        input[["modeling_level"]]
+      
+      models <- tryCatch(
+        build_models(dat[["metabocrates_dat_group"]],
+                     response = input[["modeling_variable"]],
+                     level = level),
+        error = function(e) e[["message"]]
+      )
+      
+      if(is.character(models))
+        models
+      else
+        get_models_info(models) 
+    }
+  })
+  
+  output[["modeling_tables"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    req(models_reactive)
+    
+    if(is.character(models_reactive()))
+      column(12,
+             create_message_box(models_reactive(),
+                                type = "warning")
+      )
     else
-      input[["modeling_level"]]
-    
-    models <- build_models(dat[["metabocrates_dat_group"]],
-                           response = input[["modeling_variable"]],
-                           level = level)
-    
-    get_models_info(models)
+      tagList(
+        column(10, offset = 1,
+               br(),
+               table_with_button_UI("modeling_summary")
+        ),
+        column(12,
+               br(),
+               br(),
+               column(7,
+                      table_with_button_UI("modeling_data")
+               ),
+               column(4, offset = 1,
+                      table_with_button_UI("modeling_coefficients")
+               )
+        )
+      )
   })
   
   modeling_summary <- reactive({
