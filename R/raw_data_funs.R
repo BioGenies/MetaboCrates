@@ -25,10 +25,14 @@
 
 add_group <- function(dat, group_names) {
   
-  if(!all(group_names %in% colnames(dat)))
-    stop(paste0("Some of the provided columns: ",
-                paste(group_names, sep = ", "), 
-                ", can't be found in your data!"))
+  if(!all(group_names %in% colnames(dat))){
+    non_exist <- group_names[!(group_names %in% colnames(dat))]
+    stop(paste0("Column",
+                ifelse(length(non_exist) == 1,
+                       " ", "s "),
+                paste0(non_exist, collapse = ", "), 
+                " can't be found in your data!"))
+  }
   
   if(!is.null(attr(dat, "group")))
     warning("You already have grouping defined in your data. It will be replaced!")
@@ -334,7 +338,7 @@ calculate_CV <- function(dat){
 #' get_CV_to_remove(dat, 0.3)
 #' 
 #' @export
-#'
+
 get_CV_to_remove <- function(dat, threshold){
   if(is.null(attr(dat, "cv"))){
     stop("First, calculate the coefficient of variation using calculate_CV().")
@@ -344,3 +348,5 @@ get_CV_to_remove <- function(dat, threshold){
     distinct(metabolite) %>% 
     pull(metabolite)
 }
+
+

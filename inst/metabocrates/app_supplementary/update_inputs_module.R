@@ -54,6 +54,9 @@ update_inputs_SERVER <- function(id, main_session, main_input, dat){
                         choices = c("None"))
       
       attr(dat[["metabocrates_dat_group"]], "cv") <- NULL
+      
+      updateSelectInput(main_session, "modeling_variable", choices = character(0))
+      updateSelectInput(main_session, "modeling_level", choices = character(0))
     }else if(id == "cv_update"){
       updateMultiInput(main_session, "CV_to_remove", 
                        choices = metabolites(), 

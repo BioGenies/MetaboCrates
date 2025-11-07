@@ -3,6 +3,8 @@ library(dplyr)
 library(stringr)
 library(openxlsx)
 library(ggpubr)
+library(htmltools)
+library(rlang)
 
 library(shiny)
 library(shinythemes)
@@ -33,7 +35,7 @@ options(
 
 panels_vec <- c("About", "Uploading data", "Group selection",
                 "Filtering", "Completing",  "Quality control",
-                "Outlier detection", "Summary", "Download")
+                "Outlier detection", "Modeling", "Summary", "Download")
 
 
 ui <- navbarPage(
@@ -120,7 +122,7 @@ ui <- navbarPage(
                    ),
                    column(9,
                           column(12, align = "right", 
-                                 h2("Uploading data (step 1/8)"),
+                                 h2("Uploading data (step 1/9)"),
                                  h3("next: Group selection")),
                           br(),
                           withSpinner(htmlOutput("raw_data_summary"))
@@ -159,7 +161,7 @@ ui <- navbarPage(
                    ),
                    column(9,
                           column(12, align = "right", 
-                                 h2("Uploading data (step 1/8)"),
+                                 h2("Uploading data (step 1/9)"),
                                  h3("next: Group selection")),
                           br(),
                           column(12,
@@ -200,7 +202,7 @@ ui <- navbarPage(
                    ),
                    column(9,
                           column(12, align = "right", 
-                                 h2("Uploading data (step 1/8)"),
+                                 h2("Uploading data (step 1/9)"),
                                  h3("next: Group selection")),
                           br(),
                           br(),
@@ -243,7 +245,7 @@ ui <- navbarPage(
                                  uiOutput("group_info")
                           ),
                           column(9, align = "right", 
-                                 h2("Group selection (step 2/8)"),
+                                 h2("Group selection (step 2/9)"),
                                  h3("next: Filtering"),
                           ),
                           column(7, offset = 1,
@@ -253,7 +255,7 @@ ui <- navbarPage(
                ),
                tabPanel("Group summary",
                         column(12, align = "right",
-                               h2("Group selection (step 2/8)"),
+                               h2("Group selection (step 2/9)"),
                                h3("next: Filtering"),
                         ),
                         uiOutput("groups_plt_ui")
@@ -326,7 +328,7 @@ ui <- navbarPage(
                           ),
                           column(8,
                                  column(12, align = "right",
-                                        h2("Compounds filtering (step 3/8)"),
+                                        h2("Compounds filtering (step 3/9)"),
                                         h3("next: Completing")
                                  ),
                                  br(),
@@ -335,7 +337,7 @@ ui <- navbarPage(
                  ),
                  tabPanel("Ratios visualization",
                           column(12, align = "right",
-                                 h2("Compounds filtering (step 3/8)"),
+                                 h2("Compounds filtering (step 3/9)"),
                                  h3("next: Completing")
                           ),
                           br(),
@@ -354,7 +356,7 @@ ui <- navbarPage(
                  ),
                  tabPanel("Venn diagram",
                           column(12, align = "right",
-                                 h2("Compounds filtering (step 3/8)"),
+                                 h2("Compounds filtering (step 3/9)"),
                                  h3("next: Completing")
                           ),
                           uiOutput("venn_diagram_ui")
@@ -413,7 +415,7 @@ ui <- navbarPage(
                                            br()
                                     ),
                                     column(9, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
+                                           h2("Gaps completing (step 4/9)"),
                                            h3("next: Quality control")
                                     ),
                                     column(9,
@@ -423,7 +425,7 @@ ui <- navbarPage(
                            ),
                            tabPanel("Table of limits",
                                     column(12, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
+                                           h2("Gaps completing (step 4/9)"),
                                            h3("next: Quality control")
                                     ),
                                     br(),
@@ -449,7 +451,7 @@ ui <- navbarPage(
                                           )
                                    ),
                                    column(9, align = "right",
-                                          h2("Gaps completing (step 4/8)"),
+                                          h2("Gaps completing (step 4/9)"),
                                           h3("next: Quality control")
                                    ),
                                    column(9,
@@ -493,7 +495,7 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Gaps completing (step 4/8)"),
+                                           h2("Gaps completing (step 4/9)"),
                                            h3("next: Quality control")
                                     ),
                                     conditionalPanel(
@@ -569,7 +571,7 @@ ui <- navbarPage(
                                  actionButton("CV_undo_btn", label = "Undo")),
                    ),
                    column(8, align = "right",
-                          h2("Quality control (step 5/8)"),
+                          h2("Quality control (step 5/9)"),
                           h3("next: Outlier detection")
                    ),
                    column(6, offset = 1,
@@ -642,8 +644,8 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Outlier detection (step 6/8)"),
-                                           h3("next: Summary")
+                                           h2("Outlier detection (step 6/9)"),
+                                           h3("next: Modeling")
                                     ),
                                     uiOutput("sample_type_cond_pca_plt")
                            ),
@@ -698,7 +700,7 @@ ui <- navbarPage(
                                            )
                                     ),
                                     column(9, align = "right",
-                                           h2("Outlier detection (step 6/8)"),
+                                           h2("Outlier detection (step 6/9)"),
                                            h3("next: Summary")
                                     ),
                                     uiOutput("group_cond_pca_plt")
@@ -706,10 +708,35 @@ ui <- navbarPage(
                )
       ),
       #######
+      tabPanel("Modeling",
+        nav_btns_UI("Modeling"),
+        column(12, align = "right", 
+               h2("Summary (step 7/9)"),
+               h3("next: Summary")
+        ),
+        conditionalPanel("input.modeling_variable != `none`",
+          column(12,
+                 column(3, offset = 1,
+                        selectInput("modeling_variable",
+                                    label = "Choose response variable",
+                                    choices = character(0))
+                 ),
+                 column(3, offset = 1,
+                        conditionalPanel("input.modeling_level != `two_levels`",
+                                         selectInput("modeling_level",
+                                                     label = "Choose response level to model",
+                                                     choices = "two_levels")
+                        )
+                 )
+          )
+        ),
+        uiOutput("modeling_ui")
+      ),
+      #######
       tabPanel("Summary",
                nav_btns_UI("Summary"),
                column(12, align = "right", 
-                      h2("Summary (step 7/8)"),
+                      h2("Summary (step 8/9)"),
                       h3("next: Download")
                ),
                fluidRow(
@@ -757,7 +784,7 @@ ui <- navbarPage(
            column(9,
                   h2("Here you can download your results at any step of your work!")
            ),
-           column(3, align = "right", h2("Download (step 8/8)")),
+           column(3, align = "right", h2("Download (step 9/9)")),
            br(),
            br(),
            br(),
@@ -818,6 +845,9 @@ server <- function(input, output, session) {
   
   callModule(nav_btns_SERVER, id = "Outlier detection", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Outlier detection")
+  
+  callModule(nav_btns_SERVER, id = "Modeling", parent_session = session, 
+             panels_vec = panels_vec, panel_id = "Modeling")
   
   callModule(nav_btns_SERVER, "Summary", parent_session = session, 
              panels_vec = panels_vec, panel_id = "Summary")
@@ -1955,6 +1985,299 @@ server <- function(input, output, session) {
         )
     }
   })
+  
+  ######### Modeling
+
+  output[["modeling_ui"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+  
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
+      updateSelectInput(inputId = "modeling_variable", choices = "none")
+      column(12,
+             create_message_box("Apply grouping to see models",
+                                type = "warning")
+      ) 
+    }else if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
+      updateSelectInput(inputId = "modeling_variable", choices = "none")
+      column(12,
+             create_message_box("Complete data to see models",
+                                type = "warning")
+      ) 
+    }else{
+      modeling_variable <- attr(dat[["metabocrates_dat_group"]],
+                                "completed") %>%
+        filter(`sample type` == "Sample") %>%
+        select(attr(dat[["metabocrates_dat_group"]], "group")) %>%
+        mutate(across(everything(), as.character)) %>%
+        tidyr::pivot_longer(cols = everything()) %>%
+        group_by(across(everything())) %>%
+        count() %>%
+        filter(n > 1) %>%
+        group_by(name) %>%
+        count() %>%
+        filter(n > 1) %>%
+        select(name) %>%
+        unlist() %>%
+        setNames(NULL)
+      
+      updateSelectInput(inputId = "modeling_variable",
+                        choices = modeling_variable)
+      
+      column(12,
+             withSpinner(uiOutput("modeling_tables"))
+      )
+    }
+  })
+  
+  outputOptions(output, "modeling_ui", suspendWhenHidden = FALSE)
+
+  observeEvent(input[["modeling_variable"]], {
+    req(input[["modeling_variable"]])
+    req(attr(dat[["metabocrates_dat_group"]], "completed"))
+
+    if(input[["modeling_variable"]] != "none"){
+      lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
+        filter(`sample type` == "Sample") %>%
+        group_by(across(all_of(input[["modeling_variable"]]))) %>%
+        count() %>%
+        filter(n > 1) %>%
+        select(all_of(input[["modeling_variable"]])) %>%
+        unlist() %>%
+        setNames(NULL)
+      
+      freezeReactiveValue(input, "modeling_level")
+      
+      if(length(lvls) == 2){
+        updateSelectInput(inputId = "modeling_level", choices = "two_levels")
+      }
+      else{
+        updateSelectInput(inputId = "modeling_level", choices = lvls)
+      } 
+    }
+  })
+  
+  models_reactive <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["modeling_variable"]])
+    req(input[["modeling_level"]])
+    
+    if(input[["modeling_variable"]] != "none"){
+      level <- if(input[["modeling_level"]] == "two_levels")
+        NULL
+      else
+        input[["modeling_level"]]
+      
+      models <- tryCatch(
+        build_models(dat[["metabocrates_dat_group"]],
+                     response = input[["modeling_variable"]],
+                     level = level),
+        error = function(e) e[["message"]]
+      )
+      
+      if(is.character(models))
+        models
+      else
+        get_models_info(models) 
+    }
+  })
+  
+  output[["modeling_tables"]] <- renderUI({
+    req(dat[["metabocrates_dat_group"]])
+    req(models_reactive)
+    
+    if(is.character(models_reactive()))
+      column(12,
+             create_message_box(models_reactive(),
+                                type = "warning")
+      )
+    else
+      tagList(
+        column(10, offset = 1,
+               br(),
+               table_with_button_UI("modeling_summary")
+        ),
+        column(12,
+               br(),
+               br(),
+               column(7,
+                      table_with_button_UI("modeling_data")
+               ),
+               column(4, offset = 1,
+                      table_with_button_UI("modeling_coefficients")
+               )
+        )
+      )
+  })
+  
+  modeling_summary <- reactive({
+    req(models_reactive)
+    
+    model_aval <- setdiff(names(models_reactive()[["summary"]]), "general")
+    
+    container <- htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(
+          lapply(c("null.deviance", "df.null", "nobs"), function(name){
+            th(rowspan = 2, name)
+          }),
+          lapply(model_aval, function(name) th(colspan = 5, name))
+        ),
+        tr(
+          lapply(rep(c("logLik", "AIC", "BIC", "deviance", "df.residual"),
+                     length(model_aval)),
+                 th)
+        )
+      )
+    ))
+    
+    models_reactive()[["summary"]] %>%
+      bind_cols() %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable(scrollY = NULL,
+                       paging = FALSE,
+                       pageLength = 1,
+                       container = container)
+  })
+  
+  table_with_button_SERVER("modeling_summary", modeling_summary)
+  
+  modeling_data <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    req(models_reactive)
+    
+    full_coef <- colnames(models_reactive()[["data"]][["full"]])
+    
+    if(!is.null(models_reactive()[["coefficients"]][["full"]])){
+      models_aval <- list(c("full", 5), c("reduced", 2))
+      container_cols <- c("fitted", "resid", "hat", "cooksd",
+                          "std.resid", "fitted", "resid")
+      reduced_coef <- models_reactive()[["coefficients"]][["reduced"]]
+      full_coef <- full_coef[-((length(full_coef) - 5):length(full_coef))]
+    }
+    else{
+      models_aval <- list(c("reduced", 2))
+      container_cols <- c("fitted", "resid")
+      reduced_coef <- models_reactive()[["coefficients"]]
+    }
+    
+    container <- htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(lapply(models_aval,
+                  function(x) th(colspan = as.numeric(x[2]), x[1])),
+           lapply(full_coef, function(name){
+             th(rowspan = 2, name)
+           })
+        ),
+        tr(
+          lapply(container_cols, th)
+        )
+      )
+    ))
+    
+    imputed_metabos <- sapply(
+      attr(dat[["metabocrates_dat_group"]], "metabolites"),
+      function(name){
+        if(!(name %in% full_coef))
+          NULL
+        else
+          which(dat[["metabocrates_dat_group"]][[name]] != 
+                  attr(dat[["metabocrates_dat_group"]], "completed")[[name]])
+      }
+    )
+    imputed_metabos <- imputed_metabos[sapply(imputed_metabos, length) > 0]
+      
+    modeling_data_dt_style <- c(
+      list(list(
+        columns = as.character(unlist(select(reduced_coef, term)[-1,])),
+        backgroundColor = "#C9F5EA"
+      )),
+      lapply(names(imputed_metabos), function(name){
+        list(
+          columns = name,
+          fontWeight = styleRow(imputed_metabos[[name]], "bold")
+        )
+      })
+    )
+    
+    models_reactive()[["data"]][["full"]] %>%
+      mutate(models_reactive()[["data"]][["reduced"]]) %>%
+      relocate(!all_of(full_coef)) %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable(scrollY = 300,
+                       paging = TRUE,
+                       styles = modeling_data_dt_style,
+                       container = container)
+  })
+  
+  table_with_button_SERVER("modeling_data", modeling_data)
+  
+  modeling_coefficients <- reactive({
+    req(modeling_data)
+    req(models_reactive)
+    
+    container <- if((is.null(models_reactive()[["coefficients"]][["full"]]))){
+      htmltools::withTags(table(
+        class = 'display',
+        thead(
+          tr(
+            th(rowspan = 2, "term"),
+            th(colspan = 1, "reduced")
+          ),
+          tr(
+            th("estimate")
+          )
+        )
+      ))
+    }else{
+      htmltools::withTags(table(
+        class = 'display',
+        thead(
+          tr(
+            th(rowspan = 2, "term"),
+            th(colspan = 4, "full"),
+            th(colspan = 1, "reduced")
+          ),
+          tr(
+            lapply(c("estimate", "std.error", "statistic",
+                     "p.value", "estimate"), th)
+          )
+        )
+      ))
+    }
+    
+    modeling_data_dt_style <- if(!is.null(
+      models_reactive()[["coefficients"]][["full"]]
+      )){
+      list(list(
+        columns = "term",
+        target = "row",
+        backgroundColor = styleEqual(
+          models_reactive()[["coefficients"]][["reduced"]][["term"]],
+          "#C9F5EA"
+        )
+      ))
+    }else
+      NULL
+    
+    model_coef <- if(is.null(models_reactive()[["coefficients"]][["full"]]))
+      models_reactive()[["coefficients"]]
+    else{
+      models_reactive()[["coefficients"]][["full"]] %>%
+        full_join(models_reactive()[["coefficients"]][["reduced"]],
+                  by = "term")
+    }
+      
+    model_coef %>%
+      mutate(across(!term, ~ display_short(.x, digits = 4))) %>%
+      custom_datatable(scrollY = 300,
+                       paging = TRUE,
+                       styles = modeling_data_dt_style,
+                       container = container)
+  })
+  
+  table_with_button_SERVER("modeling_coefficients", modeling_coefficients)
   
   ######## Summary
   

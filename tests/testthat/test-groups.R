@@ -12,7 +12,7 @@ test_that("Group is added to raw_data class.", {
 test_that("Wrong group name throws an error", {
   expect_error(
     add_group(test_dat, "wrong_name"),
-    "Some of the provided columns: wrong_name, can't be found in your data!"
+    "Column wrong_name can't be found in your data!"
   )
 })
 
