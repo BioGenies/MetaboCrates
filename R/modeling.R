@@ -11,8 +11,12 @@
 #' @param level a string specifying the name of the level to model when
 #' the response has more than two levels.
 #' 
-#' @importFrom SLOPE trainSLOPE
-#' @importFrom glmnet cv.glmnet glmnet
+#' @importFrom SLOPE cvSLOPE
+#' @importFrom SLOPE SLOPE
+#' @importFrom glmnet cv.glmnet
+#' @importFrom glmnet glmnet
+#' @importFrom stats glm
+#' @importFrom stats predict
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -130,7 +134,11 @@ build_models <- function(dat, response, level = NULL){
 #' 
 #' @param models the object returned by [build_models()].
 #' 
-#' @importFrom broom augment glance tidy
+#' @importFrom broom augment
+#' @importFrom broom glance
+#' @importFrom broom tidy
+#' @importFrom stats deviance
+#' @importFrom stats predict
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -188,7 +196,8 @@ get_models_info <- function(models){
           model_data
         else
           augment(models[["full"]], type.predict = "response",
-                  type.residuals = "deviance")
+                  type.residuals = "deviance") %>%
+          select(!.sigma)
       },
       reduced = reduced_data
     ),

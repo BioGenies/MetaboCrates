@@ -17,5 +17,6 @@ if(getRversion() >= "2.15.1")
       "sample identification", "sample type", "thresh_est", "tmp_id", 
       "tooltip", "tooltip", "total_NA_frac", "type", "Type", "value", 
       "Value", "Var1", "Var2", "Variable", "Variance_Explained", "xintercept",
-      "max_cor", "color", "label", "len")
+      "max_cor", "color", "label", "len", "dummy", "fitted", ".sigma", "term",
+      "estimate", "logLik", "AIC", "BIC", "deviance", "df.residual", ".")
     )
