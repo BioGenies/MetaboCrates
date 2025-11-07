@@ -7,6 +7,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates_gui.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/add_group.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/build_models.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/calculate_CV.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/check_values.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/complete_LLOQ.html</loc></url>
@@ -31,6 +32,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_LOD_to_remove.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_example_data.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_info.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/get_models_info.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/index.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/match_plate_codes.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/metabocrates_palette.html</loc></url>

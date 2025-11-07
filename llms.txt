@@ -1,0 +1,207 @@
+# MetaboCrates
+
+*MetaboCrates* is designed for early analysis of data obtained from
+targeted metabolomics, e.g., Biocrates® kits. It simplifies and
+streamlines the data processing workflow, allowing you to efficiently
+analyze metabolite data. Here’s a brief overview of its key features:
+
+## Features
+
+**1. Data Import:** Easily import metabolomics data generated from
+Biocrates® platforms.
+
+**2. Preprocessing:** Perform data preprocessing tasks such as
+metabolites selection and \<LOD imputation.
+
+- Automatically identify and remove metabolites with a high Limit of
+  Detection (LOD) proportion.
+- Enhance the accuracy of your data by eliminating unreliable
+  measurements.
+- Complete missing data points for metabolites based on LOD values.
+- Ensure that your dataset is comprehensive and suitable for analysis.
+
+**3. Quality Control:** Quality control checks on your data.
+
+**4. Analysis:** Calculate descriptive statistics.
+
+**5. Save your work:** Save your progress, allowing you to resume your
+analysis at a later time.
+
+- Track and manage multiple projects effortlessly.
+- Easily share your findings with colleagues or collaborators.
+
+## Web server
+
+The *MetaboCrates* web server can be accessed through our [web
+server](http://biogenies.info/metabocrates-ws).
+
+## Installation
+
+To install *MetaboCrates* you need to have *R* version \>= 4.2.0.
+
+``` r
+devtools::install_github("BioGenies/MetaboCrates")
+```
+
+## Reproducibility
+
+To reproduce our environment you need to git clone our repo and activate
+renv.
+
+``` bash
+git clone https://github.com/BioGenies/metaborates.git
+```
+
+``` r
+renv::activate()
+renv::restore()
+```
+
+## Run MetaboCrates
+
+To run *MetaboCrates* type the following command into an R console.
+
+``` r
+MetaboCrates::MetaboCrates_gui()
+```
+
+#### How to cite?
+
+Krystyna Grzesiak, Joanna Pokora, Jarosław Chilimoniuk, Adrian
+Godlewski, Mariia Solovianova, Rafał Kolenda, Adam Krętowski, Michał
+Ciborowski, Michał Burdukiewicz (2025). MetaboCrates :An open-source
+pipeline for quality-aware analysis of targeted metabolomics data.
+
+#### Contact
+
+If you have any questions, suggestions or comments, contact [Michal
+Burdukiewicz](mailto:michalburdukiewicz@gmail.com).
+
+#### Funding and acknowledgements
+
+We want to thank the Clinical Research Centre (Medical University of
+Białystok) members for fruitful discussions. K.G. wants to acknowledge
+grant no. 2021/43/O/ST6/02805 (National Science Centre). J. P. and M. B.
+wants to acknowledge grant no. 2023/51/D/NZ7/02847 (National Science
+Centre). We also acknowledge the Center for Artificial Intelligence at
+the Medical University of Białystok (funded by the Ministry of Health of
+the Republic of Poland).![](readme_files/funding.png)
+
+# Package index
+
+## All functions
+
+- [`MetaboCrates`](http://biogenies.info/MetaboCrates/reference/MetaboCrates.md)
+  : MetaboCrates
+
+- [`MetaboCrates_gui()`](http://biogenies.info/MetaboCrates/reference/MetaboCrates_gui.md)
+  : MetaboCrates Graphical User Interface
+
+- [`add_group()`](http://biogenies.info/MetaboCrates/reference/add_group.md)
+  : Group data
+
+- [`build_models()`](http://biogenies.info/MetaboCrates/reference/build_models.md)
+  : Build linear models
+
+- [`calculate_CV()`](http://biogenies.info/MetaboCrates/reference/calculate_CV.md)
+  : Calculate CV for different QC samples for each metabolite
+
+- [`check_values()`](http://biogenies.info/MetaboCrates/reference/check_values.md)
+  :
+
+  Convert weird values into `NA`'s
+
+- [`complete_data()`](http://biogenies.info/MetaboCrates/reference/complete_data.md)
+  : Complete not quantified values
+
+- [`create_PCA_plot()`](http://biogenies.info/MetaboCrates/reference/create_PCA_plot.md)
+  : PCA plot
+
+- [`create_beeswarm_plot()`](http://biogenies.info/MetaboCrates/reference/create_beeswarm_plot.md)
+  : Beeswarm Plot of Metabolite Values
+
+- [`create_boxplot()`](http://biogenies.info/MetaboCrates/reference/create_boxplot.md)
+  : Boxplots of individual metabolite values before and after imputation
+
+- [`create_correlations_heatmap()`](http://biogenies.info/MetaboCrates/reference/create_correlations_heatmap.md)
+  : Heatmap of correlations between metabolites
+
+- [`create_distribution_plot()`](http://biogenies.info/MetaboCrates/reference/create_distribution_plot.md)
+  : Histograms, density or beeswarm plots of individual metabolite
+  values before and after imputation
+
+- [`create_empirical_qqplot()`](http://biogenies.info/MetaboCrates/reference/create_empirical_qqplot.md)
+  : Q-Q plot
+
+- [`create_plot_of_2_metabolites()`](http://biogenies.info/MetaboCrates/reference/create_plot_of_2_metabolites.md)
+  : Plot of two metabolites
+
+- [`create_qqplot()`](http://biogenies.info/MetaboCrates/reference/create_qqplot.md)
+  : QQ plots of individual metabolite values before and after imputation
+
+- [`create_venn_diagram()`](http://biogenies.info/MetaboCrates/reference/create_venn_diagram.md)
+  : Venn diagram for group levels
+
+- [`get_CV_to_remove()`](http://biogenies.info/MetaboCrates/reference/get_CV_to_remove.md)
+  : Get CV to remove
+
+- [`get_LOD_to_remove()`](http://biogenies.info/MetaboCrates/reference/get_LOD_to_remove.md)
+  : Get metabolites to remove based on missing values proportion
+
+- [`get_example_data()`](http://biogenies.info/MetaboCrates/reference/get_example_data.md)
+  : Get path to example data
+
+- [`get_info()`](http://biogenies.info/MetaboCrates/reference/get_info.md)
+  : Get information about data
+
+- [`get_models_info()`](http://biogenies.info/MetaboCrates/reference/get_models_info.md)
+  : Get models summary
+
+- [`pca_variance()`](http://biogenies.info/MetaboCrates/reference/pca_variance.md)
+  : Plot of variance explained by principal components
+
+- [`plot_NA_percent()`](http://biogenies.info/MetaboCrates/reference/plot_NA_percent.md)
+  : Barplot of missing values proportion in each metabolite
+
+- [`plot_groups()`](http://biogenies.info/MetaboCrates/reference/plot_groups.md)
+  : Barplot of group level sizes
+
+- [`plot_heatmap()`](http://biogenies.info/MetaboCrates/reference/plot_heatmap.md)
+  : Heatmap of missing values
+
+- [`plot_mv_types()`](http://biogenies.info/MetaboCrates/reference/plot_mv_types.md)
+  : Barplot of missing values types
+
+- [`raw_data()`](http://biogenies.info/MetaboCrates/reference/raw_data.md)
+  : raw_data class
+
+- [`read_data()`](http://biogenies.info/MetaboCrates/reference/read_data.md)
+  : Read Biocrates data
+
+- [`remove_metabolites()`](http://biogenies.info/MetaboCrates/reference/remove_metabolites.md)
+  :
+
+  Add metabolites to the attribute `removed`
+
+- [`show_data()`](http://biogenies.info/MetaboCrates/reference/show_data.md)
+  : Show metabolites without removed ones
+
+- [`show_ratios()`](http://biogenies.info/MetaboCrates/reference/show_ratios.md)
+  : Show missing values ratios without those in the removed metabolites
+
+- [`unremove_all()`](http://biogenies.info/MetaboCrates/reference/unremove_all.md)
+  :
+
+  Setting the specified type in attribute `removed` to `NULL`
+
+- [`unremove_metabolites()`](http://biogenies.info/MetaboCrates/reference/unremove_metabolites.md)
+  :
+
+  Removing the specified metabolites from the attribute `removed`
+
+# Articles
+
+### All vignettes
+
+- [A quick introduction to
+  MetaboCrates](http://biogenies.info/MetaboCrates/articles/MetaboCrates.md):
