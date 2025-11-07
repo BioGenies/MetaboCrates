@@ -718,13 +718,13 @@ ui <- navbarPage(
           column(12,
                  column(3, offset = 1,
                         selectInput("modeling_variable",
-                                    label = "Choose the grouping variable",
+                                    label = "Choose response variable",
                                     choices = character(0))
                  ),
                  column(3, offset = 1,
                         conditionalPanel("input.modeling_level != `two_levels`",
                                          selectInput("modeling_level",
-                                                     label = "Choose the grouping variable",
+                                                     label = "Choose response level to model",
                                                      choices = "two_levels")
                         )
                  )
@@ -2008,6 +2008,7 @@ server <- function(input, output, session) {
                                 "completed") %>%
         filter(`sample type` == "Sample") %>%
         select(attr(dat[["metabocrates_dat_group"]], "group")) %>%
+        mutate(across(everything(), as.character)) %>%
         tidyr::pivot_longer(cols = everything()) %>%
         group_by(across(everything())) %>%
         count() %>%
@@ -2148,8 +2149,8 @@ server <- function(input, output, session) {
     full_coef <- colnames(models_reactive()[["data"]][["full"]])
     
     if(!is.null(models_reactive()[["coefficients"]][["full"]])){
-      models_aval <- list(c("full", 6), c("reduced", 2))
-      container_cols <- c("fitted", "resid", "hat", "sigma", "cooksd",
+      models_aval <- list(c("full", 5), c("reduced", 2))
+      container_cols <- c("fitted", "resid", "hat", "cooksd",
                           "std.resid", "fitted", "resid")
       reduced_coef <- models_reactive()[["coefficients"]][["reduced"]]
       full_coef <- full_coef[-((length(full_coef) - 5):length(full_coef))]
@@ -2190,7 +2191,7 @@ server <- function(input, output, session) {
     modeling_data_dt_style <- c(
       list(list(
         columns = as.character(unlist(select(reduced_coef, term)[-1,])),
-        backgroundColor = "#A6EDDE"
+        backgroundColor = "#C9F5EA"
       )),
       lapply(names(imputed_metabos), function(name){
         list(
@@ -2254,7 +2255,7 @@ server <- function(input, output, session) {
         target = "row",
         backgroundColor = styleEqual(
           models_reactive()[["coefficients"]][["reduced"]][["term"]],
-          "#A6EDDE"
+          "#C9F5EA"
         )
       ))
     }else
