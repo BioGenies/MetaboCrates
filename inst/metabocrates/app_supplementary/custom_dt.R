@@ -18,7 +18,11 @@ custom_datatable <- function(dat,
                                  pageLength = pageLength,
                                  searching = FALSE,
                                  dom = 'Bfrtip',
-                                 buttons = c("csv", "excel", "pdf")),
+                                 buttons = c("csv", "excel", "pdf"),
+                                 select = list(
+                                   style = "multi",
+                                   items = "row"
+                                 )),
                   class = "display nowrap",
                   rownames = FALSE)
   else
