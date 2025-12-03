@@ -1831,7 +1831,7 @@ server <- function(input, output, session) {
                                 type = "warning")
       )
     }else if(input[["sample_type_PCA_type"]] == "variance"){
-      column(7,
+      column(7, offset = 1,
              plot_with_button_UI("sample_type_PCA_variance_plt")
       )
     }else if(input[["sample_type_PCA_type"]] == "biplot"){
@@ -1847,7 +1847,7 @@ server <- function(input, output, session) {
         )
       )
     }else{
-      column(7,
+      column(7, offset = 1,
              plot_with_button_UI("sample_type_PCA_plt") 
       )
     }
@@ -2000,39 +2000,48 @@ server <- function(input, output, session) {
                            column(3,
                                   class = "full-height",
                                   style = "background-color:#f8f5f0; border-right: 1px solid",
-                                  br(),
-                                  numericInput("split_prop",
-                                               label = "Proportion of observations in train dataset",
-                                               min = 10,
-                                               max = 90,
-                                               step = 10,
-                                               value = 60
+                                  column(12,
+                                         br(),
+                                         br(),
+                                         numericInput("split_prop",
+                                                      label = "Proportion of observations in train dataset",
+                                                      min = 10,
+                                                      max = 90,
+                                                      step = 10,
+                                                      value = 60
+                                         ),
+                                         selectInput("modeling_variable",
+                                                     label = "Choose response variable",
+                                                     choices = character(0)),
+                                         conditionalPanel("input.modeling_level != `two_levels`",
+                                                          selectInput("modeling_level",
+                                                                      label = "Choose response level to model",
+                                                                      choices = "two_levels")
+                                         ),
+                                         selectInput("model_type",
+                                                     label = "Choose type of model",
+                                                     choices = c("SLOPE", "Lasso")
+                                         ),
+                                         numericInput("cv_folds_num",
+                                                      label = "Choose a number of folds during cross-validation",
+                                                      value = 5,
+                                                      min = 1,
+                                                      step = 1
+                                         ),
+                                         br(),
+                                         actionButton("build_model",
+                                                      "Build model"
+                                         )
                                   ),
-                                  selectInput("modeling_variable",
-                                              label = "Choose response variable",
-                                              choices = character(0)),
-                                  conditionalPanel("input.modeling_level != `two_levels`",
-                                                   selectInput("modeling_level",
-                                                               label = "Choose response level to model",
-                                                               choices = "two_levels")
-                                  ),
-                                  selectInput("model_type",
-                                              label = "Choose type of model",
-                                              choices = c("SLOPE", "Lasso")
-                                  ),
-                                  numericInput("cv_folds_num",
-                                               label = "Choose a number of folds during cross-validation",
-                                               value = 5,
-                                               min = 1,
-                                               step = 1
-                                  ),
-                                  br(),
-                                  actionButton("build_model",
-                                               "Build model"
-                                  ),
-                                  br(),
-                                  h5(HTML("<b>Imputed values are bolded.</b>")),
-                                  uiOutput("split_color_legend")
+                                  column(12,
+                                         br(),
+                                         h5("Table legend"),
+                                         h5(HTML("<b>imputed values (bold)</b>")),
+                                         h5(HTML("<span style='background-color:#C9F5EA'>
+                                                 train dataset observations</span>")),
+                                         h5(HTML("<span style='background-color:#D5DCF7'>
+                                                 test dataset observations</span>"))
+                                  )
                            ),
                            column(9, align = "right", 
                                   h2("Modeling (step 7/9)"),
@@ -2070,33 +2079,41 @@ server <- function(input, output, session) {
                            )
                   ),
                   tabPanel("Summary",
-                           column(12, align = "right", 
+                           column(4, offset = 8, align = "right", 
                                   h2("Modeling (step 7/9)"),
                                   h3("next: Summary")
                            ),
-                           column(12,
-                                  withSpinner(uiOutput("modeling_summary_ui"))
-                           )
+                           withSpinner(uiOutput("model_summary_ui"))
                   ),
                   tabPanel("Performance",
-                           column(12, align = "right", 
+                           column(4, offset = 8, align = "right", 
                                   h2("Modeling (step 7/9)"),
                                   h3("next: Summary")
                            ),
-                           column(12,
-                                  withSpinner(uiOutput("modeling_performance_ui"))
-                           )
+                           withSpinner(uiOutput("model_performance_ui"))
                   ),
                   tabPanel("Prediction",
                            column(3,
                                   class = "full-height",
                                   style = "background-color:#f8f5f0; border-right: 1px solid",
-                                  
+                                  br(),
+                                  br(),
+                                  h4("Upload new data for prediction"),
+                                  br(),
+                                  fileInput(
+                                    inputId = "dat_to_pred",
+                                    label = "Upload metabolomics or compounds matrix",
+                                    multiple = FALSE,
+                                    accept = c(".xlsx", ".xls")
+                                  )
                            ),
                            column(9, align = "right", 
                                   h2("Modeling (step 7/9)"),
                                   h3("next: Summary")
                            ),
+                           column(9,
+                                  uiOutput("model_prediction_ui")
+                           )
                   )
       )
     }
@@ -2240,11 +2257,11 @@ server <- function(input, output, session) {
   
   table_with_button_SERVER("clean_modeling_data", clean_modeling_data_custom_dt)
   
-  output[["modeling_summary_ui"]] <- renderUI(
+  output[["model_summary_ui"]] <- renderUI(
     create_message_box("Build model to see summary", type = "warning")
   )
   
-  output[["modeling_performance_ui"]] <- renderUI(
+  output[["model_performance_ui"]] <- renderUI(
     create_message_box("Build model to see performance", type = "warning")
   )
   
@@ -2270,53 +2287,58 @@ server <- function(input, output, session) {
                      text = "Model successfully build!",
                      type = "success")
       
-      output[["split_color_legend"]] <- renderUI({
+      output[["model_summary_ui"]] <- renderUI({
         tagList(
-          h5(HTML("<span style='background-color:#C9F5EA'>
-                  Train dataset observations.</span>")),
-          h5(HTML("<span style='background-color:#D5DCF7'>
-                  Test dataset observations.</span>"))
-        )
-      })
-      
-      output[["modeling_summary_ui"]] <- renderUI({
-        tagList(
-          column(12,
-                 checkboxInput("show_only_significant",
-                               label = "Show only significant metabolites")
+          column(7,
+            column(5, offset = 1,
+                   h5(HTML("<b>Train dataset</b>"))
+            ),
+            column(6, align = "right",
+                   checkboxInput("show_only_significant",
+                                 label = "Show only significant metabolites",
+                                 value = TRUE)
+            ),
+            column(11, offset = 1,
+                   table_with_button_UI("model_train")
+            )
           ),
-          br(),
-          column(8,
-                 h5(HTML("<b>Train dataset</b>")),
-                 br(),
-                 table_with_button_UI("model_train"),
-          ),
-          column(3, offset = 1,
-                 br(),
-                 br(),
-                 br(),
-                 table_with_button_UI("model_coefficients")
+          column(5,
+                 column(10, offset = 1,
+                        br(),
+                        br(),
+                        table_with_button_UI("model_coefficients")
+                 )
           )
         )
       })
       
-      output[["modeling_performance_ui"]] <- renderUI({
+      output[["model_performance_ui"]] <- renderUI({
         tagList(
-          column(12,
-                 numericInput("model_cutoff", label = "Cutoff",
-                              value = 0.5, min = 0.1, max = 0.9, step = 0.1)
-          ),
-          br(),
-          column(4,
-                 h5(HTML("<b>Test dataset</b>")),
-                 br(),
-                 table_with_button_UI("model_test")    
-          ),
-          br(),
-          br(),
-          br(),
-          column(7, offset = 1,
-                 plot_with_button_UI("roc_plot")
+          tagList(
+            column(5,
+                   column(5, offset = 1,
+                          h5(HTML("<b>Test dataset</b>"))
+                   ),
+                   # column(6, align = "right",
+                   #        numericInput("model_cutoff", label = "Set cutoff value",
+                   #                     value = 0.5, min = 0.1, max = 0.9, step = 0.1)
+                   # ),
+                   column(11, offset = 1,
+                          br(),
+                          table_with_button_UI("model_test")
+                   )
+            ),
+            column(7,
+                   column(10, offset = 1,
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          plot_with_button_UI("roc_plot")
+                   )
+            )
           )
         )
       })
@@ -2432,19 +2454,65 @@ server <- function(input, output, session) {
   
   model_test_reactive <- reactive({
     req(model_summary)
-    req(input[["model_cutoff"]])
+    # req(input[["model_cutoff"]])
     
     model_summary()[["test"]] %>%
       select(1:3) %>%
       mutate(
-        probability = display_short(probability),
-        prediction = as.numeric(probability > input[["model_cutoff"]])
+        across(everything(), display_short)
+        # prediction = as.numeric(probability > input[["model_cutoff"]])
       ) %>%
       custom_datatable()
   })
   
   table_with_button_SERVER("model_test", model_test_reactive)
   
+  output[["model_prediction_ui"]] <- renderUI({
+    if(!model_exists())
+      create_message_box("Build model to make predictions", type = "warning")
+    else
+      table_with_button_UI("prediction_table")
+  })
+  
+  observeEvent(input[["dat_to_pred"]], {
+    req(input[["dat_to_pred"]])
+    req(model_exists)
+    
+    file <- input[["dat_to_pred"]]
+    req(file)
+    path <- file[["datapath"]]
+    
+    validate(need(tools::file_ext(path) %in% c("xlsx", "xls"),
+                  paste("Please upload an xlsx or xls file!")))
+    
+    tryCatch(
+      uploaded_data <- readxl::read_excel(path),
+      error = function(e){
+        sendSweetAlert(session, "Error!", "Check validity of your file!",
+                       type = "error")
+        
+        dat[["prediction_dat"]] <- NULL
+        req(NULL)
+      }
+    )
+    
+    dat[["prediction_dat"]] <- uploaded_data
+  })
+  
+  prediction_table_dt <- reactive({
+    req(dat[["prediction_dat"]])
+    req(model_res)
+    
+    tryCatch(
+      predict_probability(model_res(), dat[["prediction_dat"]]) %>%
+        mutate(across(everything(), display_short)) %>%
+        custom_datatable(),
+      error = function(e) sendSweetAlert(session, "Error!", e[["message"]], type = "error")
+    )
+  })
+  
+  table_with_button_SERVER("prediction_table", prediction_table_dt)
+
   ######## Summary
   
   output[["summary_LOD_removed_txt"]] <- renderUI({

@@ -204,15 +204,13 @@ get_model_summary <- function(model){
   
   coefs <- filter(coefs, estimate != 0)
   
-  probability <- predict_opt(model)
-  
   response <- colnames(model[["test"]])[2]
-
-  test_preds <- model[["test"]] %>%
-    mutate(across(all_of(response), ~ as.numeric(levels(.x)[.x]))) %>%
-    mutate(probability, .before = 3)
   
-  roc_plot <- ggplot(test_preds, aes(d = get(response), m = probability)) +
+  test_preds <- predict_probability(model) %>%
+    mutate(across(all_of(response), ~ as.numeric(levels(.x)[.x])))
+  
+  roc_plot <- ggplot(test_preds, aes(d = get(response),
+                                     m = get(paste0("probability_", response)))) +
     geom_roc(n.cuts = 5) +
     geom_abline(slope =  1, intercept = 0, color = "darkgrey",
                 linetype = "dashed") +
@@ -222,7 +220,8 @@ get_model_summary <- function(model){
   
   roc_plot <- roc_plot +
     annotate("text", x = .75, y = .25, 
-             label = paste("AUC =", round(auc, 3)))
+             label = paste("AUC =", round(auc, 3))) +
+    labs(x = "false positive fraction", y = "true positive fraction")
   
   list(
     train = model[["train"]],
@@ -237,9 +236,17 @@ get_model_summary <- function(model){
 #' 
 #' @importFrom stats predict
 #' 
+#' @examples
+#' path <- get_example_data("small_biocrates_example.xls")
+#' dat <- read_data(path)
+#' dat <- add_group(dat, "group")
+#' dat <- complete_data(dat, "limit", "limit", "limit")
+#' model <- build_model(dat, "group", "2")
+#' predict_probability(model)
+#' 
 #' @export
 
-predict_opt <- function(model, new_dat = NULL){
+predict_probability <- function(model, new_dat = NULL){
   model_opt <- model[["model"]]
   
   var_names <- if("glmnet" %in% class(model_opt))
@@ -249,21 +256,29 @@ predict_opt <- function(model, new_dat = NULL){
   
   if(is.null(new_dat))
     new_dat <- model[["test"]]
+  
+  if("sample type" %in% colnames(new_dat))
+    new_dat <- filter(new_dat, `sample type` == "Sample")
     
   clean_new_dat <- new_dat %>%
     select(any_of(var_names)) %>%
     na.omit()
   
   if(nrow(clean_new_dat) == 0)
-    stop("No observation without missing values found")
+    stop("No observations without missing values found.")
   
   if(ncol(clean_new_dat) < length(var_names))
-    stop("Some of the predictors are missing in the new dataset")
+    stop("Some of the predictors are missing from the new dataset.")
   
-  pred <- if("glmnet" %in% class(model_opt))
+  prob <- if("glmnet" %in% class(model_opt))
     predict(model_opt, as.matrix(clean_new_dat), type = "response")
   else
     1 / (1 + exp(-predict(model_opt, clean_new_dat)))
   
-  as.vector(pred)
+  response_lvl <- colnames(model[["train"]])[2]
+  
+  new_dat %>%
+    select(-any_of("sample type")) %>%
+    filter(if_all(var_names, ~ !is.na(.x))) %>%
+    mutate("probability_{response_lvl}" := prob, .before = 1)
 }
