@@ -2004,7 +2004,7 @@ server <- function(input, output, session) {
                                          br(),
                                          br(),
                                          numericInput("split_prop",
-                                                      label = "Proportion of observations in train dataset",
+                                                      label = "Proportion of observations in train dataset [%]",
                                                       min = 10,
                                                       max = 90,
                                                       step = 10,
@@ -2123,7 +2123,7 @@ server <- function(input, output, session) {
     if(is.null(attr(dat[["metabocrates_dat_group"]], "group")) ||
        is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
       updateSelectInput(inputId = "modeling_variable", choices = "none")
-    else {
+    else{
       modeling_variable <- attr(dat[["metabocrates_dat_group"]],
                                 "completed") %>%
         filter(`sample type` == "Sample") %>%
@@ -2200,15 +2200,19 @@ server <- function(input, output, session) {
   imputed_metabos <- reactive({
     req(dat[["metabocrates_dat_group"]])
     
+    metabo_names <-
+      setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+              unlist(attr(dat[["metabocrates_dat_group"]], "removed")))
+    
     imputed_metabos <- setNames(sapply(
-      attr(dat[["metabocrates_dat_group"]], "metabolites"),
+      metabo_names,
       function(name){
         dat[["metabocrates_dat_group"]] %>%
           filter(dat[["metabocrates_dat_group"]][[name]] !=
                    attr(dat[["metabocrates_dat_group"]], "completed")[[name]]) %>%
           select(`sample identification`)
       }
-    ), attr(dat[["metabocrates_dat_group"]], "metabolites"))
+    ), metabo_names)
     imputed_metabos[sapply(imputed_metabos, length) > 0]
   })
   

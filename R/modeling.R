@@ -8,6 +8,7 @@ get_modeling_data <- function(dat, response, level = NULL) {
     stop("Complete data first.")
   
   model_dat <- attr(dat, "completed") %>%
+    select(!all_of(unlist(attr(dat, "removed")))) %>%
     filter(`sample type` == "Sample")
   
   if(length(unique(model_dat[[response]])) > 2 && is.null(level))
@@ -21,14 +22,13 @@ get_modeling_data <- function(dat, response, level = NULL) {
     stop("Response variable has only one level.")
   
   model_dat <- model_dat %>%
-    select(all_of(c("sample identification",
-                    attr(dat, "metabolites"),
+    select(any_of(c("sample identification", attr(dat, "metabolites"),
                     response))) %>%
     na.omit() %>%
     select(where(~ length(unique(.)) > 1))
   
   if(nrow(model_dat) < 2)
-    stop("Too many missing values.")
+    stop("Too many observations with missing values.")
   
   aval_levels <- model_dat %>%
     group_by(across(any_of(response))) %>%
@@ -126,7 +126,8 @@ get_cv_model <- function(train, model, nfolds){
       select(alpha) %>%
       unlist() %>%
       as.numeric()
-    SLOPE(x, y, q = 0.2, alpha = alpha_opt, lambda = tune[["model"]][["lambda"]])
+    SLOPE(x, y, q = 0.2, alpha = alpha_opt,
+          lambda = tune[["model"]][["lambda"]])
   }
   else{
     foldid <- sample(rep(1:nfolds, length = nrow(train)))
