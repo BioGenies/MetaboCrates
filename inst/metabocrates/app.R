@@ -2083,14 +2083,18 @@ server <- function(input, output, session) {
                                   h2("Modeling (step 7/9)"),
                                   h3("next: Summary")
                            ),
-                           withSpinner(uiOutput("model_summary_ui"))
+                           column(12,
+                                  withSpinner(uiOutput("model_summary_ui"))
+                           )
                   ),
                   tabPanel("Performance",
                            column(4, offset = 8, align = "right", 
                                   h2("Modeling (step 7/9)"),
                                   h3("next: Summary")
                            ),
-                           withSpinner(uiOutput("model_performance_ui"))
+                           column(12,
+                                  withSpinner(uiOutput("model_performance_ui"))
+                           )
                   ),
                   tabPanel("Prediction",
                            column(3,
@@ -2474,8 +2478,19 @@ server <- function(input, output, session) {
   output[["model_prediction_ui"]] <- renderUI({
     if(!model_exists())
       create_message_box("Build model to make predictions", type = "warning")
-    else
-      table_with_button_UI("prediction_table")
+    else if(!is.null(dat[["prediction_dat"]]))
+      tagList(
+        column(3,
+          h5(HTML("<b>Predicted probabilites</b>")),
+          br(),
+          table_with_button_UI("prediction_table")
+        ),
+        column(9,
+               h5(HTML("<b>Prediction data</b>")),
+               br(),
+               table_with_button_UI("prediction_data_table") 
+        )
+      )
   })
   
   observeEvent(input[["dat_to_pred"]], {
@@ -2503,19 +2518,37 @@ server <- function(input, output, session) {
     dat[["prediction_dat"]] <- uploaded_data
   })
   
-  prediction_table_dt <- reactive({
+  prediction_table <- reactive({
     req(dat[["prediction_dat"]])
     req(model_res)
     
     tryCatch(
-      predict_probability(model_res(), dat[["prediction_dat"]]) %>%
-        mutate(across(everything(), display_short)) %>%
-        custom_datatable(),
+      predict_probability(model_res(), dat[["prediction_dat"]]),
       error = function(e) sendSweetAlert(session, "Error!", e[["message"]], type = "error")
     )
   })
   
+  prediction_table_dt <- reactive({
+    req(prediction_table)
+    
+    prediction_table() %>%
+      select(all_of(1)) %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable()
+  })
+  
   table_with_button_SERVER("prediction_table", prediction_table_dt)
+  
+  prediction_data_table_dt <- reactive({
+    req(prediction_table)
+    
+    prediction_table() %>%
+      select(-all_of(1)) %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable()
+  })
+  
+  table_with_button_SERVER("prediction_data_table", prediction_data_table_dt)
 
   ######## Summary
   
