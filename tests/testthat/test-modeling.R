@@ -112,3 +112,22 @@ test_that(
     )
   }
 )
+
+# test_that("build_model returns correct object", {
+#   test_dat <- structure(
+#     list(),
+#     completed = data.frame(
+#       `sample identification` = 1:10,
+#       `sample type` = rep("Sample", 10),
+#       group = rep(1:2, 5),
+#       `C0` = c(5, 0.5, 1, 0.2, 4, 0.01, 3.5, 0.5, 5, 0.1),
+#       `C1` = c(8, 0.555, 0.5, 0.12, 4, 0.201, 1.5, 0.1, 4, 0.01),
+#       `C2` = c(-1, 0.5, -0.4, 3, -8, 1.5, 0.0001, 3, -2, 1),
+#       check.names = FALSE
+#     ),
+#     group = "group",
+#     metabolites = c("C0", "C1", "C2")
+#   )
+#   
+#   build_model(test_dat, "group", nfolds = 2)
+# })

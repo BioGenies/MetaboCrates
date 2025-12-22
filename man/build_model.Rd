@@ -44,6 +44,6 @@ path <- get_example_data("small_biocrates_example.xls")
 dat <- read_data(path)
 dat <- add_group(dat, "group")
 dat <- complete_data(dat, "limit", "limit", "limit")
-build_model(dat, "group", "2")
+build_model(dat, "group", "2", model = "Lasso")
 
 }
