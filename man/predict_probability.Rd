@@ -2,12 +2,19 @@
 % Please edit documentation in R/modeling.R
 \name{predict_probability}
 \alias{predict_probability}
-\title{Predict}
+\title{Predict probabilites}
 \usage{
 predict_probability(model, new_dat = NULL)
 }
+\arguments{
+\item{model}{a model object, the output of \code{\link[=build_model]{build_model()}}.}
+
+\item{new_dat}{a cleaned metabolomics or compounds matrix. If no dataset is
+provided, predictions for the test dataset are returned.}
+}
 \description{
-Predict
+\code{predict_probability()} returns the provided datase with predicted
+probabilities for the response variable.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

@@ -12,8 +12,7 @@ get_modeling_data <- function(dat, response, level = NULL) {
     filter(`sample type` == "Sample")
   
   if(length(unique(model_dat[[response]])) > 2 && is.null(level))
-    stop("A specific level must be given when the response variable has three
-          or more levels.")
+    stop("A specific level must be given when the response variable has three or more levels.")
   
   if(!is.null(level) && !(level %in% model_dat[[response]]))
     stop("Given level wasn't found in a response variable.")
@@ -38,12 +37,10 @@ get_modeling_data <- function(dat, response, level = NULL) {
     unlist()
   
   if(length(aval_levels) < 2)
-    stop("Provided response variable can't be used - too small number of unique
-          values in levels.")
+    stop("Provided response variable can't be used - too small number of unique values in levels.")
   
   if(!is.null(level) && !(level %in% aval_levels))
-    stop("Provided level can't be used - too small number of unique values in
-          this level.")
+    stop("Provided level can't be used - too small number of unique values in this level.")
   
   clean_model_dat <- model_dat %>%
     filter(.data[[response]] %in% aval_levels)
@@ -102,7 +99,7 @@ split_model_dat <- function(modeling_dat, train_prop,
     split_dat
 }
 
-#' Build models
+#' Build folds models
 #' 
 #' @importFrom SLOPE trainSLOPE
 #' @importFrom SLOPE SLOPE
@@ -136,17 +133,27 @@ get_cv_model <- function(train, model, nfolds){
   }
 }
 
-#' Build linear models
+#' Build penalized logistic regression model
 #'
 #' @description
-#' `build_models()` fits full and penalized logistic models using the
-#' specified grouping column as the outcome.
+#' `build_models()` fits a penalized logistic regression using the specified
+#' grouping column as the response variable. Two types of penalized models are
+#' available, with parameters estimated through cross-validation: **SLOPE**
+#' ([SLOPE::trainSLOPE()], [SLOPE::SLOPE()]) and **Lasso** ([glmnet::cv.glmnet()],
+#' [glmnet::glmnet()]).
 #' 
-#' @inheritParams add_group
-#' 
-#' @param response a string specifying the name of the response variable.
-#' @param level a string specifying the name of the level to model when
-#' the response has more than two levels.
+#' @param dat a \code{\link{raw_data}} object, the output of [read_data()],
+#' with a group specified using the [add_group()] function. The data must be
+#' completed, for example using [complete_data()] function.
+#' @param response a string specifying the name of the response variable. Must
+#' be one of the grouping variables.
+#' @param level a string specifying the level to model. Required
+#' when the response has more than two levels.
+#' @param model a string specifying the penalization type to use.
+#' Can be either `SLOPE` or `Lasso`.
+#' @param nfolds a number of folds used in cross-validation.
+#' @param train_prop a decimal specifying the proportion of observations in
+#' train dataset.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -172,11 +179,14 @@ build_model <- function(dat, response, level = NULL, model = "SLOPE",
 #' Get model summary
 #'
 #' @description
-#' `get_models_info()` returns the summaries for models returned by
-#' [build_model()].
+#' `get_model_summary()` returns a list containing: train dataset, test dataset
+#' with predicted values, model coefficients, AUC value and ROC plot, for
+#' a model.
 #' 
 #' @importFrom plotROC geom_roc
 #' @importFrom plotROC calc_auc
+#' 
+#' @param model a model object, the output of [build_model()].
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")
@@ -233,9 +243,18 @@ get_model_summary <- function(model){
   )
 }
 
-#' Predict
+#' Predict probabilites
+#' 
+#' @description
+#' `predict_probability()` returns the provided datase with predicted
+#' probabilities for the response variable.
 #' 
 #' @importFrom stats predict
+#' 
+#' @inheritParams get_model_summary
+#' 
+#' @param new_dat a cleaned metabolomics or compounds matrix. If no dataset is
+#' provided, predictions for the test dataset are returned.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")

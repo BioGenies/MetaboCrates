@@ -2,11 +2,11 @@
 % Please edit documentation in R/modeling.R
 \name{get_cv_model}
 \alias{get_cv_model}
-\title{Build models}
+\title{Build folds models}
 \usage{
 get_cv_model(train, model, nfolds)
 }
 \description{
-Build models
+Build folds models
 }
 \keyword{internal}

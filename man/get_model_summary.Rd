@@ -6,9 +6,13 @@
 \usage{
 get_model_summary(model)
 }
+\arguments{
+\item{model}{a model object, the output of \code{\link[=build_model]{build_model()}}.}
+}
 \description{
-\code{get_models_info()} returns the summaries for models returned by
-\code{\link[=build_model]{build_model()}}.
+\code{get_model_summary()} returns a list containing: train dataset, test dataset
+with predicted values, model coefficients, AUC value and ROC plot, for
+a model.
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

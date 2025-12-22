@@ -2,7 +2,7 @@
 % Please edit documentation in R/modeling.R
 \name{build_model}
 \alias{build_model}
-\title{Build linear models}
+\title{Build penalized logistic regression model}
 \usage{
 build_model(
   dat,
@@ -14,17 +14,30 @@ build_model(
 )
 }
 \arguments{
-\item{dat}{a \code{\link{raw_data}} object. Output of \code{\link[=read_data]{read_data()}}
-function.}
+\item{dat}{a \code{\link{raw_data}} object, the output of \code{\link[=read_data]{read_data()}},
+with a group specified using the \code{\link[=add_group]{add_group()}} function. The data must be
+completed, for example using \code{\link[=complete_data]{complete_data()}} function.}
 
-\item{response}{a string specifying the name of the response variable.}
+\item{response}{a string specifying the name of the response variable. Must
+be one of the grouping variables.}
 
-\item{level}{a string specifying the name of the level to model when
-the response has more than two levels.}
+\item{level}{a string specifying the level to model. Required
+when the response has more than two levels.}
+
+\item{model}{a string specifying the penalization type to use.
+Can be either \code{SLOPE} or \code{Lasso}.}
+
+\item{nfolds}{a number of folds used in cross-validation.}
+
+\item{train_prop}{a decimal specifying the proportion of observations in
+train dataset.}
 }
 \description{
-\code{build_models()} fits full and penalized logistic models using the
-specified grouping column as the outcome.
+\code{build_models()} fits a penalized logistic regression using the specified
+grouping column as the response variable. Two types of penalized models are
+available, with parameters estimated through cross-validation: \strong{SLOPE}
+(\code{\link[SLOPE:trainSLOPE]{SLOPE::trainSLOPE()}}, \code{\link[SLOPE:SLOPE]{SLOPE::SLOPE()}}) and \strong{Lasso} (\code{\link[glmnet:cv.glmnet]{glmnet::cv.glmnet()}},
+\code{\link[glmnet:glmnet]{glmnet::glmnet()}}).
 }
 \examples{
 path <- get_example_data("small_biocrates_example.xls")

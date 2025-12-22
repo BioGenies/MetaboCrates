@@ -78,7 +78,7 @@ scale_fill_metabocrates_continuous <- function(){
 #' @importFrom stats reorder
 #' 
 #' @param dat a \code{\link{raw_data}} object, the output of [read_data()],
-#' with group specified using the [add_group()] function.
+#' with a group specified using the [add_group()] function.
 #' 
 #' @examples
 #' path <- get_example_data("small_biocrates_example.xls")

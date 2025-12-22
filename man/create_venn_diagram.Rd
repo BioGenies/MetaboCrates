@@ -8,7 +8,7 @@ create_venn_diagram(dat, threshold)
 }
 \arguments{
 \item{dat}{a \code{\link{raw_data}} object, the output of \code{\link[=read_data]{read_data()}},
-with group specified using the \code{\link[=add_group]{add_group()}} function.}
+with a group specified using the \code{\link[=add_group]{add_group()}} function.}
 
 \item{threshold}{a minimum ratio of metabolite missing values in one group
 level for metabolite to be included in the diagram, given as decimal.}
