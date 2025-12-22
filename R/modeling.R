@@ -232,7 +232,7 @@ get_model_summary <- function(model){
   roc_plot <- roc_plot +
     annotate("text", x = .75, y = .25, 
              label = paste("AUC =", round(auc, 3))) +
-    labs(x = "false positive fraction", y = "true positive fraction")
+    labs(x = "false positive rate", y = "true positive rate")
   
   list(
     train = model[["train"]],
@@ -243,10 +243,10 @@ get_model_summary <- function(model){
   )
 }
 
-#' Predict probabilites
+#' Predict probabilities
 #' 
 #' @description
-#' `predict_probability()` returns the provided datase with predicted
+#' `predict_probability()` returns the provided dataset with predicted
 #' probabilities for the response variable.
 #' 
 #' @importFrom stats predict
