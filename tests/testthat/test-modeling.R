@@ -14,6 +14,11 @@ test_dat <- structure(
   metabolites = "C0"
 )
 
+path <- get_example_data("small_biocrates_example.xls")
+dat <- read_data(path)
+dat <- add_group(dat, "group")
+dat <- complete_data(dat, "limit", "limit", "limit")
+
 test_that("get_modeling_data throws error when the data is not completed", {
   test_dat <- structure(list())
   expect_error(build_model(test_dat), "Complete data first.")
@@ -113,21 +118,105 @@ test_that(
   }
 )
 
-# test_that("build_model returns correct object", {
-#   test_dat <- structure(
-#     list(),
-#     completed = data.frame(
-#       `sample identification` = 1:10,
-#       `sample type` = rep("Sample", 10),
-#       group = rep(1:2, 5),
-#       `C0` = c(5, 0.5, 1, 0.2, 4, 0.01, 3.5, 0.5, 5, 0.1),
-#       `C1` = c(8, 0.555, 0.5, 0.12, 4, 0.201, 1.5, 0.1, 4, 0.01),
-#       `C2` = c(-1, 0.5, -0.4, 3, -8, 1.5, 0.0001, 3, -2, 1),
-#       check.names = FALSE
-#     ),
-#     group = "group",
-#     metabolites = c("C0", "C1", "C2")
-#   )
-#   
-#   build_model(test_dat, "group", nfolds = 2)
-# })
+test_that("build_model returns correct object with SLOPE model", {
+  set.seed(12)
+  model <- build_model(dat, "group", "2")
+  
+  expect_equal(nrow(model[["train"]]), 15)
+  expect_equal(nrow(model[["test"]]), 10)
+  expect_s3_class(model[["model"]], c("BinomialSLOPE", "SLOPE"))
+})
+
+test_that("build_model returns correct object with Lasso model", {
+  set.seed(12)
+  model <- build_model(dat, "group", "2", model = "Lasso")
+  
+  expect_equal(nrow(model[["train"]]), 15)
+  expect_equal(nrow(model[["test"]]), 10)
+  expect_s3_class(model[["model"]], c("lognet", "glmnet"))
+})
+
+test_that(
+  "build_model returns correct object when the response has two levels",
+  {
+    mod_test_dat <- dat %>%
+      dplyr::mutate(group = sample(c("1", "2"), nrow(dat), replace = TRUE))
+    attributes(mod_test_dat) <- attributes(dat)
+    mod_test_dat <- add_group(mod_test_dat, "group")
+    mod_test_dat <- complete_data(mod_test_dat, "limit", "limit", "limit")
+    
+    set.seed(12)
+    model <- build_model(mod_test_dat, "group")
+    
+    expect_equal(nrow(model[["train"]]), 15)
+    expect_equal(nrow(model[["test"]]), 10)
+    expect_s3_class(model[["model"]], c("BinomialSLOPE", "SLOPE"))
+  }
+)
+
+test_that("split_model_dat returns the correct indexes of train observations", {
+  modeling_dat <- MetaboCrates:::get_modeling_data(dat, "group", "2")
+  split_dat <- MetaboCrates:::split_model_dat(modeling_dat, 0.6,
+                                              get_train_obs_num = TRUE)
+  
+  expect_equal(
+    sort(split_dat[["train_obs_num"]]),
+    which(do.call(paste0, modeling_dat) %in% do.call(paste0, split_dat$train))
+  )
+})
+
+test_that("predict_probability returns the correct test predictions for SLOPE", {
+  set.seed(12)
+  model <- build_model(dat, "group", "2")
+  prediction <- predict_probability(model)
+  
+  probs <-  1 / (1 + exp(- (model[["test"]][,-(1:2)] %*%
+                              model[["model"]][["coefficients"]][["p1"]] +
+                              model[["model"]][["intercepts"]][[1]])))
+  
+  expect_equal(prediction[,1], as.matrix(probs)[,1])
+})
+
+test_that("predict_probability returns the correct test predictions for Lasso", {
+  set.seed(12)
+  model <- build_model(dat, "group", "2", "Lasso")
+  prediction <- predict_probability(model)
+  
+  probs <-  1 / (1 + exp(- (model[["test"]][,-(1:2)] %*%
+                              model[["model"]][["beta"]] +
+                              model[["model"]][["a0"]])))
+  
+  expect_equal(prediction[,1], as.matrix(probs)[,1])
+})
+
+test_that("predict_probability cleans new data", {
+  set.seed(12)
+  model <- build_model(dat, "group", "2")
+  new_dat <- data.frame(
+    `sample identification` = 1:5,
+    `sample type` = c(rep("Sample", 3), rep("QC", 2)),
+    `C0` = rep(0, 5),
+    `C2` = rep(0, 5),
+    `C3` = rep(0, 5),
+    `C3-DC (C4-OH)` = rep(0, 5),
+    `C3-OH` = rep(0, 5),
+    `C3:1` = c(2, 0.5, -1, 0.01, 3),
+    `C4` = rep(0, 5),
+    `C5` = rep(0, 5),
+    check.names = FALSE
+  )
+
+  prediction <- predict_probability(model, new_dat)
+  
+  expect_equal(prediction[["sample identification"]], 1:3)
+})
+
+test_that("get_model_summary returnes correct object", {
+  set.seed(12)
+  model <- build_model(dat, "group", "2")
+  summary <- get_model_summary(model)
+  
+  expect_equal(nrow(summary[["train"]]), 15)
+  expect_equal(nrow(summary[["test"]]), 10)
+  expect_equal(summary[["auc"]], 0.714285714)
+})
