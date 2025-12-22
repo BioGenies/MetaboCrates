@@ -1,0 +1,1 @@
+Significant metabolites and their coefficient values from the model. Larger absolute coefficient values indicate greater metabolite importance.

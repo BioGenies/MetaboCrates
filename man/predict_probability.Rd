@@ -2,7 +2,7 @@
 % Please edit documentation in R/modeling.R
 \name{predict_probability}
 \alias{predict_probability}
-\title{Predict probabilites}
+\title{Predict probabilities}
 \usage{
 predict_probability(model, new_dat = NULL)
 }
@@ -13,7 +13,7 @@ predict_probability(model, new_dat = NULL)
 provided, predictions for the test dataset are returned.}
 }
 \description{
-\code{predict_probability()} returns the provided datase with predicted
+\code{predict_probability()} returns the provided dataset with predicted
 probabilities for the response variable.
 }
 \examples{
