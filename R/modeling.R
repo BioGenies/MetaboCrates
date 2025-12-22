@@ -161,7 +161,7 @@ get_cv_model <- function(train, model, nfolds){
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' build_model(dat, "group", "2")
+#' build_model(dat, "group", "2", "Lasso")
 #' 
 #' @export
 
@@ -194,7 +194,7 @@ build_model <- function(dat, response, level = NULL, model = "SLOPE",
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' model <- build_model(dat, "group", "2")
+#' model <- build_model(dat, "group", "2", "Lasso")
 #' get_model_summary(model)
 #' 
 #' @export
@@ -262,7 +262,7 @@ get_model_summary <- function(model){
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' model <- build_model(dat, "group", "2")
+#' model <- build_model(dat, "group", "2", "Lasso")
 #' predict_probability(model)
 #' 
 #' @export
