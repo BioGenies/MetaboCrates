@@ -14,7 +14,10 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.keep = "all",
   message = FALSE,
-  warning = FALSE
+  warning = FALSE,
+  dpi = 100,
+  fig.retina = 2,
+  fig.dim = c(6,4)
 )
 ```
 
@@ -101,7 +104,7 @@ attr(grouped_dat, "group")
 
 Below, the information about grouped data are displayed.
 
-```{r, fig.width=6}
+```{r}
 cat(get_info(grouped_dat))
 
 plot_groups(grouped_dat)
@@ -194,7 +197,7 @@ comp_dat <- complete_data(rm_dat,
 
 To investigate missing values, you can use the `plot_heatmap()` function, which creates a heatmap indicating whether a value is missing for each sample and metabolite, depending on the plate bar code. You can specify a plate bar code to generate a single plot; otherwise, if there are multiple plate bar codes in the dataset, a faceted plot will be created. If `show_colors = TRUE`, each missing value type is shown in a different color. Below, cropped plots are presented, showing the first five metabolites.
 
-```{r, fig.width=7}
+```{r}
 plot_heatmap(comp_dat, plate_bar_code = "1052125775-1 | 1052125780-1") +
    ylim(attr(comp_dat, "metabolites")[5:1])
 
