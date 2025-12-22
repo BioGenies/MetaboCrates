@@ -123,12 +123,13 @@ get_cv_model <- function(train, model, nfolds){
       select(alpha) %>%
       unlist() %>%
       as.numeric()
-    SLOPE(x, y, q = 0.2, alpha = alpha_opt,
+    SLOPE(x, y, family = "binomial", q = 0.2, alpha = alpha_opt,
           lambda = tune[["model"]][["lambda"]])
   }
   else{
     foldid <- sample(rep(1:nfolds, length = nrow(train)))
-    tune <- cv.glmnet(as.matrix(x), y, family = "binomial", foldid = foldid)
+    tune <- suppressWarnings(cv.glmnet(as.matrix(x), y, family = "binomial",
+                                       foldid = foldid))
     glmnet(as.matrix(x), y, family = "binomial", lambda =  tune[["lambda.min"]])
   }
 }
@@ -160,7 +161,7 @@ get_cv_model <- function(train, model, nfolds){
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' build_model(dat, "group", "2", model = "Lasso")
+#' build_model(dat, "group", "2")
 #' 
 #' @export
 
@@ -193,7 +194,7 @@ build_model <- function(dat, response, level = NULL, model = "SLOPE",
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' model <- build_model(dat, "group", "2", model = "Lasso")
+#' model <- build_model(dat, "group", "2")
 #' get_model_summary(model)
 #' 
 #' @export
@@ -261,7 +262,7 @@ get_model_summary <- function(model){
 #' dat <- read_data(path)
 #' dat <- add_group(dat, "group")
 #' dat <- complete_data(dat, "limit", "limit", "limit")
-#' model <- build_model(dat, "group", "2", model = "Lasso")
+#' model <- build_model(dat, "group", "2")
 #' predict_probability(model)
 #' 
 #' @export
@@ -291,7 +292,7 @@ predict_probability <- function(model, new_dat = NULL){
     stop("Some of the predictors are missing from the new dataset.")
   
   prob <- if("glmnet" %in% class(model_opt))
-    predict(model_opt, as.matrix(clean_new_dat), type = "response")
+    predict(model_opt, as.matrix(clean_new_dat), type = "response")[,1]
   else
     1 / (1 + exp(-predict(model_opt, clean_new_dat)))
   
