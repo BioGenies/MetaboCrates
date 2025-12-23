@@ -14,7 +14,10 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.keep = "all",
   message = FALSE,
-  warning = FALSE
+  warning = FALSE,
+  dpi = 100,
+  fig.retina = 2,
+  fig.dim = c(6,4)
 )
 ```
 
@@ -25,7 +28,7 @@ library(ggplot2)
 
 ## Introduction
 
-The *MetaboCrates* package provides tools for processing and analyzing targeted metabolomics data (e.g., generated using Biocrates® kits). You can easily upload data and perform automated preprocessing, such as data cleaning and missing value imputation, followed by visualizations and descriptive statistics for data exploration. The package also includes tools for quality control and outlier detection.
+The *MetaboCrates* package provides tools for processing and analyzing targeted metabolomics data (e.g., generated using Biocrates® kits). You can easily upload data and perform automated preprocessing, such as data cleaning and missing value imputation, followed by visualizations and descriptive statistics for data exploration. The package also includes tools for quality control, outlier detection and prediction.
 
 ## Getting started
 
@@ -101,7 +104,7 @@ attr(grouped_dat, "group")
 
 Below, the information about grouped data are displayed.
 
-```{r, fig.width=6}
+```{r}
 cat(get_info(grouped_dat))
 
 plot_groups(grouped_dat)
@@ -127,9 +130,10 @@ plot_NA_percent(grouped_dat, type = "group", interactive = FALSE) +
 When not grouped data passed, function below returns the names of metabolites which have more than the given threshold of missing values. If the grouping is specified, then it returns only metabolites for which the threshold is exceeded in each group level. In the examples below the threshold is 20%.
 
 ```{r}
-get_LOD_to_remove(dat, 0.2)[1:5]
+get_LOD_to_remove(dat, 0.8)[25:35]
 
-get_LOD_to_remove(grouped_dat, 0.2)[1:5]
+metabolites_to_remove <- get_LOD_to_remove(grouped_dat, 0.8)
+metabolites_to_remove[23:33]
 ```
 
 If the grouping with up to 4 levels is specified, then the Venn diagram can be created, which shows the counts of metabolites having ratios of missing values larger than the given threshold for each group level.
@@ -142,7 +146,7 @@ Finally, we can remove the chosen metabolites using the `remove_metabolites()` f
 
 ```{r}
 rm_dat <- remove_metabolites(grouped_dat,
-                             metabolites_to_remove = c("AbsAcid", "Ac-Orn"),
+                             metabolites_to_remove = metabolites_to_remove,
                              type = "LOD")
 
 attr(rm_dat, "removed")
@@ -193,7 +197,7 @@ comp_dat <- complete_data(rm_dat,
 
 To investigate missing values, you can use the `plot_heatmap()` function, which creates a heatmap indicating whether a value is missing for each sample and metabolite, depending on the plate bar code. You can specify a plate bar code to generate a single plot; otherwise, if there are multiple plate bar codes in the dataset, a faceted plot will be created. If `show_colors = TRUE`, each missing value type is shown in a different color. Below, cropped plots are presented, showing the first five metabolites.
 
-```{r, fig.width=7}
+```{r}
 plot_heatmap(comp_dat, plate_bar_code = "1052125775-1 | 1052125780-1") +
    ylim(attr(comp_dat, "metabolites")[5:1])
 
@@ -280,4 +284,37 @@ pca_variance(qc_dat, threshold = 0.7)
 
 pca_variance(qc_dat, threshold = 0.7, group_by = "group", max_num = 6,
              cumulative = FALSE)
+```
+
+## Modeling
+
+Two types of penalized logistic regression models are available: SLOPE (Larsson, Bogdan et al., [“Efficient Solvers for SLOPE in R, Python, Julia, and C++.”](https://www.jstatsoft.org/article/view/v033i01)) and Lasso (Friedman, Hastie, Tibshirani, [“Regularization Paths for Generalized Linear Models via Coordinate Descent.”](https://www.jstatsoft.org/article/view/v106i01)).
+
+You can fit the chosen model, with parameters estimated through cross-validation, using the `build_model()` function. The response variable must be one of the grouping variables. If the response has more than two levels, the target level must be specified. 
+
+```{r}
+model <- build_model(qc_dat, response = "submission name", model = "SLOPE",
+                     nfolds = 5, train_prop = 0.6)
+```
+
+`get_model_summary()` returns a list containing: train dataset, test dataset with predicted values, model coefficients, AUC value and ROC plot.
+
+```{r}
+model_summary <- get_model_summary(model)
+
+model_summary[["train"]][1:5, 1:5]
+
+model_summary[["test"]][1:5, 1:6]
+
+model_summary[["coefficients"]][1:5,]
+
+model_summary[["auc"]]
+
+model_summary[["roc_plot"]]
+```
+
+You can also generate predictions for a new dataset by passing a cleaned metabolomics or compounds matrix to the `predict_probability()` function. If no dataset is provided, predictions for the test dataset are returned.
+
+```{r}
+predict_probability(model, new_dat = NULL)[1:5, 1:6]
 ```

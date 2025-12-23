@@ -71,7 +71,7 @@ download_SERVER <- function(id, dat, main_input,
           
           metabo_tab <- metabo_tab %>%
             select(any_of(c(
-              "plate bar code", "sample identification",
+              "plate bar code", "sample type", "sample identification",
               attr(download_dat, "group"),
               setdiff(attr(download_dat, "metabolites"),
                       c(attr(download_dat, "removed")[["LOD"]],

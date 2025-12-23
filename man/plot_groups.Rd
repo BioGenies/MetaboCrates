@@ -8,7 +8,7 @@ plot_groups(dat)
 }
 \arguments{
 \item{dat}{a \code{\link{raw_data}} object, the output of \code{\link[=read_data]{read_data()}},
-with group specified using the \code{\link[=add_group]{add_group()}} function.}
+with a group specified using the \code{\link[=add_group]{add_group()}} function.}
 }
 \description{
 \code{plot_groups()} creates a barplot showing the count of observations in

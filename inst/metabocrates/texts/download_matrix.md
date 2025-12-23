@@ -1,1 +1,1 @@
-Here you can download a table of metabolite compounds, including plate bar codes and sample identifiers, in xlsx format.
+Here you can download a table of metabolite compounds, including plate bar codes, sample types and identifiers, in xlsx format.

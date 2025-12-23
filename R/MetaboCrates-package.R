@@ -18,5 +18,6 @@ if(getRversion() >= "2.15.1")
       "tooltip", "tooltip", "total_NA_frac", "type", "Type", "value", 
       "Value", "Var1", "Var2", "Variable", "Variance_Explained", "xintercept",
       "max_cor", "color", "label", "len", "dummy", "fitted", ".sigma", "term",
-      "estimate", "logLik", "AIC", "BIC", "deviance", "df.residual", ".")
+      "estimate", "logLik", "AIC", "BIC", "deviance", "df.residual", ".",
+      "measure", ":=")
     )

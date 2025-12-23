@@ -332,8 +332,9 @@ ui <- navbarPage(
                                         h3("next: Completing")
                                  ),
                                  br(),
-                                 br(),
-                                 table_with_button_UI("NA_ratios_tbl"))
+                                 column(12,
+                                        table_with_button_UI("NA_ratios_tbl")) 
+                                 )
                  ),
                  tabPanel("Ratios visualization",
                           column(12, align = "right",
@@ -710,26 +711,6 @@ ui <- navbarPage(
       #######
       tabPanel("Modeling",
         nav_btns_UI("Modeling"),
-        column(12, align = "right", 
-               h2("Summary (step 7/9)"),
-               h3("next: Summary")
-        ),
-        conditionalPanel("input.modeling_variable != `none`",
-          column(12,
-                 column(3, offset = 1,
-                        selectInput("modeling_variable",
-                                    label = "Choose response variable",
-                                    choices = character(0))
-                 ),
-                 column(3, offset = 1,
-                        conditionalPanel("input.modeling_level != `two_levels`",
-                                         selectInput("modeling_level",
-                                                     label = "Choose response level to model",
-                                                     choices = "two_levels")
-                        )
-                 )
-          )
-        ),
         uiOutput("modeling_ui")
       ),
       #######
@@ -1356,7 +1337,7 @@ server <- function(input, output, session) {
                    all_of(setNames("grouping_column",
                                    paste0(attr(dat[["metabocrates_dat_group"]], "group"), collapse = ", "))))
       
-      dt %>% custom_datatable(scrollY = 300,
+      dt %>% custom_datatable(scrollY = 400,
                               paging = TRUE)
     
   })
@@ -1500,7 +1481,7 @@ server <- function(input, output, session) {
     }
     
     dat_to_display %>% 
-      custom_datatable(scrollY = 300, paging = TRUE)
+      custom_datatable(scrollY = 400, paging = TRUE)
   })
   
   table_with_button_SERVER("completed_tbl", completed_tbl_reactive)
@@ -1850,7 +1831,7 @@ server <- function(input, output, session) {
                                 type = "warning")
       )
     }else if(input[["sample_type_PCA_type"]] == "variance"){
-      column(7,
+      column(7, offset = 1,
              plot_with_button_UI("sample_type_PCA_variance_plt")
       )
     }else if(input[["sample_type_PCA_type"]] == "biplot"){
@@ -1866,7 +1847,7 @@ server <- function(input, output, session) {
         )
       )
     }else{
-      column(7,
+      column(7, offset = 1,
              plot_with_button_UI("sample_type_PCA_plt") 
       )
     }
@@ -1987,23 +1968,166 @@ server <- function(input, output, session) {
   })
   
   ######### Modeling
-
+  
   output[["modeling_ui"]] <- renderUI({
     req(dat[["metabocrates_dat_group"]])
   
     if(is.null(attr(dat[["metabocrates_dat_group"]], "group"))){
-      updateSelectInput(inputId = "modeling_variable", choices = "none")
-      column(12,
-             create_message_box("Apply grouping to see models",
-                                type = "warning")
-      ) 
+      tagList(
+        column(9, align = "right", 
+               h2("Modeling (step 7/9)"),
+               h3("next: Summary")
+        ),
+        column(12,
+               create_message_box("Apply grouping to see models",
+                                  type = "warning")
+        )
+      )
     }else if(is.null(attr(dat[["metabocrates_dat_group"]], "completed"))){
-      updateSelectInput(inputId = "modeling_variable", choices = "none")
-      column(12,
-             create_message_box("Complete data to see models",
-                                type = "warning")
-      ) 
+      tagList(
+        column(9, align = "right", 
+               h2("Modeling (step 7/9)"),
+               h3("next: Summary")
+        ),
+        column(12,
+               create_message_box("Complete data to see models",
+                                  type = "warning")
+        )
+      )
     }else{
+      tabsetPanel(id = "modeling",
+                  tabPanel("Setup",
+                           column(3,
+                                  class = "full-height",
+                                  style = "background-color:#f8f5f0; border-right: 1px solid",
+                                  column(12,
+                                         br(),
+                                         br(),
+                                         numericInput("split_prop",
+                                                      label = "Proportion of observations in train dataset [%]",
+                                                      min = 10,
+                                                      max = 90,
+                                                      step = 10,
+                                                      value = 60
+                                         ),
+                                         selectInput("modeling_variable",
+                                                     label = "Choose response variable",
+                                                     choices = character(0)),
+                                         conditionalPanel("input.modeling_level != `two_levels`",
+                                                          selectInput("modeling_level",
+                                                                      label = "Choose response level to model",
+                                                                      choices = "two_levels")
+                                         ),
+                                         selectInput("model_type",
+                                                     label = "Choose type of model",
+                                                     choices = c("SLOPE", "Lasso")
+                                         ),
+                                         numericInput("cv_folds_num",
+                                                      label = "Choose a number of folds during cross-validation",
+                                                      value = 5,
+                                                      min = 1,
+                                                      step = 1
+                                         ),
+                                         br(),
+                                         actionButton("build_model",
+                                                      "Build model"
+                                         )
+                                  ),
+                                  column(12,
+                                         br(),
+                                         h5("Table legend"),
+                                         h5(HTML("<b>imputed values (bold)</b>")),
+                                         h5(HTML("<span style='background-color:#C9F5EA'>
+                                                 train dataset observations</span>")),
+                                         h5(HTML("<span style='background-color:#D5DCF7'>
+                                                 test dataset observations</span>"))
+                                  )
+                           ),
+                           column(9, align = "right", 
+                                  h2("Modeling (step 7/9)"),
+                                  h3("next: Summary")
+                           ),
+                           br(),
+                           column(9,
+                                  uiOutput("clean_modeling_data_ui")
+                           ),
+                           column(12,
+                                  br(),
+                                  br(),
+                                  h5(HTML("<b>SLOPE package:</b> Larsson J, Bogdan M, Grzesiak K, Massias M, Wallin J (2025).
+                                          “Efficient Solvers for SLOPE in R, Python, Julia, and C++.” "),
+                                     a("doi:10.48550/arXiv.2511.02430", href="https://arxiv.org/abs/2511.02430"),
+                                     ", 2511.02430."),
+                                  h5(HTML("<b>SLOPE method:</b> Bogdan M, van den Berg E, Sabatti C, Su W, Candès E (2015).
+                                          “SLOPE – Adaptive Variable Selection via Convex Optimization.”
+                                          The Annals of Applied Statistics, 9(3), 1103–1140. ISSN 1932-6157, "),
+                                     a("doi:10.1214/15-AOAS842",
+                                     href="https://projecteuclid.org/journals/annals-of-applied-statistics/
+                                     volume-9/issue-3/SLOPEAdaptive-variable-selection-via-convex-optimization/
+                                     10.1214/15-AOAS842.full"),
+                                     "."),
+                                  h5(HTML("<b>Lasso (glmnet package):</b> Friedman J, Hastie T, Tibshirani R (2010).
+                                          “Regularization Paths for Generalized Linear Models via Coordinate Descent.”
+                                          Journal of Statistical Software, 33(1), 1–22. "),
+                                     a("doi:10.18637/jss.v033.i01", href="https://www.jstatsoft.org/article/view/v033i01"),
+                                     "."),
+                                  h5(HTML("<b>glmnet for generalized linear models:</b> Tay JK, Narasimhan B, Hastie T (2023).
+                                          “Elastic Net Regularization Paths for All Generalized Linear Models.”
+                                          Journal of Statistical Software, 106(1), 1–31. "),
+                                     a("doi:10.18637/jss.v106.i01", href="https://www.jstatsoft.org/article/view/v106i01"),
+                                     ".")
+                           )
+                  ),
+                  tabPanel("Summary",
+                           column(4, offset = 8, align = "right", 
+                                  h2("Modeling (step 7/9)"),
+                                  h3("next: Summary")
+                           ),
+                           column(12,
+                                  withSpinner(uiOutput("model_summary_ui"))
+                           )
+                  ),
+                  tabPanel("Performance",
+                           column(4, offset = 8, align = "right", 
+                                  h2("Modeling (step 7/9)"),
+                                  h3("next: Summary")
+                           ),
+                           column(12,
+                                  withSpinner(uiOutput("model_performance_ui"))
+                           )
+                  ),
+                  tabPanel("Prediction",
+                           column(3,
+                                  class = "full-height",
+                                  style = "background-color:#f8f5f0; border-right: 1px solid",
+                                  br(),
+                                  br(),
+                                  h4("Upload new data for prediction"),
+                                  br(),
+                                  fileInput(
+                                    inputId = "dat_to_pred",
+                                    label = "Upload metabolomics or compounds matrix",
+                                    multiple = FALSE,
+                                    accept = c(".xlsx", ".xls")
+                                  )
+                           ),
+                           column(9, align = "right", 
+                                  h2("Modeling (step 7/9)"),
+                                  h3("next: Summary")
+                           ),
+                           column(9,
+                                  uiOutput("model_prediction_ui")
+                           )
+                  )
+      )
+    }
+  })
+  
+  observeEvent(input[["run"]] == "Modeling", {
+    if(is.null(attr(dat[["metabocrates_dat_group"]], "group")) ||
+       is.null(attr(dat[["metabocrates_dat_group"]], "completed")))
+      updateSelectInput(inputId = "modeling_variable", choices = "none")
+    else{
       modeling_variable <- attr(dat[["metabocrates_dat_group"]],
                                 "completed") %>%
         filter(`sample type` == "Sample") %>%
@@ -2022,19 +2146,13 @@ server <- function(input, output, session) {
       
       updateSelectInput(inputId = "modeling_variable",
                         choices = modeling_variable)
-      
-      column(12,
-             withSpinner(uiOutput("modeling_tables"))
-      )
     }
   })
   
-  outputOptions(output, "modeling_ui", suspendWhenHidden = FALSE)
-
   observeEvent(input[["modeling_variable"]], {
     req(input[["modeling_variable"]])
     req(attr(dat[["metabocrates_dat_group"]], "completed"))
-
+    
     if(input[["modeling_variable"]] != "none"){
       lvls <- attr(dat[["metabocrates_dat_group"]], "completed") %>%
         filter(`sample type` == "Sample") %>%
@@ -2052,14 +2170,117 @@ server <- function(input, output, session) {
       }
       else{
         updateSelectInput(inputId = "modeling_level", choices = lvls)
-      } 
+      }
     }
   })
   
-  models_reactive <- reactive({
+  clean_modeling_data_reactive <- reactive({
     req(dat[["metabocrates_dat_group"]])
     req(input[["modeling_variable"]])
     req(input[["modeling_level"]])
+    
+    level <- if(input[["modeling_level"]] == "two_levels")
+      NULL
+    else
+      input[["modeling_level"]]
+    
+    tryCatch(
+      MetaboCrates:::get_modeling_data(dat[["metabocrates_dat_group"]],
+                                       input[["modeling_variable"]],
+                                       level),
+      error = function(e) e[["message"]]
+    )
+  })
+  
+  output[["clean_modeling_data_ui"]] <- renderUI({
+    req(clean_modeling_data_reactive)
+    
+    if(is.character(clean_modeling_data_reactive()))
+      create_message_box(clean_modeling_data_reactive(), type = "warning")
+    else
+      table_with_button_UI("clean_modeling_data")
+  })
+  
+  imputed_metabos <- reactive({
+    req(dat[["metabocrates_dat_group"]])
+    
+    metabo_names <-
+      setdiff(attr(dat[["metabocrates_dat_group"]], "metabolites"),
+              unlist(attr(dat[["metabocrates_dat_group"]], "removed")))
+    
+    imputed_metabos <- setNames(sapply(
+      metabo_names,
+      function(name){
+        dat[["metabocrates_dat_group"]] %>%
+          filter(dat[["metabocrates_dat_group"]][[name]] !=
+                   attr(dat[["metabocrates_dat_group"]], "completed")[[name]]) %>%
+          select(`sample identification`)
+      }
+    ), metabo_names)
+    imputed_metabos[sapply(imputed_metabos, length) > 0]
+  })
+  
+  train_rows_style <- reactiveVal(integer(0))
+  
+  clean_modeling_data_custom_dt <- reactive({
+    req(clean_modeling_data_reactive)
+    
+    aval_metabos <- intersect(names(imputed_metabos()),
+                              colnames(clean_modeling_data_reactive()))
+    
+    styles <- if(length(imputed_metabos()) != 0)
+      lapply(aval_metabos, function(name){
+        row_idx <- which(
+          clean_modeling_data_reactive()[["sample identification"]] %in%
+            imputed_metabos()[[name]]
+        )
+        list(
+          columns = name,
+          fontWeight = styleRow(row_idx, "bold")
+        )
+      })
+    else
+      NULL
+    
+    if(length(train_rows_style()) != 0)
+      styles <- c(
+        styles,
+        list(list(
+          0,
+          target = "row",
+          backgroundColor = styleRow(
+            rows = train_rows_style(),
+            values = "#C9F5EA",
+            default = "#D5DCF7"
+          )
+        )) 
+      )
+    
+    if(!is.character(clean_modeling_data_reactive()))
+      clean_modeling_data_reactive() %>%
+      custom_datatable(scrollY = 380,
+                       selection = "none",
+                       styles = styles)
+  })
+  
+  table_with_button_SERVER("clean_modeling_data", clean_modeling_data_custom_dt)
+  
+  output[["model_summary_ui"]] <- renderUI(
+    create_message_box("Build model to see summary", type = "warning")
+  )
+  
+  output[["model_performance_ui"]] <- renderUI(
+    create_message_box("Build model to see performance", type = "warning")
+  )
+  
+  model_exists <- reactiveVal(0)
+  
+  observeEvent(input[["build_model"]], {
+    req(dat[["metabocrates_dat_group"]])
+    req(input[["modeling_variable"]])
+    req(input[["modeling_level"]])
+    req(clean_modeling_data_reactive)
+    req(clean_modeling_data_custom_dt)
     
     if(input[["modeling_variable"]] != "none"){
       level <- if(input[["modeling_level"]] == "two_levels")
@@ -2067,218 +2288,268 @@ server <- function(input, output, session) {
       else
         input[["modeling_level"]]
       
-      models <- tryCatch(
-        build_models(dat[["metabocrates_dat_group"]],
-                     response = input[["modeling_variable"]],
-                     level = level),
-        error = function(e) e[["message"]]
-      )
+      model_exists(1)
       
-      if(is.character(models))
-        models
-      else
-        get_models_info(models) 
-    }
-  })
-  
-  output[["modeling_tables"]] <- renderUI({
-    req(dat[["metabocrates_dat_group"]])
-    req(models_reactive)
-    
-    if(is.character(models_reactive()))
-      column(12,
-             create_message_box(models_reactive(),
-                                type = "warning")
-      )
-    else
-      tagList(
-        column(10, offset = 1,
-               br(),
-               table_with_button_UI("modeling_summary")
-        ),
-        column(12,
-               br(),
-               br(),
-               column(7,
-                      table_with_button_UI("modeling_data")
-               ),
-               column(4, offset = 1,
-                      table_with_button_UI("modeling_coefficients")
-               )
-        )
-      )
-  })
-  
-  modeling_summary <- reactive({
-    req(models_reactive)
-    
-    model_aval <- setdiff(names(models_reactive()[["summary"]]), "general")
-    
-    container <- htmltools::withTags(table(
-      class = 'display',
-      thead(
-        tr(
-          lapply(c("null.deviance", "df.null", "nobs"), function(name){
-            th(rowspan = 2, name)
-          }),
-          lapply(model_aval, function(name) th(colspan = 5, name))
-        ),
-        tr(
-          lapply(rep(c("logLik", "AIC", "BIC", "deviance", "df.residual"),
-                     length(model_aval)),
-                 th)
-        )
-      )
-    ))
-    
-    models_reactive()[["summary"]] %>%
-      bind_cols() %>%
-      mutate(across(everything(), display_short)) %>%
-      custom_datatable(scrollY = NULL,
-                       paging = FALSE,
-                       pageLength = 1,
-                       container = container)
-  })
-  
-  table_with_button_SERVER("modeling_summary", modeling_summary)
-  
-  modeling_data <- reactive({
-    req(dat[["metabocrates_dat_group"]])
-    req(models_reactive)
-    
-    full_coef <- colnames(models_reactive()[["data"]][["full"]])
-    
-    if(!is.null(models_reactive()[["coefficients"]][["full"]])){
-      models_aval <- list(c("full", 5), c("reduced", 2))
-      container_cols <- c("fitted", "resid", "hat", "cooksd",
-                          "std.resid", "fitted", "resid")
-      reduced_coef <- models_reactive()[["coefficients"]][["reduced"]]
-      full_coef <- full_coef[-((length(full_coef) - 5):length(full_coef))]
-    }
-    else{
-      models_aval <- list(c("reduced", 2))
-      container_cols <- c("fitted", "resid")
-      reduced_coef <- models_reactive()[["coefficients"]]
-    }
-    
-    container <- htmltools::withTags(table(
-      class = 'display',
-      thead(
-        tr(lapply(models_aval,
-                  function(x) th(colspan = as.numeric(x[2]), x[1])),
-           lapply(full_coef, function(name){
-             th(rowspan = 2, name)
-           })
-        ),
-        tr(
-          lapply(container_cols, th)
-        )
-      )
-    ))
-    
-    imputed_metabos <- sapply(
-      attr(dat[["metabocrates_dat_group"]], "metabolites"),
-      function(name){
-        if(!(name %in% full_coef))
-          NULL
-        else
-          which(dat[["metabocrates_dat_group"]][[name]] != 
-                  attr(dat[["metabocrates_dat_group"]], "completed")[[name]])
-      }
-    )
-    imputed_metabos <- imputed_metabos[sapply(imputed_metabos, length) > 0]
+      sendSweetAlert(session = session,
+                     title = "Great!",
+                     text = "Model successfully build!",
+                     type = "success")
       
-    modeling_data_dt_style <- c(
-      list(list(
-        columns = as.character(unlist(select(reduced_coef, term)[-1,])),
-        backgroundColor = "#C9F5EA"
-      )),
-      lapply(names(imputed_metabos), function(name){
-        list(
-          columns = name,
-          fontWeight = styleRow(imputed_metabos[[name]], "bold")
+      output[["model_summary_ui"]] <- renderUI({
+        tagList(
+          column(7,
+            column(5, offset = 1,
+                   h5(HTML("<b>Train dataset</b>"))
+            ),
+            column(6, align = "right",
+                   checkboxInput("show_only_significant",
+                                 label = "Show only significant metabolites",
+                                 value = TRUE)
+            ),
+            column(11, offset = 1,
+                   table_with_button_UI("model_train")
+            )
+          ),
+          column(5,
+                 column(10, offset = 1,
+                        br(),
+                        br(),
+                        table_with_button_UI("model_coefficients")
+                 )
+          )
         )
       })
-    )
-    
-    models_reactive()[["data"]][["full"]] %>%
-      mutate(models_reactive()[["data"]][["reduced"]]) %>%
-      relocate(!all_of(full_coef)) %>%
-      mutate(across(everything(), display_short)) %>%
-      custom_datatable(scrollY = 300,
-                       paging = TRUE,
-                       styles = modeling_data_dt_style,
-                       container = container)
+      
+      output[["model_performance_ui"]] <- renderUI({
+        tagList(
+          tagList(
+            column(5,
+                   column(5, offset = 1,
+                          h5(HTML("<b>Test dataset</b>"))
+                   ),
+                   # column(6, align = "right",
+                   #        numericInput("model_cutoff", label = "Set cutoff value",
+                   #                     value = 0.5, min = 0.1, max = 0.9, step = 0.1)
+                   # ),
+                   column(11, offset = 1,
+                          br(),
+                          table_with_button_UI("model_test")
+                   )
+            ),
+            column(7,
+                   column(10, offset = 1,
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          br(),
+                          plot_with_button_UI("roc_plot")
+                   )
+            )
+          )
+        )
+      })
+    }
   })
   
-  table_with_button_SERVER("modeling_data", modeling_data)
+  observeEvent(input[["build_model"]], {
+    req(clean_modeling_data_reactive)
+    req(input[["split_prop"]])
+    req(input[["model_type"]])
+    req(input[["cv_folds_num"]])
+    
+    set.seed(12)
+    
+    split_modeling_dat <- MetaboCrates:::split_model_dat(clean_modeling_data_reactive(),
+                                                         input[["split_prop"]] / 100,
+                                                         get_train_obs_num = TRUE)
+    
+    train_rows_style(split_modeling_dat[["train_obs_num"]])
+    
+    set.seed(12)
+    
+    model_fit_cv <- MetaboCrates:::get_cv_model(split_modeling_dat[["train"]],
+                                                model = input[["model_type"]],
+                                                nfolds = input[["cv_folds_num"]])
+    
+    model_res <- reactive(c(split_modeling_dat, list(model = model_fit_cv)))
+  })
   
-  modeling_coefficients <- reactive({
-    req(modeling_data)
-    req(models_reactive)
+  model_res <- reactive({
+    req(clean_modeling_data_reactive)
+    req(input[["split_prop"]])
+    req(input[["model_type"]])
+    req(input[["cv_folds_num"]])
     
-    container <- if((is.null(models_reactive()[["coefficients"]][["full"]]))){
-      htmltools::withTags(table(
-        class = 'display',
-        thead(
-          tr(
-            th(rowspan = 2, "term"),
-            th(colspan = 1, "reduced")
-          ),
-          tr(
-            th("estimate")
-          )
-        )
-      ))
-    }else{
-      htmltools::withTags(table(
-        class = 'display',
-        thead(
-          tr(
-            th(rowspan = 2, "term"),
-            th(colspan = 4, "full"),
-            th(colspan = 1, "reduced")
-          ),
-          tr(
-            lapply(c("estimate", "std.error", "statistic",
-                     "p.value", "estimate"), th)
-          )
-        )
-      ))
+    if(model_exists()){
+      set.seed(12)
+      
+      split_modeling_dat <- MetaboCrates:::split_model_dat(clean_modeling_data_reactive(),
+                                                           input[["split_prop"]] / 100,
+                                                           get_train_obs_num = TRUE)
+      
+      train_rows_style(split_modeling_dat[["train_obs_num"]])
+      
+      set.seed(12)
+      
+      model_fit_cv <- MetaboCrates:::get_cv_model(split_modeling_dat[["train"]],
+                                                  model = input[["model_type"]],
+                                                  nfolds = input[["cv_folds_num"]])
+      
+      c(split_modeling_dat, list(model = model_fit_cv)) 
     }
+  })
+  
+  model_summary <- reactive({
+    req(model_res)
     
-    modeling_data_dt_style <- if(!is.null(
-      models_reactive()[["coefficients"]][["full"]]
-      )){
-      list(list(
-        columns = "term",
-        target = "row",
-        backgroundColor = styleEqual(
-          models_reactive()[["coefficients"]][["reduced"]][["term"]],
-          "#C9F5EA"
-        )
-      ))
+    get_model_summary(model_res())
+  })
+  
+  roc_plot_reactive <- reactive({
+    req(model_summary)
+    
+    model_summary()[["roc_plot"]]
+  })
+  
+  plot_with_button_SERVER("roc_plot", roc_plot_reactive)
+  
+  model_coefficients_reactive <- reactive({
+    req(model_summary)
+    
+    model_summary()[["coefficients"]] %>%
+      mutate(estimate = display_short(estimate)) %>%
+      custom_datatable()
+  })
+  
+  table_with_button_SERVER("model_coefficients", model_coefficients_reactive)
+  
+  model_train_reactive <- reactive({
+    req(model_summary)
+    
+    train_metabos <- colnames(model_summary()[["train"]])
+    
+    if(input[["show_only_significant"]]){
+      cols_to_hide <- which(!(colnames(model_summary()[["train"]]) %in%
+                                model_summary()[["coefficients"]][["term"]]))[-(1:2)]
+      train_metabos <- train_metabos[-cols_to_hide]
     }else
+     cols_to_hide <- NULL
+
+    aval_metabos <- intersect(names(imputed_metabos()), train_metabos)
+    
+    styles <- if(length(imputed_metabos()) != 0)
+      lapply(aval_metabos, function(name){
+        row_idx <- which(
+          model_summary()[["train"]][["sample identification"]] %in%
+            imputed_metabos()[[name]]
+        )
+        list(
+          columns = name,
+          fontWeight = styleRow(row_idx, "bold")
+        )
+      })
+    else
       NULL
     
-    model_coef <- if(is.null(models_reactive()[["coefficients"]][["full"]]))
-      models_reactive()[["coefficients"]]
-    else{
-      models_reactive()[["coefficients"]][["full"]] %>%
-        full_join(models_reactive()[["coefficients"]][["reduced"]],
-                  by = "term")
-    }
-      
-    model_coef %>%
-      mutate(across(!term, ~ display_short(.x, digits = 4))) %>%
-      custom_datatable(scrollY = 300,
-                       paging = TRUE,
-                       styles = modeling_data_dt_style,
-                       container = container)
+    model_summary()[["train"]] %>%
+      select(-all_of(cols_to_hide)) %>%
+      custom_datatable(styles = styles)
   })
   
-  table_with_button_SERVER("modeling_coefficients", modeling_coefficients)
+  table_with_button_SERVER("model_train", model_train_reactive)
   
+  model_test_reactive <- reactive({
+    req(model_summary)
+    # req(input[["model_cutoff"]])
+    
+    model_summary()[["test"]] %>%
+      select(1:3) %>%
+      mutate(
+        across(everything(), display_short)
+        # prediction = as.numeric(probability > input[["model_cutoff"]])
+      ) %>%
+      custom_datatable()
+  })
+  
+  table_with_button_SERVER("model_test", model_test_reactive)
+  
+  output[["model_prediction_ui"]] <- renderUI({
+    if(!model_exists())
+      create_message_box("Build model to make predictions", type = "warning")
+    else if(!is.null(dat[["prediction_dat"]]))
+      tagList(
+        column(3,
+          h5(HTML("<b>Predicted probabilites</b>")),
+          br(),
+          table_with_button_UI("prediction_table")
+        ),
+        column(9,
+               h5(HTML("<b>Prediction data</b>")),
+               br(),
+               table_with_button_UI("prediction_data_table") 
+        )
+      )
+  })
+  
+  observeEvent(input[["dat_to_pred"]], {
+    req(input[["dat_to_pred"]])
+    req(model_exists)
+    
+    file <- input[["dat_to_pred"]]
+    req(file)
+    path <- file[["datapath"]]
+    
+    validate(need(tools::file_ext(path) %in% c("xlsx", "xls"),
+                  paste("Please upload an xlsx or xls file!")))
+    
+    tryCatch(
+      uploaded_data <- readxl::read_excel(path),
+      error = function(e){
+        sendSweetAlert(session, "Error!", "Check validity of your file!",
+                       type = "error")
+        
+        dat[["prediction_dat"]] <- NULL
+        req(NULL)
+      }
+    )
+    
+    dat[["prediction_dat"]] <- uploaded_data
+  })
+  
+  prediction_table <- reactive({
+    req(dat[["prediction_dat"]])
+    req(model_res)
+    
+    tryCatch(
+      predict_probability(model_res(), dat[["prediction_dat"]]),
+      error = function(e) sendSweetAlert(session, "Error!", e[["message"]], type = "error")
+    )
+  })
+  
+  prediction_table_dt <- reactive({
+    req(prediction_table)
+    
+    prediction_table() %>%
+      select(all_of(1)) %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable()
+  })
+  
+  table_with_button_SERVER("prediction_table", prediction_table_dt)
+  
+  prediction_data_table_dt <- reactive({
+    req(prediction_table)
+    
+    prediction_table() %>%
+      select(-all_of(1)) %>%
+      mutate(across(everything(), display_short)) %>%
+      custom_datatable()
+  })
+  
+  table_with_button_SERVER("prediction_data_table", prediction_data_table_dt)
+
   ######## Summary
   
   output[["summary_LOD_removed_txt"]] <- renderUI({
@@ -2394,3 +2665,4 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server, options = list(launch.browser = TRUE))
+
