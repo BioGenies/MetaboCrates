@@ -17,7 +17,7 @@ plot_groups(dat)
   [`raw_data`](http://biogenies.info/MetaboCrates/reference/raw_data.md)
   object, the output of
   [`read_data()`](http://biogenies.info/MetaboCrates/reference/read_data.md),
-  with group specified using the
+  with a group specified using the
   [`add_group()`](http://biogenies.info/MetaboCrates/reference/add_group.md)
   function.
 

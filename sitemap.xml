@@ -7,7 +7,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/MetaboCrates_gui.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/add_group.html</loc></url>
-<url><loc>http://biogenies.info/MetaboCrates/reference/build_models.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/build_model.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/calculate_CV.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/check_values.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/complete_LLOQ.html</loc></url>
@@ -30,9 +30,11 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/general_third_quartile.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_CV_to_remove.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_LOD_to_remove.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/get_cv_model.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_example_data.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/get_info.html</loc></url>
-<url><loc>http://biogenies.info/MetaboCrates/reference/get_models_info.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/get_model_summary.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/get_modeling_data.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/index.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/match_plate_codes.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/metabocrates_palette.html</loc></url>
@@ -43,6 +45,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/plot_groups.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/plot_heatmap.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/plot_mv_types.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/predict_probability.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/raw_data.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/read_data.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/remove_metabolites.html</loc></url>
@@ -52,6 +55,7 @@
 <url><loc>http://biogenies.info/MetaboCrates/reference/scale_fill_metabocrates_discrete.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/show_data.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/show_ratios.html</loc></url>
+<url><loc>http://biogenies.info/MetaboCrates/reference/split_model_dat.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/unremove_all.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/unremove_metabolites.html</loc></url>
 <url><loc>http://biogenies.info/MetaboCrates/reference/validate_raw_data.html</loc></url>

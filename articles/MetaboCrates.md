@@ -7,7 +7,7 @@ targeted metabolomics data (e.g., generated using Biocrates® kits). You
 can easily upload data and perform automated preprocessing, such as data
 cleaning and missing value imputation, followed by visualizations and
 descriptive statistics for data exploration. The package also includes
-tools for quality control and outlier detection.
+tools for quality control, outlier detection and prediction.
 
 ## Getting started
 
@@ -197,11 +197,18 @@ the threshold is exceeded in each group level. In the examples below the
 threshold is 20%.
 
 ``` r
-get_LOD_to_remove(dat, 0.2)[1:5]
-#> [1] "AbsAcid"  "Ac-Orn"   "Anserine" "BABA"     "C10:1"
+get_LOD_to_remove(dat, 0.8)[25:35]
+#>  [1] "Carnosine"         "Cer d18:0/18:0"    "Cer d18:0/18:0-OH"
+#>  [4] "Cer d18:0/20:0"    "Cer d18:0/26:1"    "Cer d18:1/18:0-OH"
+#>  [7] "Cer d18:1/18:1"    "Cer d18:2/18:1"    "DCA"              
+#> [10] "DG 16:0_16:0"      "DG 16:0_20:4"
 
-get_LOD_to_remove(grouped_dat, 0.2)[1:5]
-#> [1] "AbsAcid"  "Ac-Orn"   "Anserine" "C10:1"    "C10:2"
+metabolites_to_remove <- get_LOD_to_remove(grouped_dat, 0.8)
+metabolites_to_remove[23:33]
+#>  [1] "Carnosine"         "Cer d18:0/18:0"    "Cer d18:0/26:1"   
+#>  [4] "Cer d18:1/18:0-OH" "Cer d18:1/18:1"    "DCA"              
+#>  [7] "DG 16:0_16:0"      "DG 16:1_20:0"      "DG 17:0_17:1"     
+#> [10] "DG 18:2_18:4"      "DG 21:0_22:6"
 ```
 
 If the grouping with up to 4 levels is specified, then the Venn diagram
@@ -222,12 +229,30 @@ attribute.
 
 ``` r
 rm_dat <- remove_metabolites(grouped_dat,
-                             metabolites_to_remove = c("AbsAcid", "Ac-Orn"),
+                             metabolites_to_remove = metabolites_to_remove,
                              type = "LOD")
 
 attr(rm_dat, "removed")
 #> $LOD
-#> [1] "AbsAcid" "Ac-Orn" 
+#>  [1] "AbsAcid"            "Ac-Orn"             "Anserine"          
+#>  [4] "C10:1"              "C10:2"              "C12-DC"            
+#>  [7] "C12:1"              "C14"                "C14:2"             
+#> [10] "C16-OH"             "C16:1-OH"           "C16:2-OH"          
+#> [13] "C18:1-OH"           "C3-OH"              "C3:1"              
+#> [16] "C4:1"               "C5-DC (C6-OH)"      "C5-M-DC"           
+#> [19] "C5:1"               "C5:1-DC"            "C6:1"              
+#> [22] "C7-DC"              "Carnosine"          "Cer d18:0/18:0"    
+#> [25] "Cer d18:0/26:1"     "Cer d18:1/18:0-OH"  "Cer d18:1/18:1"    
+#> [28] "DCA"                "DG 16:0_16:0"       "DG 16:1_20:0"      
+#> [31] "DG 17:0_17:1"       "DG 18:2_18:4"       "DG 21:0_22:6"      
+#> [34] "DG 22:1_22:2"       "DG O-16:0_20:4"     "DiCA(12:0)"        
+#> [37] "Dopamine"           "FA 12:0"            "FA 14:0"           
+#> [40] "FA 16:0"            "FA 18:0"            "Hex2Cer d18:1/26:0"
+#> [43] "Hex3Cer d18:1/26:1" "Indole"             "OH-GlutAcid"       
+#> [46] "PAG"                "PC 26:0"            "PC 40:1"           
+#> [49] "PC O-42:0"          "PEA"                "SM 40:4"           
+#> [52] "Suc"                "TG 18:2_31:0"       "TG 20:1_24:3"      
+#> [55] "TG 20:1_31:0"       "TG 20:2_36:5"       "c4-OH-Pro"         
 #> 
 #> $QC
 #> NULL
@@ -270,7 +295,25 @@ restored.
 ``` r
 attr(unremove_metabolites(rm_dat, "AbsAcid"), "removed")
 #> $LOD
-#> [1] "Ac-Orn"
+#>  [1] "Ac-Orn"             "Anserine"           "C10:1"             
+#>  [4] "C10:2"              "C12-DC"             "C12:1"             
+#>  [7] "C14"                "C14:2"              "C16-OH"            
+#> [10] "C16:1-OH"           "C16:2-OH"           "C18:1-OH"          
+#> [13] "C3-OH"              "C3:1"               "C4:1"              
+#> [16] "C5-DC (C6-OH)"      "C5-M-DC"            "C5:1"              
+#> [19] "C5:1-DC"            "C6:1"               "C7-DC"             
+#> [22] "Carnosine"          "Cer d18:0/18:0"     "Cer d18:0/26:1"    
+#> [25] "Cer d18:1/18:0-OH"  "Cer d18:1/18:1"     "DCA"               
+#> [28] "DG 16:0_16:0"       "DG 16:1_20:0"       "DG 17:0_17:1"      
+#> [31] "DG 18:2_18:4"       "DG 21:0_22:6"       "DG 22:1_22:2"      
+#> [34] "DG O-16:0_20:4"     "DiCA(12:0)"         "Dopamine"          
+#> [37] "FA 12:0"            "FA 14:0"            "FA 16:0"           
+#> [40] "FA 18:0"            "Hex2Cer d18:1/26:0" "Hex3Cer d18:1/26:1"
+#> [43] "Indole"             "OH-GlutAcid"        "PAG"               
+#> [46] "PC 26:0"            "PC 40:1"            "PC O-42:0"         
+#> [49] "PEA"                "SM 40:4"            "Suc"               
+#> [52] "TG 18:2_31:0"       "TG 20:1_24:3"       "TG 20:1_31:0"      
+#> [55] "TG 20:2_36:5"       "c4-OH-Pro"         
 #> 
 #> $QC
 #> NULL
@@ -448,7 +491,25 @@ qc_dat <- remove_metabolites(qc_dat, c("C14:1", "C3-DC (C4-OH)"), "QC")
 
 attr(qc_dat, "removed")
 #> $LOD
-#> [1] "AbsAcid" "Ac-Orn" 
+#>  [1] "AbsAcid"            "Ac-Orn"             "Anserine"          
+#>  [4] "C10:1"              "C10:2"              "C12-DC"            
+#>  [7] "C12:1"              "C14"                "C14:2"             
+#> [10] "C16-OH"             "C16:1-OH"           "C16:2-OH"          
+#> [13] "C18:1-OH"           "C3-OH"              "C3:1"              
+#> [16] "C4:1"               "C5-DC (C6-OH)"      "C5-M-DC"           
+#> [19] "C5:1"               "C5:1-DC"            "C6:1"              
+#> [22] "C7-DC"              "Carnosine"          "Cer d18:0/18:0"    
+#> [25] "Cer d18:0/26:1"     "Cer d18:1/18:0-OH"  "Cer d18:1/18:1"    
+#> [28] "DCA"                "DG 16:0_16:0"       "DG 16:1_20:0"      
+#> [31] "DG 17:0_17:1"       "DG 18:2_18:4"       "DG 21:0_22:6"      
+#> [34] "DG 22:1_22:2"       "DG O-16:0_20:4"     "DiCA(12:0)"        
+#> [37] "Dopamine"           "FA 12:0"            "FA 14:0"           
+#> [40] "FA 16:0"            "FA 18:0"            "Hex2Cer d18:1/26:0"
+#> [43] "Hex3Cer d18:1/26:1" "Indole"             "OH-GlutAcid"       
+#> [46] "PAG"                "PC 26:0"            "PC 40:1"           
+#> [49] "PC O-42:0"          "PEA"                "SM 40:4"           
+#> [52] "Suc"                "TG 18:2_31:0"       "TG 20:1_24:3"      
+#> [55] "TG 20:1_31:0"       "TG 20:2_36:5"       "c4-OH-Pro"         
 #> 
 #> $QC
 #> [1] "C14:1"         "C3-DC (C4-OH)"
@@ -517,3 +578,79 @@ pca_variance(qc_dat, threshold = 0.7, group_by = "group", max_num = 6,
 ```
 
 ![](MetaboCrates_files/figure-html/unnamed-chunk-25-2.png)
+
+## Modeling
+
+Two types of penalized logistic regression models are available: SLOPE
+(Larsson, Bogdan et al., [“Efficient Solvers for SLOPE in R, Python,
+Julia, and C++.”](https://www.jstatsoft.org/article/view/v033i01)) and
+Lasso (Friedman, Hastie, Tibshirani, [“Regularization Paths for
+Generalized Linear Models via Coordinate
+Descent.”](https://www.jstatsoft.org/article/view/v106i01)).
+
+You can fit the chosen model, with parameters estimated through
+cross-validation, using the
+[`build_model()`](http://biogenies.info/MetaboCrates/reference/build_model.md)
+function. The response variable must be one of the grouping variables.
+If the response has more than two levels, the target level must be
+specified.
+
+``` r
+model <- build_model(qc_dat, response = "submission name", model = "SLOPE",
+                     nfolds = 5, train_prop = 0.6)
+```
+
+[`get_model_summary()`](http://biogenies.info/MetaboCrates/reference/get_model_summary.md)
+returns a list containing: train dataset, test dataset with predicted
+values, model coefficients, AUC value and ROC plot.
+
+``` r
+model_summary <- get_model_summary(model)
+
+model_summary[["train"]][1:5, 1:5]
+#>   sample identification 2023LS_s2     C0    C2     C3
+#> 2    G0005v6_7512691183         0 10.310 5.089 0.3858
+#> 3    G0001v4_7512778233         0  3.943 4.164 0.2052
+#> 4    G0007v3_7512803774         0  7.901 8.129 0.3669
+#> 5    G0005v3_7512799609         0  7.885 5.012 0.3433
+#> 6     RC2224_7508763832         0  4.927 4.005 0.2521
+
+model_summary[["test"]][1:5, 1:6]
+#>   probability_2023LS_s2 sample identification 2023LS_s2     C0    C2     C3
+#> 1          0.0151803170    G0019v4_7512784194         0 10.670 5.457 0.4434
+#> 2          0.0003433938    G0003v6_7512511202         0  7.348 8.286 0.3608
+#> 3          0.0010533809    G0004v6_7510389556         0  4.981 3.715 0.2824
+#> 4          0.0051978951    G0001v3_7512786908         0  4.224 3.721 0.2186
+#> 5          0.0090377723    G0020v6_5010236250         0  5.806 2.972 0.2787
+
+model_summary[["coefficients"]][1:5,]
+#>          term      estimate
+#> 1 (Intercept)  1.048551e+00
+#> 2          C0  1.414565e-01
+#> 3    C14:1-OH  1.315262e+02
+#> 4    C14:2-OH -5.748579e+01
+#> 5         Gln  2.211286e-04
+
+model_summary[["auc"]]
+#> [1] 1
+
+model_summary[["roc_plot"]]
+```
+
+![](MetaboCrates_files/figure-html/unnamed-chunk-27-1.png)
+
+You can also generate predictions for a new dataset by passing a cleaned
+metabolomics or compounds matrix to the
+[`predict_probability()`](http://biogenies.info/MetaboCrates/reference/predict_probability.md)
+function. If no dataset is provided, predictions for the test dataset
+are returned.
+
+``` r
+predict_probability(model, new_dat = NULL)[1:5, 1:6]
+#>   probability_2023LS_s2 sample identification 2023LS_s2     C0    C2     C3
+#> 1          0.0151803170    G0019v4_7512784194         0 10.670 5.457 0.4434
+#> 2          0.0003433938    G0003v6_7512511202         0  7.348 8.286 0.3608
+#> 3          0.0010533809    G0004v6_7510389556         0  4.981 3.715 0.2824
+#> 4          0.0051978951    G0001v3_7512786908         0  4.224 3.721 0.2186
+#> 5          0.0090377723    G0020v6_5010236250         0  5.806 2.972 0.2787
+```

@@ -11,8 +11,8 @@
 - [`add_group()`](http://biogenies.info/MetaboCrates/reference/add_group.md)
   : Group data
 
-- [`build_models()`](http://biogenies.info/MetaboCrates/reference/build_models.md)
-  : Build linear models
+- [`build_model()`](http://biogenies.info/MetaboCrates/reference/build_model.md)
+  : Build penalized logistic regression model
 
 - [`calculate_CV()`](http://biogenies.info/MetaboCrates/reference/calculate_CV.md)
   : Calculate CV for different QC samples for each metabolite
@@ -65,8 +65,8 @@
 - [`get_info()`](http://biogenies.info/MetaboCrates/reference/get_info.md)
   : Get information about data
 
-- [`get_models_info()`](http://biogenies.info/MetaboCrates/reference/get_models_info.md)
-  : Get models summary
+- [`get_model_summary()`](http://biogenies.info/MetaboCrates/reference/get_model_summary.md)
+  : Get model summary
 
 - [`pca_variance()`](http://biogenies.info/MetaboCrates/reference/pca_variance.md)
   : Plot of variance explained by principal components
@@ -82,6 +82,9 @@
 
 - [`plot_mv_types()`](http://biogenies.info/MetaboCrates/reference/plot_mv_types.md)
   : Barplot of missing values types
+
+- [`predict_probability()`](http://biogenies.info/MetaboCrates/reference/predict_probability.md)
+  : Predict probabilities
 
 - [`raw_data()`](http://biogenies.info/MetaboCrates/reference/raw_data.md)
   : raw_data class
