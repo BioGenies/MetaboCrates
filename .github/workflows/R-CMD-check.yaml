@@ -46,9 +46,10 @@ jobs:
           needs: check
           
       - name: Install GitHub SLOPE
+        shell: Rscript {0}
         run: |
-          Rscript -e 'install.packages("remotes")'
-          Rscript -e 'remotes::install_github("jolars/SLOPE")'
+          install.packages("remotes", repos = "https://cloud.r-project.org")
+          remotes::install_github("jolars/SLOPE")
 
       - uses: r-lib/actions/check-r-package@v2
         with:
