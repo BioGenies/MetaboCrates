@@ -49,7 +49,6 @@ jobs:
         run: |
           Rscript -e 'install.packages("remotes")'
           Rscript -e 'remotes::install_github("jolars/SLOPE")'
-          Rscript -e 'library(SLOPE); print(packageVersion("SLOPE"))'
 
       - uses: r-lib/actions/check-r-package@v2
         with:
