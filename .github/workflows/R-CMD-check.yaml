@@ -42,14 +42,13 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages: any::rcmdcheck any::jolars/SLOPE
           needs: check
           
       - name: Install GitHub SLOPE
         run: |
           Rscript -e 'install.packages("remotes")'
           Rscript -e 'remotes::install_github("jolars/SLOPE")'
-          Rscript -e 'library(SLOPE); print(packageVersion("SLOPE"))'
 
       - uses: r-lib/actions/check-r-package@v2
         with:
